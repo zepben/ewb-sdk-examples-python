@@ -3,8 +3,8 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
-from zepben.evolve import NetworkService, AcLineSegment, PerLengthSequenceImpedance, Equipment, Switch, Breaker, ConductingEquipment, NameType, Meter, Name, \
-    EnergySource
+from zepben.evolve import NetworkService, AcLineSegment, PerLengthSequenceImpedance, Switch, Breaker, ConductingEquipment, NameType, Meter, EnergySource, \
+    IdentifiedObject
 
 # A `NetworkService` is a mutable node breaker network model that implements a subset of IEC61968 and IEC61970 CIM classes.
 # It is essentially a collection of `IdentifiedObject`s, and they may be added and removed as desired.
@@ -118,5 +118,27 @@ for name_type in network.name_types:
 
 # Remark: In practice, NMI names are not assigned to lines and breakers.
 
+print("""
+####################
+# REMOVING OBJECTS #
+####################
+""")
+
+# You may use the `remove` method to remove objects from the network model.
 network.remove(line)
+print(line, "removed successfully.")
 network.remove(breaker)
+print(breaker, "removed successfully.")
+
+# The object does not need to be the one that was added. It just needs to match the type and mRID.
+plsi = PerLengthSequenceImpedance(mrid="plsi_789")
+network.remove(plsi)
+print(plsi, "removed successfully.")
+
+# KeyError is raised if no matching object is found.
+try:
+    network.remove(line)
+except KeyError as error:
+    print(error)
+
+print("Number of identified objects in network:", network.len_of(IdentifiedObject))
