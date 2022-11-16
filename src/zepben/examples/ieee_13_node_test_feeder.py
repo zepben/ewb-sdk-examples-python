@@ -3,8 +3,13 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
-from zepben.evolve import AcLineSegment, Disconnector, PowerTransformer, TransformerFunctionKind, NetworkService, Terminal, PowerTransformerEnd
+from zepben.evolve import AcLineSegment, Disconnector, PowerTransformer, TransformerFunctionKind, NetworkService, Terminal, PowerTransformerEnd, EnergyConsumer
 
+FEET_PER_MILE = 5280
+
+###########################
+# EQUIPMENT AND TERMINALS #
+###########################
 vr_650_632_t1, vr_650_632_t2 = Terminal(), Terminal()
 vr_650_632_e1 = PowerTransformerEnd(terminal=vr_650_632_t1)
 vr_650_632_e2 = PowerTransformerEnd(terminal=vr_650_632_t2)
@@ -49,6 +54,17 @@ l_684_611 = AcLineSegment(length=300, terminals=[l_684_611_t1, l_684_611_t2])
 l_692_675_t1, l_692_675_t2 = Terminal(), Terminal()
 l_692_675 = AcLineSegment(length=500, terminals=[l_692_675_t1, l_692_675_t2])
 
+ec_634_t = Terminal()
+ec_634 = EnergyConsumer(terminals=[ec_634_t])
+
+######################
+# SETTING PARAMETERS #
+######################
+
+
+##########################
+# BUILDING NETWORK MODEL #
+##########################
 network = NetworkService()
 for io in [vr_650_632, vr_650_632_t1, vr_650_632_t2, vr_650_632_e1, vr_650_632_e2, l_632_645, l_632_645_t1, l_632_645_t2, l_632_633, l_632_633_t1, l_632_633_t2,
            tx_633_634, tx_633_634_t1, tx_633_634_t2, tx_633_634_e1, tx_633_634_e2, l_645_646, l_645_646_t1, l_645_646_t2, l_650_632, l_650_632_t1, l_650_632_t2,
