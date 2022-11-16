@@ -120,6 +120,29 @@ for terminal in cn.terminals:
     print(f"\t{terminal}")
 
 print("""
+########################
+# CONNECTING TERMINALS #
+########################
+""")
+# Terminals in a `NetworkService` may be connected using the `connect_terminals` method.
+# This automatically creates a connectivity node between the terminals, unless one of the terminals is already assigned to one.
+t1, t2, t3 = Terminal(mrid="t1"), Terminal(mrid="t2"), Terminal(mrid="t3")
+network.add(t1)
+network.add(t2)
+network.add(t3)
+network.connect_terminals(t1, t2)
+cn = t1.connectivity_node
+print(f"Connected to node {cn}:")
+for terminal in cn.terminals:
+    print(f"\t{terminal}")
+
+# The mrid of the connectivity node may also be used to connect a terminal
+network.connect_by_mrid(t3, cn.mrid)
+print(f"Connected to node {cn}:")
+for terminal in cn.terminals:
+    print(f"\t{terminal}")
+
+print("""
 #########
 # NAMES #
 #########
