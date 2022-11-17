@@ -9,12 +9,13 @@ from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
 
 def main():
-    channel = connect_with_password(host="dev.ewb.essential.zepben.com",
-                                    rpc_port=443,
-                                    username="<username>@essentialenergy.com.au",
+    # See connecting_to_grpc_service.py for examples of each connect function
+    channel = connect_with_password(host="EWB hostname",
+                                    rpc_port=1234,
+                                    username="<username-or-email-address>",
                                     password="<your-password>",
-                                    client_id="jTLCsjEHE0bp6u4dhhGMAIjtJBuI1Sr6")   # Client ID will always be this for this instance of EWB.
-    feeder_mrid = "CPM3B3"
+                                    client_id="client ID")
+    feeder_mrid = "NotARealFeeder123"
     print(f"Fetching {feeder_mrid}")
     # Note you should create a new client for each Feeder you retrieve
     # There is also a NetworkConsumerClient that is asyncio compatible, with the same API.

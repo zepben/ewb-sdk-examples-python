@@ -35,7 +35,7 @@ async def secure_connection_with_user_credentials():
 
     # Specify authentication config explicitly
     async with connect_with_password("client ID", "username", "password", "hostname", 1234,
-                                     audience="https://evolve-ewb/", issuer_domain="zepben-dev.au.auth0.com", auth_method=AuthMethod.AUTH0) as secure_channel:
+                                     audience="https://fake_audience/", issuer_domain="fake.issuer.domain", auth_method=AuthMethod.AUTH0) as secure_channel:
         client = NetworkConsumerClient(secure_channel)
         grpc_result = await client.get_network_hierarchy()
         print(grpc_result.result)
@@ -53,7 +53,7 @@ async def secure_connection_with_client_credentials():
 
     # Specify authentication config explicitly
     async with connect_with_secret("client ID", "client secret", "hostname", 1234,
-                                     audience="https://evolve-ewb/", issuer_domain="zepben-dev.au.auth0.com", auth_method=AuthMethod.AUTH0) as secure_channel:
+                                     audience="https://fake_audience/", issuer_domain="fake.issuer.domain", auth_method=AuthMethod.AUTH0) as secure_channel:
         client = NetworkConsumerClient(secure_channel)
         grpc_result = await client.get_network_hierarchy()
         print(grpc_result.result)
