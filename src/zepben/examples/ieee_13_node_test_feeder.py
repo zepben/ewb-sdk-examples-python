@@ -134,6 +134,17 @@ plsi_605 = plsi_from_z_per_mile((1.3292, 1.3475))
 plsi_606 = plsi_from_z_per_mile((0.7982, 0.4463), (0.7891, 0.4041), (0.7982, 0.4463))
 plsi_607 = plsi_from_z_per_mile((1.3425, 0.5124))
 
+l_632_645.per_length_sequence_impedance = plsi_603
+l_632_633.per_length_sequence_impedance = plsi_602
+l_645_646.per_length_sequence_impedance = plsi_603
+l_650_632.per_length_sequence_impedance = plsi_601
+l_684_652.per_length_sequence_impedance = plsi_607
+l_632_671.per_length_sequence_impedance = plsi_601
+l_671_684.per_length_sequence_impedance = plsi_604
+l_671_680.per_length_sequence_impedance = plsi_601
+l_684_611.per_length_sequence_impedance = plsi_605
+l_692_675.per_length_sequence_impedance = plsi_606
+
 ##########################
 # BUILDING NETWORK MODEL #
 ##########################
