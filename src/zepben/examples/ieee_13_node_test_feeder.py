@@ -118,9 +118,9 @@ lsc_611_t1, lsc_611_t2 = Terminal(phases=PhaseCode.CN), Terminal(phases=PhaseCod
 lsc_611_info = ShuntCompensatorInfo(rated_voltage=4160, rated_current=24.048, rated_reactive_power=100000)
 lsc_611 = LinearShuntCompensator(terminals=[lsc_611_t1, lsc_611_t2], asset_info=lsc_611_info)
 
-######################
-# SETTING PARAMETERS #
-######################
+###########################
+# SETTING LINE IMPEDANCES #
+###########################
 def plsi_from_z_per_mile(*impedances: Tuple[float, float]):
     r_per_foot, x_per_foot = numpy.mean(impedances, axis=0) / FEET_PER_MILE
     return PerLengthSequenceImpedance(r=r_per_foot, x=x_per_foot)

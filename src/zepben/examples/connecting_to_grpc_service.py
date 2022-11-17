@@ -4,7 +4,7 @@
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 from zepben.auth.client import AuthMethod
-from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, connect_with_password, connect_with_secret
+from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, connect_with_password, connect_with_secret, SyncNetworkConsumerClient
 
 
 async def plaintext_connection():
@@ -57,3 +57,11 @@ async def secure_connection_with_client_credentials():
         client = NetworkConsumerClient(secure_channel)
         grpc_result = await client.get_network_hierarchy()
         print(grpc_result.result)
+
+
+# You may use `SyncNetworkConsumerClient` if you prefer not to use asyncio
+def connect_sync():
+    channel = connect_insecure("hostname", 1234)
+    client = SyncNetworkConsumerClient(channel)
+    grpc_result = client.get_network_hierarchy()
+    print(grpc_result.result)
