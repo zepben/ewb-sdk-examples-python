@@ -59,7 +59,8 @@ async def secure_connection_with_client_credentials():
         print(grpc_result.result)
 
 
-# You may use `SyncNetworkConsumerClient` if you prefer not to use asyncio
+# You may use `SyncNetworkConsumerClient` if you prefer not to use asyncio.
+# The API calls are the same between `NetworkConsumerClient` and `NetworkConsumerClient`.
 def connect_sync():
     channel = connect_insecure("hostname", 1234)
     client = SyncNetworkConsumerClient(channel)
