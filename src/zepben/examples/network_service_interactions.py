@@ -130,8 +130,8 @@ meter1 = Meter()
 meter2 = Meter()
 
 name_type = NameType(name="NMI", description="National Meter Identifier")
-name_type.get_or_add_name("02783", line)
-name_type.get_or_add_name("53220", breaker)
+name_type.get_or_add_name("987654321", line)
+name_type.get_or_add_name("546372819", breaker)
 
 network.add_name_type(name_type)
 for name in network.get_name_type("NMI").names:
