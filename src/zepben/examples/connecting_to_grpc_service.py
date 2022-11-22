@@ -8,7 +8,7 @@ from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, 
 
 
 async def plaintext_connection():
-    """ Connects to an RPC server without TLS or authentication. This method is only used in development and for demos. """
+    """ Connects to an RPC server without TLS or authentication. This method should only be used in development and for demos. """
     async with connect_insecure("hostname", 1234) as insecure_channel:
         client = NetworkConsumerClient(insecure_channel)
         grpc_result = await client.get_network_hierarchy()

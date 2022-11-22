@@ -10,7 +10,10 @@ import numpy
 from zepben.evolve import AcLineSegment, Disconnector, PowerTransformer, TransformerFunctionKind, NetworkService, Terminal, PowerTransformerEnd, EnergyConsumer, \
     PerLengthSequenceImpedance, PhaseCode, EnergyConsumerPhase, SinglePhaseKind, LinearShuntCompensator, ShuntCompensatorInfo, PhaseShuntConnectionKind
 
+__all__ = ["network"]
+
 FEET_PER_MILE = 5280
+
 
 ###########################
 # EQUIPMENT AND TERMINALS #
