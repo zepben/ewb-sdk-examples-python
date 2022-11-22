@@ -5,7 +5,8 @@
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 from zepben.evolve import Conductor, PowerTransformer, connect_with_password, SyncNetworkConsumerClient, ConductingEquipment, EnergyConsumer, Switch, \
     SinglePhaseKind, connected_equipment_trace, current_connected_equipment_trace, ConductingEquipmentStep
-from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS, INCLUDE_ENERGIZED_FEEDERS, INCLUDE_ENERGIZING_SUBSTATIONS
+from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS, INCLUDE_ENERGIZED_FEEDERS, INCLUDE_ENERGIZING_SUBSTATIONS, \
+    INCLUDE_ENERGIZING_FEEDERS
 
 
 def main():
@@ -69,7 +70,7 @@ def main():
                                    include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
 
     # Fetch LV feeder equipment and include equipment from HV/MV feeders powering it
-    client.get_equipment_container("LV feeder ID", include_energizing_containers=INCLUDE_ENERGIZED_FEEDERS)
+    client.get_equipment_container("LV feeder ID", include_energizing_containers=INCLUDE_ENERGIZING_FEEDERS)
 
     # Same as above, but also fetch equipment from the substations powering the HV/MV feeders
     client.get_equipment_container("LV feeder ID", include_energizing_containers=INCLUDE_ENERGIZING_SUBSTATIONS)
