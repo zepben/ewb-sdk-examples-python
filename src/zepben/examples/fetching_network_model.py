@@ -5,7 +5,7 @@
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 from zepben.evolve import Conductor, PowerTransformer, connect_with_password, SyncNetworkConsumerClient, ConductingEquipment, EnergyConsumer, Switch, \
     SinglePhaseKind, connected_equipment_trace, current_connected_equipment_trace, ConductingEquipmentStep
-from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
+from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS, INCLUDE_ENERGIZED_FEEDERS, INCLUDE_ENERGIZING_SUBSTATIONS
 
 
 def main():
@@ -51,6 +51,28 @@ def main():
     print(f"{feeder_mrid} Switches:")
     for switch in network.objects(Switch):
         print(f"    {switch} - Open status: {switch.get_state():04b}")
+
+    # === Some other examples of fetching containers ===
+
+    # Fetch substation equipment and include equipment from HV/MV feeders powered by it
+    client.get_equipment_container("substation ID", include_energized_containers=INCLUDE_ENERGIZED_FEEDERS)
+
+    # Same as above, but also fetch equipment from LV feeders powered by the HV/MV feeders
+    client.get_equipment_container("substation ID", include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
+
+    # Fetch feeder equipment without fetching any additional equipment from powering/powered containers
+    client.get_equipment_container("feeder ID")
+
+    # Fetch HV/MV feeder equipment, the equipment from the substation powering it, and the equipment from the LV feeders it powers
+    client.get_equipment_container("feeder ID",
+                                   include_energizing_containers=INCLUDE_ENERGIZING_SUBSTATIONS,
+                                   include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
+
+    # Fetch LV feeder equipment and include equipment from HV/MV feeders powering it
+    client.get_equipment_container("LV feeder ID", include_energizing_containers=INCLUDE_ENERGIZED_FEEDERS)
+
+    # Same as above, but also fetch equipment from the substations powering the HV/MV feeders
+    client.get_equipment_container("LV feeder ID", include_energizing_containers=INCLUDE_ENERGIZING_SUBSTATIONS)
 
 
 if __name__ == "__main__":
