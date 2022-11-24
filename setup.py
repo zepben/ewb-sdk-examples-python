@@ -21,9 +21,9 @@ setup(
     package_dir={'': 'src'},
     python_requires='>=3.7',
     install_requires=[
-        "zepben.auth==0.9.0",
+        "zepben.auth==0.10.0b1",
         "zepben.eas==0.8.0",
-        "zepben.evolve==0.34.0",
+        "zepben.evolve==0.35.0b1",
         "zepben.protobuf==0.22.0",
         "zepben.edith==0.2.1",
         "pp-translator==0.6.0",

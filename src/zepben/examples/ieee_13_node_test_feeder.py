@@ -18,123 +18,123 @@ FEET_PER_MILE = 5280
 # EQUIPMENT AND TERMINALS #
 ###########################
 # Terminal phases are ABC by default
-vr_650_632_t1, vr_650_632_t2 = Terminal(), Terminal()
-vr_650_632_e1 = PowerTransformerEnd(terminal=vr_650_632_t1)
-vr_650_632_e2 = PowerTransformerEnd(terminal=vr_650_632_t2)
-vr_650_632 = PowerTransformer(function=TransformerFunctionKind.voltageRegulator, terminals=[vr_650_632_t1, vr_650_632_t2],
+vr_650_632_t1, vr_650_632_t2 = Terminal(mrid="vr_650_632_t1"), Terminal(mrid="vr_650_632_t2") 
+vr_650_632_e1 = PowerTransformerEnd(mrid="vr_650_632_e1", terminal=vr_650_632_t1)
+vr_650_632_e2 = PowerTransformerEnd(mrid="vr_650_632_e2", terminal=vr_650_632_t2)
+vr_650_632 = PowerTransformer(mrid="vr_650_632", function=TransformerFunctionKind.voltageRegulator, terminals=[vr_650_632_t1, vr_650_632_t2],
                               power_transformer_ends=[vr_650_632_e1, vr_650_632_e2])
 
-l_632_645_t1, l_632_645_t2 = Terminal(phases=PhaseCode.BCN), Terminal(phases=PhaseCode.BCN)
-l_632_645 = AcLineSegment(length=500, terminals=[l_632_645_t1, l_632_645_t2])
+l_632_645_t1, l_632_645_t2 = Terminal(mrid="l_632_645_t1", phases=PhaseCode.BCN), Terminal(mrid="l_632_645_t2", phases=PhaseCode.BCN) 
+l_632_645 = AcLineSegment(mrid="l_632_645", length=500, terminals=[l_632_645_t1, l_632_645_t2])
 
-l_632_633_t1, l_632_633_t2 = Terminal(phases=PhaseCode.ABCN), Terminal(phases=PhaseCode.ABCN)
-l_632_633 = AcLineSegment(length=500, terminals=[l_632_633_t1, l_632_633_t2])
+l_632_633_t1, l_632_633_t2 = Terminal(mrid="l_632_633_t1", phases=PhaseCode.ABCN), Terminal(mrid="l_632_633_t2", phases=PhaseCode.ABCN) 
+l_632_633 = AcLineSegment(mrid="l_632_633", length=500, terminals=[l_632_633_t1, l_632_633_t2])
 
-tx_633_634_t1, tx_633_634_t2 = Terminal(phases=PhaseCode.ABCN), Terminal(phases=PhaseCode.ABCN)
-tx_633_634_e1 = PowerTransformerEnd(terminal=tx_633_634_t1)
-tx_633_634_e2 = PowerTransformerEnd(terminal=tx_633_634_t2)
-tx_633_634 = PowerTransformer(terminals=[tx_633_634_t1, tx_633_634_t2], power_transformer_ends=[tx_633_634_e1, tx_633_634_e2])
+tx_633_634_t1, tx_633_634_t2 = Terminal(mrid="tx_633_634_t1", phases=PhaseCode.ABCN), Terminal(mrid="tx_633_634_t2", phases=PhaseCode.ABCN) 
+tx_633_634_e1 = PowerTransformerEnd(mrid="tx_633_634_e1", terminal=tx_633_634_t1)
+tx_633_634_e2 = PowerTransformerEnd(mrid="tx_633_634_e2", terminal=tx_633_634_t2)
+tx_633_634 = PowerTransformer(mrid="tx_633_634", terminals=[tx_633_634_t1, tx_633_634_t2], power_transformer_ends=[tx_633_634_e1, tx_633_634_e2])
 
-l_645_646_t1, l_645_646_t2 = Terminal(phases=PhaseCode.BCN), Terminal(phases=PhaseCode.BCN)
-l_645_646 = AcLineSegment(length=300, terminals=[l_645_646_t1, l_645_646_t2])
+l_645_646_t1, l_645_646_t2 = Terminal(mrid="l_645_646_t1", phases=PhaseCode.BCN), Terminal(mrid="l_645_646_t2", phases=PhaseCode.BCN) 
+l_645_646 = AcLineSegment(mrid="l_645_646", length=300, terminals=[l_645_646_t1, l_645_646_t2])
 
-l_650_632_t1, l_650_632_t2 = Terminal(phases=PhaseCode.ABCN), Terminal(phases=PhaseCode.ABCN)
-l_650_632 = AcLineSegment(length=2000, terminals=[l_650_632_t1, l_650_632_t2])
+l_650_632_t1, l_650_632_t2 = Terminal(mrid="l_650_632_t1", phases=PhaseCode.ABCN), Terminal(mrid="l_650_632_t2", phases=PhaseCode.ABCN) 
+l_650_632 = AcLineSegment(mrid="l_650_632", length=2000, terminals=[l_650_632_t1, l_650_632_t2])
 
-l_684_652_t1, l_684_652_t2 = Terminal(phases=PhaseCode.AN), Terminal(phases=PhaseCode.AN)
-l_684_652 = AcLineSegment(length=800, terminals=[l_684_652_t1, l_684_652_t2])
+l_684_652_t1, l_684_652_t2 = Terminal(mrid="l_684_652_t1", phases=PhaseCode.AN), Terminal(mrid="l_684_652_t2", phases=PhaseCode.AN) 
+l_684_652 = AcLineSegment(mrid="l_684_652", length=800, terminals=[l_684_652_t1, l_684_652_t2])
 
-l_632_671_t1, l_632_671_t2 = Terminal(phases=PhaseCode.ABCN), Terminal(phases=PhaseCode.ABCN)
-l_632_671 = AcLineSegment(length=2000, terminals=[l_632_671_t1, l_632_671_t2])
+l_632_671_t1, l_632_671_t2 = Terminal(mrid="l_632_671_t1", phases=PhaseCode.ABCN), Terminal(mrid="l_632_671_t2", phases=PhaseCode.ABCN) 
+l_632_671 = AcLineSegment(mrid="l_632_671", length=2000, terminals=[l_632_671_t1, l_632_671_t2])
 
-l_671_684_t1, l_671_684_t2 = Terminal(phases=PhaseCode.ACN), Terminal(phases=PhaseCode.ACN)
-l_671_684 = AcLineSegment(length=300, terminals=[l_671_684_t1, l_671_684_t2])
+l_671_684_t1, l_671_684_t2 = Terminal(mrid="l_671_684_t1", phases=PhaseCode.ACN), Terminal(mrid="l_671_684_t2", phases=PhaseCode.ACN) 
+l_671_684 = AcLineSegment(mrid="l_671_684", length=300, terminals=[l_671_684_t1, l_671_684_t2])
 
-l_671_680_t1, l_671_680_t2 = Terminal(phases=PhaseCode.ABCN), Terminal(phases=PhaseCode.ABCN)
-l_671_680 = AcLineSegment(length=1000, terminals=[l_671_680_t1, l_671_680_t2])
+l_671_680_t1, l_671_680_t2 = Terminal(mrid="l_671_680_t1", phases=PhaseCode.ABCN), Terminal(mrid="l_671_680_t2", phases=PhaseCode.ABCN) 
+l_671_680 = AcLineSegment(mrid="l_671_680", length=1000, terminals=[l_671_680_t1, l_671_680_t2])
 
-sw_671_692_t1, sw_671_692_t2 = Terminal(phases=PhaseCode.ABCN), Terminal(phases=PhaseCode.ABCN)
-sw_671_692 = Disconnector(terminals=[sw_671_692_t1, sw_671_692_t2])
+sw_671_692_t1, sw_671_692_t2 = Terminal(mrid="sw_671_692_t1", phases=PhaseCode.ABCN), Terminal(mrid="sw_671_692_t2", phases=PhaseCode.ABCN) 
+sw_671_692 = Disconnector(mrid="sw_671_692", terminals=[sw_671_692_t1, sw_671_692_t2])
 
-l_684_611_t1, l_684_611_t2 = Terminal(phases=PhaseCode.CN), Terminal(phases=PhaseCode.CN)
-l_684_611 = AcLineSegment(length=300, terminals=[l_684_611_t1, l_684_611_t2])
+l_684_611_t1, l_684_611_t2 = Terminal(mrid="l_684_611_t1", phases=PhaseCode.CN), Terminal(mrid="l_684_611_t2", phases=PhaseCode.CN) 
+l_684_611 = AcLineSegment(mrid="l_684_611", length=300, terminals=[l_684_611_t1, l_684_611_t2])
 
-l_692_675_t1, l_692_675_t2 = Terminal(phases=PhaseCode.ABCN), Terminal(phases=PhaseCode.ABCN)
-l_692_675 = AcLineSegment(length=500, terminals=[l_692_675_t1, l_692_675_t2])
+l_692_675_t1, l_692_675_t2 = Terminal(mrid="l_692_675_t1", phases=PhaseCode.ABCN), Terminal(mrid="l_692_675_t2", phases=PhaseCode.ABCN) 
+l_692_675 = AcLineSegment(mrid="l_692_675", length=500, terminals=[l_692_675_t1, l_692_675_t2])
 
-ec_634_t = Terminal(phases=PhaseCode.ABCN)
-ec_634_pha = EnergyConsumerPhase(phase=SinglePhaseKind.A, p_fixed=160000, q_fixed=110000)
-ec_634_phb = EnergyConsumerPhase(phase=SinglePhaseKind.B, p_fixed=120000, q_fixed=90000)
-ec_634_phc = EnergyConsumerPhase(phase=SinglePhaseKind.C, p_fixed=120000, q_fixed=90000)
-ec_634 = EnergyConsumer(terminals=[ec_634_t], energy_consumer_phases=[ec_634_pha, ec_634_phb, ec_634_phc])
+ec_634_t = Terminal(mrid="ec_634_t", phases=PhaseCode.ABCN)
+ec_634_pha = EnergyConsumerPhase(mrid="ec_634_pha", phase=SinglePhaseKind.A, p_fixed=160000, q_fixed=110000)
+ec_634_phb = EnergyConsumerPhase(mrid="ec_634_phb", phase=SinglePhaseKind.B, p_fixed=120000, q_fixed=90000)
+ec_634_phc = EnergyConsumerPhase(mrid="ec_634_phc", phase=SinglePhaseKind.C, p_fixed=120000, q_fixed=90000)
+ec_634 = EnergyConsumer(mrid="ec_634", terminals=[ec_634_t], energy_consumer_phases=[ec_634_pha, ec_634_phb, ec_634_phc])
 
-ec_645_t = Terminal(phases=PhaseCode.ABCN)
-ec_645_pha = EnergyConsumerPhase(phase=SinglePhaseKind.A, p_fixed=0, q_fixed=0)
-ec_645_phb = EnergyConsumerPhase(phase=SinglePhaseKind.B, p_fixed=170000, q_fixed=125000)
-ec_645_phc = EnergyConsumerPhase(phase=SinglePhaseKind.C, p_fixed=0, q_fixed=0)
-ec_645 = EnergyConsumer(terminals=[ec_645_t], energy_consumer_phases=[ec_645_pha, ec_645_phb, ec_645_phc])
+ec_645_t = Terminal(mrid="ec_645_t", phases=PhaseCode.ABCN)
+ec_645_pha = EnergyConsumerPhase(mrid="ec_645_pha", phase=SinglePhaseKind.A, p_fixed=0, q_fixed=0)
+ec_645_phb = EnergyConsumerPhase(mrid="ec_645_phb", phase=SinglePhaseKind.B, p_fixed=170000, q_fixed=125000)
+ec_645_phc = EnergyConsumerPhase(mrid="ec_645_phc", phase=SinglePhaseKind.C, p_fixed=0, q_fixed=0)
+ec_645 = EnergyConsumer(mrid="ec_645", terminals=[ec_645_t], energy_consumer_phases=[ec_645_pha, ec_645_phb, ec_645_phc])
 
-ec_646_t = Terminal(phases=PhaseCode.ABC)
-ec_646_pha = EnergyConsumerPhase(phase=SinglePhaseKind.A, p=0, q=0)
-ec_646_phb = EnergyConsumerPhase(phase=SinglePhaseKind.B, p=230000, q=132000)
-ec_646_phc = EnergyConsumerPhase(phase=SinglePhaseKind.C, p=0, q=0)
-ec_646 = EnergyConsumer(terminals=[ec_646_t], energy_consumer_phases=[ec_646_pha, ec_646_phb, ec_646_phc])
+ec_646_t = Terminal(mrid="ec_646_t", phases=PhaseCode.ABC)
+ec_646_pha = EnergyConsumerPhase(mrid="ec_646_pha", phase=SinglePhaseKind.A, p=0, q=0)
+ec_646_phb = EnergyConsumerPhase(mrid="ec_646_phb", phase=SinglePhaseKind.B, p=230000, q=132000)
+ec_646_phc = EnergyConsumerPhase(mrid="ec_646_phc", phase=SinglePhaseKind.C, p=0, q=0)
+ec_646 = EnergyConsumer(mrid="ec_646", terminals=[ec_646_t], energy_consumer_phases=[ec_646_pha, ec_646_phb, ec_646_phc])
 
-ec_652_t = Terminal(phases=PhaseCode.ABCN)
-ec_652_pha = EnergyConsumerPhase(phase=SinglePhaseKind.A, p=128000, q=86000)
-ec_652_phb = EnergyConsumerPhase(phase=SinglePhaseKind.B, p=0, q=0)
-ec_652_phc = EnergyConsumerPhase(phase=SinglePhaseKind.C, p=0, q=0)
-ec_652 = EnergyConsumer(terminals=[ec_652_t], energy_consumer_phases=[ec_652_pha, ec_652_phb, ec_652_phc])
+ec_652_t = Terminal(mrid="ec_652_t", phases=PhaseCode.ABCN)
+ec_652_pha = EnergyConsumerPhase(mrid="ec_652_pha", phase=SinglePhaseKind.A, p=128000, q=86000)
+ec_652_phb = EnergyConsumerPhase(mrid="ec_652_phb", phase=SinglePhaseKind.B, p=0, q=0)
+ec_652_phc = EnergyConsumerPhase(mrid="ec_652_phc", phase=SinglePhaseKind.C, p=0, q=0)
+ec_652 = EnergyConsumer(mrid="ec_652", terminals=[ec_652_t], energy_consumer_phases=[ec_652_pha, ec_652_phb, ec_652_phc])
 
-ec_671_t = Terminal(phases=PhaseCode.ABC)
-ec_671_pha = EnergyConsumerPhase(phase=SinglePhaseKind.A, p_fixed=385000, q_fixed=220000)
-ec_671_phb = EnergyConsumerPhase(phase=SinglePhaseKind.B, p_fixed=385000, q_fixed=220000)
-ec_671_phc = EnergyConsumerPhase(phase=SinglePhaseKind.C, p_fixed=385000, q_fixed=220000)
-ec_671 = EnergyConsumer(terminals=[ec_671_t], energy_consumer_phases=[ec_671_pha, ec_671_phb, ec_671_phc])
+ec_671_t = Terminal(mrid="ec_671_t", phases=PhaseCode.ABC)
+ec_671_pha = EnergyConsumerPhase(mrid="ec_671_pha", phase=SinglePhaseKind.A, p_fixed=385000, q_fixed=220000)
+ec_671_phb = EnergyConsumerPhase(mrid="ec_671_phb", phase=SinglePhaseKind.B, p_fixed=385000, q_fixed=220000)
+ec_671_phc = EnergyConsumerPhase(mrid="ec_671_phc", phase=SinglePhaseKind.C, p_fixed=385000, q_fixed=220000)
+ec_671 = EnergyConsumer(mrid="ec_671", terminals=[ec_671_t], energy_consumer_phases=[ec_671_pha, ec_671_phb, ec_671_phc])
 
-ec_675_t = Terminal(phases=PhaseCode.ABCN)
-ec_675_pha = EnergyConsumerPhase(phase=SinglePhaseKind.A, p_fixed=485000, q_fixed=190000)
-ec_675_phb = EnergyConsumerPhase(phase=SinglePhaseKind.B, p_fixed=68000, q_fixed=60000)
-ec_675_phc = EnergyConsumerPhase(phase=SinglePhaseKind.C, p_fixed=290000, q_fixed=212000)
-ec_675 = EnergyConsumer(terminals=[ec_675_t], energy_consumer_phases=[ec_675_pha, ec_675_phb, ec_675_phc])
+ec_675_t = Terminal(mrid="ec_675_t", phases=PhaseCode.ABCN)
+ec_675_pha = EnergyConsumerPhase(mrid="ec_675_pha", phase=SinglePhaseKind.A, p_fixed=485000, q_fixed=190000)
+ec_675_phb = EnergyConsumerPhase(mrid="ec_675_phb", phase=SinglePhaseKind.B, p_fixed=68000, q_fixed=60000)
+ec_675_phc = EnergyConsumerPhase(mrid="ec_675_phc", phase=SinglePhaseKind.C, p_fixed=290000, q_fixed=212000)
+ec_675 = EnergyConsumer(mrid="ec_675", terminals=[ec_675_t], energy_consumer_phases=[ec_675_pha, ec_675_phb, ec_675_phc])
 
-ec_692_t = Terminal(phases=PhaseCode.ABC)
-ec_692_pha = EnergyConsumerPhase(phase=SinglePhaseKind.A, p=0, q=0)
-ec_692_phb = EnergyConsumerPhase(phase=SinglePhaseKind.B, p=0, q=0)
-ec_692_phc = EnergyConsumerPhase(phase=SinglePhaseKind.C, p=170000, q=151000)
-ec_692 = EnergyConsumer(terminals=[ec_692_t], energy_consumer_phases=[ec_692_pha, ec_692_phb, ec_692_phc])
+ec_692_t = Terminal(mrid="ec_692_t", phases=PhaseCode.ABC)
+ec_692_pha = EnergyConsumerPhase(mrid="ec_692_pha", phase=SinglePhaseKind.A, p=0, q=0)
+ec_692_phb = EnergyConsumerPhase(mrid="ec_692_phb", phase=SinglePhaseKind.B, p=0, q=0)
+ec_692_phc = EnergyConsumerPhase(mrid="ec_692_phc", phase=SinglePhaseKind.C, p=170000, q=151000)
+ec_692 = EnergyConsumer(mrid="ec_692", terminals=[ec_692_t], energy_consumer_phases=[ec_692_pha, ec_692_phb, ec_692_phc])
 
-ec_611_t = Terminal(phases=PhaseCode.ABCN)
-ec_611_pha = EnergyConsumerPhase(phase=SinglePhaseKind.A, p=0, q=0)
-ec_611_phb = EnergyConsumerPhase(phase=SinglePhaseKind.B, p=0, q=0)
-ec_611_phc = EnergyConsumerPhase(phase=SinglePhaseKind.C, p=170000, q=80000)
-ec_611 = EnergyConsumer(terminals=[ec_611_t], energy_consumer_phases=[ec_611_pha, ec_611_phb, ec_611_phc])
+ec_611_t = Terminal(mrid="ec_611_t", phases=PhaseCode.ABCN)
+ec_611_pha = EnergyConsumerPhase(mrid="ec_611_pha", phase=SinglePhaseKind.A, p=0, q=0)
+ec_611_phb = EnergyConsumerPhase(mrid="ec_611_phb", phase=SinglePhaseKind.B, p=0, q=0)
+ec_611_phc = EnergyConsumerPhase(mrid="ec_611_phc", phase=SinglePhaseKind.C, p=170000, q=80000)
+ec_611 = EnergyConsumer(mrid="ec_611", terminals=[ec_611_t], energy_consumer_phases=[ec_611_pha, ec_611_phb, ec_611_phc])
 
 # Distributed load on line 632-671 is unmodelled.
 
-lsc_675_t1, lsc_675_t2 = Terminal(phases=PhaseCode.ABCN), Terminal(phases=PhaseCode.ABCN)
-lsc_675_info = ShuntCompensatorInfo(rated_voltage=4160, rated_current=48.077, rated_reactive_power=200000)
-lsc_675 = LinearShuntCompensator(terminals=[lsc_675_t1, lsc_675_t2], asset_info=lsc_675_info)
+lsc_675_t1, lsc_675_t2 = Terminal(mrid="lsc_675_t1", phases=PhaseCode.ABCN), Terminal(mrid="lsc_675_t2", phases=PhaseCode.ABCN) 
+lsc_675_info = ShuntCompensatorInfo(mrid="lsc_675_info", rated_voltage=4160, rated_current=48.077, rated_reactive_power=200000)
+lsc_675 = LinearShuntCompensator(mrid="lsc_675", terminals=[lsc_675_t1, lsc_675_t2], asset_info=lsc_675_info)
 
-lsc_611_t1, lsc_611_t2 = Terminal(phases=PhaseCode.CN), Terminal(phases=PhaseCode.CN)
-lsc_611_info = ShuntCompensatorInfo(rated_voltage=4160, rated_current=24.048, rated_reactive_power=100000)
-lsc_611 = LinearShuntCompensator(terminals=[lsc_611_t1, lsc_611_t2], asset_info=lsc_611_info)
+lsc_611_t1, lsc_611_t2 = Terminal(mrid="lsc_611_t1", phases=PhaseCode.CN), Terminal(mrid="lsc_611_t2", phases=PhaseCode.CN) 
+lsc_611_info = ShuntCompensatorInfo(mrid="lsc_611_info", rated_voltage=4160, rated_current=24.048, rated_reactive_power=100000)
+lsc_611 = LinearShuntCompensator(mrid="lsc_611", terminals=[lsc_611_t1, lsc_611_t2], asset_info=lsc_611_info)
 
 ###########################
 # SETTING LINE IMPEDANCES #
 ###########################
-def plsi_from_z_per_mile(*impedances: Tuple[float, float]):
+def plsi_from_z_per_mile(mrid: str, *impedances: Tuple[float, float]):
     r_per_foot, x_per_foot = numpy.mean(impedances, axis=0) / FEET_PER_MILE
-    return PerLengthSequenceImpedance(r=r_per_foot, x=x_per_foot)
+    return PerLengthSequenceImpedance(mrid=mrid, r=r_per_foot, x=x_per_foot)
 
 
-plsi_601 = plsi_from_z_per_mile((0.3465, 1.0179), (0.3375, 1.0478), (0.3414, 1.0348))
-plsi_602 = plsi_from_z_per_mile((0.7526, 1.1814), (0.7475, 1.1983), (0.7436, 1.2112))
-plsi_603 = plsi_from_z_per_mile((1.3294, 1.3471), (1.3238, 1.3569))
-plsi_604 = plsi_from_z_per_mile((1.3238, 1.3569), (1.3294, 1.3471))
-plsi_605 = plsi_from_z_per_mile((1.3292, 1.3475))
-plsi_606 = plsi_from_z_per_mile((0.7982, 0.4463), (0.7891, 0.4041), (0.7982, 0.4463))
-plsi_607 = plsi_from_z_per_mile((1.3425, 0.5124))
+plsi_601 = plsi_from_z_per_mile("plsi_601", (0.3465, 1.0179), (0.3375, 1.0478), (0.3414, 1.0348))
+plsi_602 = plsi_from_z_per_mile("plsi_602", (0.7526, 1.1814), (0.7475, 1.1983), (0.7436, 1.2112))
+plsi_603 = plsi_from_z_per_mile("plsi_603", (1.3294, 1.3471), (1.3238, 1.3569))
+plsi_604 = plsi_from_z_per_mile("plsi_604", (1.3238, 1.3569), (1.3294, 1.3471))
+plsi_605 = plsi_from_z_per_mile("plsi_605", (1.3292, 1.3475))
+plsi_606 = plsi_from_z_per_mile("plsi_606", (0.7982, 0.4463), (0.7891, 0.4041), (0.7982, 0.4463))
+plsi_607 = plsi_from_z_per_mile("plsi_607", (1.3425, 0.5124))
 
 l_632_645.per_length_sequence_impedance = plsi_603
 l_632_633.per_length_sequence_impedance = plsi_602
@@ -197,7 +197,7 @@ network.connect_terminals(l_632_671_t2, sw_671_692_t1)
 network.connect_terminals(l_632_671_t2, ec_671_t)
 
 # Node 675
-network.connect_terminals(l_692_675_t2, lsc_611_t1)
+network.connect_terminals(l_692_675_t2, lsc_675_t1)
 network.connect_terminals(lsc_675_t2, ec_675_t)
 
 # Node 684
