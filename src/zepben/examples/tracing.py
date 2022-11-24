@@ -9,10 +9,20 @@
 import asyncio
 
 from zepben.evolve import Switch, connected_equipment_trace, ConductingEquipmentStep, ConductingEquipment, connected_equipment_breadth_trace, \
-    normal_connected_equipment_trace, current_connected_equipment_trace, connectivity_trace, ConnectivityResult, connected_equipment
+    normal_connected_equipment_trace, current_connected_equipment_trace, connectivity_trace, ConnectivityResult, connected_equipment, \
+    connectivity_breadth_trace, SinglePhaseKind, normal_connectivity_trace, current_connectivity_trace
 
 # For the purposes of this example, we will use the IEEE 13 node feeder.
 from zepben.examples.ieee_13_node_test_feeder import network
+
+switch = network.get("sw_671_692", Switch)
+
+
+def reset_switch():
+    switch.set_normally_open(False)
+    switch.set_open(False)
+    print("Switch reset (normally and currently closed)")
+    print()
 
 
 async def equipment_traces():
@@ -52,8 +62,9 @@ async def equipment_traces():
     visited.clear()
 
     # The normal connected equipment trace iterates through all equipment normally connected to the starting equipment.
-    # By setting the switch from node 671 to 692 to currently open, the traversal will not trace through the switch.
-    network.get("sw_671_692", Switch).set_open(True)
+    # By setting the switch from node 671 to 692 to currently open on at least one phase, the traversal will not trace through the switch.
+    switch.set_normally_open(True, phase=SinglePhaseKind.A)
+    print("Switch set to normally open on phase A")
     print("Normal Connected Equipment Trace:")
     await current_connected_equipment_trace().add_step_action(print_step).run(start_item)
     print(f"Number of equipment visited: {len(visited)}")
@@ -61,24 +72,62 @@ async def equipment_traces():
     visited.clear()
 
     # The normal connected equipment trace iterates through all equipment normally connected to the starting equipment.
-    # By setting the switch from node 671 to 692 to currently open, the traversal will not trace through the switch.
-    network.get("sw_671_692", Switch).set_open(True)
+    # By setting the switch from node 671 to 692 to currently open on at least one phase, the traversal will not trace through the switch.
+    switch.set_open(True, phase=SinglePhaseKind.B)
+    print("Switch set to currently open on phase B")
     print("Normal Connected Equipment Trace:")
     await current_connected_equipment_trace().add_step_action(print_step).run(start_item)
     print(f"Number of equipment visited: {len(visited)}")
     print()
     visited.clear()
 
+    reset_switch()
+
 
 async def connectivity_traces():
     # Connectivity traces iterate over the connectivity of equipment terminals, rather than the equipment themselves.
+    # The tracker ensures that each equipment appears at most once as a destination in a connectivity.
     start_item = connected_equipment(network.get("vr_650_632", ConductingEquipment))[0]
+    visited = set()
 
     async def print_connectivity(cr: ConnectivityResult, _):
-        print(f"{cr.from_terminal.mrid:-<20}{cr.to_terminal.mrid:->20}")
+        visited.add(cr)
+        from_phases = "".join(phase_path.from_phase.short_name for phase_path in cr.nominal_phase_paths)
+        to_phases = "".join(phase_path.to_phase.short_name for phase_path in cr.nominal_phase_paths)
+        print(f"\t{cr.from_terminal.mrid:-<15}-{from_phases:->4}-{to_phases:-<4}-{cr.to_terminal.mrid:->15}")
 
-    print("Connectivity trace:")
+    print("Connectivity Trace:")
     await connectivity_trace().add_step_action(print_connectivity).run(start_item)
+    print(f"Number of connectivities visited: {len(visited)}")
+    print()
+    visited.clear()
+
+    # A breadth-first connectivity trace is also available.
+    print("Connectivity Breadth Trace:")
+    await connectivity_breadth_trace().add_step_action(print_connectivity).run(start_item)
+    print(f"Number of connectivities visited: {len(visited)}")
+    print()
+    visited.clear()
+
+    # The normal connectivity trace is analogous to the normal connected equipment trace,
+    # and likewise does not go through switches with at least open phase.
+    switch.set_normally_open(True, phase=SinglePhaseKind.A)
+    print("Switch set to normally open on phase A")
+    print("Normal Connectivity Trace:")
+    await normal_connectivity_trace().add_step_action(print_connectivity).run(start_item)
+    print(f"Number of connectivities visited: {len(visited)}")
+    print()
+    visited.clear()
+
+    switch.set_open(True, phase=SinglePhaseKind.B)
+    print("Switch set to currently open on phase B")
+    print("Current Connectivity Trace:")
+    await current_connectivity_trace().add_step_action(print_connectivity).run(start_item)
+    print(f"Number of connectivities visited: {len(visited)}")
+    print()
+    visited.clear()
+
+    reset_switch()
 
 
 async def main():

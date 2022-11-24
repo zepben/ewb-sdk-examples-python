@@ -22,11 +22,11 @@ setup(
     python_requires='>=3.7',
     install_requires=[
         "zepben.auth==0.10.0b1",
-        "zepben.eas==0.8.0",
-        "zepben.evolve==0.35.0b1",
+        "zepben.eas==0.9.0b1",
+        "zepben.evolve==0.35.0b2",
         "zepben.protobuf==0.22.0",
-        "zepben.edith==0.2.1",
-        "pp-translator==0.6.0",
+        "zepben.edith==0.3.0b1",
+        "pp-translator==0.7.0b1",
     ],
     extras_require={
         "test": test_deps,
