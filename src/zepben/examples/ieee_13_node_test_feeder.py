@@ -7,7 +7,8 @@ from typing import Tuple
 
 import numpy
 from zepben.evolve import AcLineSegment, Disconnector, PowerTransformer, TransformerFunctionKind, NetworkService, Terminal, PowerTransformerEnd, EnergyConsumer, \
-    PerLengthSequenceImpedance, PhaseCode, EnergyConsumerPhase, SinglePhaseKind, LinearShuntCompensator, ShuntCompensatorInfo, PhaseShuntConnectionKind
+    PerLengthSequenceImpedance, PhaseCode, EnergyConsumerPhase, SinglePhaseKind, LinearShuntCompensator, ShuntCompensatorInfo, PhaseShuntConnectionKind, Feeder, \
+    LvFeeder
 
 __all__ = ["network"]
 
@@ -147,6 +148,12 @@ l_671_680.per_length_sequence_impedance = plsi_601
 l_684_611.per_length_sequence_impedance = plsi_605
 l_692_675.per_length_sequence_impedance = plsi_606
 
+##############
+# CONTAINERS #
+##############
+hv_fdr = Feeder(mrid="hv_fdr", normal_head_terminal=vr_650_632_t2)
+lv_fdr = LvFeeder(mrid="lv_fdr", normal_head_terminal=tx_633_634_t2)
+
 ##########################
 # BUILDING NETWORK MODEL #
 ##########################
@@ -159,7 +166,7 @@ for io in [vr_650_632, vr_650_632_t1, vr_650_632_t2, vr_650_632_e1, vr_650_632_e
            ec_646, ec_652_t, ec_652_pha, ec_652_phb, ec_652_phc, ec_652, ec_671_t, ec_671_pha, ec_671_phb, ec_671_phc, ec_671, ec_675_t, ec_675_pha, ec_675_phb,
            ec_675_phc, ec_675, ec_692_t, ec_692_pha, ec_692_phb, ec_692_phc, ec_692, ec_611_t, ec_611_pha, ec_611_phb, ec_611_phc, ec_611, lsc_675_t1,
            lsc_675_t2, lsc_675_info, lsc_675, lsc_611_t1, lsc_611_t2, lsc_611_info, lsc_611, plsi_601, plsi_602, plsi_603, plsi_604, plsi_605, plsi_606,
-           plsi_607]:
+           plsi_607, hv_fdr, lv_fdr]:
     network.add(io)
 
 # Complete 630-632 regulator + line
