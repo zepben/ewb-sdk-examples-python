@@ -3,7 +3,7 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
-from zepben.auth.client import AuthMethod
+from zepben.auth import AuthMethod
 from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, connect_with_password, connect_with_secret, SyncNetworkConsumerClient
 
 
@@ -53,7 +53,7 @@ async def secure_connection_with_client_credentials():
 
     # Specify authentication config explicitly
     async with connect_with_secret("client ID", "client secret", "hostname", 1234,
-                                     audience="https://fake_audience/", issuer_domain="fake.issuer.domain", auth_method=AuthMethod.AUTH0) as secure_channel:
+                                   audience="https://fake_audience/", issuer_domain="fake.issuer.domain", auth_method=AuthMethod.AUTH0) as secure_channel:
         client = NetworkConsumerClient(secure_channel)
         grpc_result = await client.get_network_hierarchy()
         print(grpc_result.result)

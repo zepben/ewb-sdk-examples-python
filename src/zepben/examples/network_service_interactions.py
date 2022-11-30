@@ -4,7 +4,7 @@
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 from zepben.evolve import NetworkService, AcLineSegment, PerLengthSequenceImpedance, Switch, Breaker, ConductingEquipment, NameType, Meter, EnergySource, \
-    IdentifiedObject, Terminal
+    Terminal
 
 # A `NetworkService` is a mutable node breaker network model that implements a subset of IEC61968 and IEC61970 CIM classes.
 # It is essentially a collection of `IdentifiedObject`s, and they may be added and removed as desired.
