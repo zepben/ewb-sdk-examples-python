@@ -26,7 +26,7 @@ setup(
         "zepben.evolve==0.34.0",
         "zepben.protobuf==0.22.0",
         "zepben.edith==0.2.1",
-        "pp-translator==0.5.0",
+        "pp-translator==0.6.0",
     ],
     extras_require={
         "test": test_deps,
