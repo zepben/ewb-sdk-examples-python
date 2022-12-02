@@ -60,7 +60,7 @@ async def secure_connection_with_client_credentials():
 
 
 # You may use `SyncNetworkConsumerClient` if you prefer not to use asyncio.
-# The API calls are the same between `NetworkConsumerClient` and `NetworkConsumerClient`.
+# The API calls are the same between `SyncNetworkConsumerClient` and `NetworkConsumerClient`.
 def connect_sync():
     channel = connect_insecure("hostname", 1234)
     client = SyncNetworkConsumerClient(channel)
