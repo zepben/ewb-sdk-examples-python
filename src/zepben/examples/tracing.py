@@ -11,7 +11,8 @@ import asyncio
 from zepben.evolve import Switch, connected_equipment_trace, ConductingEquipmentStep, ConductingEquipment, connected_equipment_breadth_trace, \
     normal_connected_equipment_trace, current_connected_equipment_trace, connectivity_trace, ConnectivityResult, connected_equipment, \
     connectivity_breadth_trace, SinglePhaseKind, normal_connectivity_trace, current_connectivity_trace, phase_trace, PhaseCode, PhaseStep, normal_phase_trace, \
-    PowerTransformer, current_phase_trace, assign_equipment_to_feeders, Feeder, LvFeeder, assign_equipment_to_lv_feeders
+    PowerTransformer, current_phase_trace, assign_equipment_to_feeders, Feeder, LvFeeder, assign_equipment_to_lv_feeders, set_direction, Terminal, \
+    normal_limited_connected_equipment_trace, AcLineSegment, current_limited_connected_equipment_trace, FeederDirection, remove_direction
 
 from zepben.evolve.services.network.tracing.phases import phase_step
 
@@ -206,9 +207,62 @@ async def assigning_equipment_to_feeders():
     print()
 
 
-async def setting_feeder_direction():
-    # Use set_direction().run(network) to
-    pass
+async def feeder_direction_and_limited_traces():
+    # Use set_direction().run(network) to evaluate the feeder direction of each terminal.
+    print_heading("SETTING FEEDER DIRECTION")
+    switch.set_normally_open(True, phase=SinglePhaseKind.A)
+    print(f"Switch set to normally open on phase A. Switch is between feeder head and energy consumer 675.")
+
+    consumer_terminal = network.get("ec_675_t", Terminal)
+    print(f"Normal feeder direction of HV feeder head terminal: {hv_feeder.normal_head_terminal.normal_feeder_direction}")
+    print(f"Current feeder direction of HV feeder head terminal: {hv_feeder.normal_head_terminal.current_feeder_direction}")
+    print(f"Normal feeder direction of energy consumer 675 terminal: {consumer_terminal.normal_feeder_direction}")
+    print(f"Current feeder direction of energy consumer 675 terminal: {consumer_terminal.current_feeder_direction}")
+    print()
+    await set_direction().run(network)
+    print("Normal and current feeder direction set.")
+    print()
+    print(f"Normal feeder direction of HV feeder head terminal: {hv_feeder.normal_head_terminal.normal_feeder_direction}")
+    print(f"Current feeder direction of HV feeder head terminal: {hv_feeder.normal_head_terminal.current_feeder_direction}")
+    print(f"Normal feeder direction of energy consumer 675 terminal: {consumer_terminal.normal_feeder_direction}")
+    print(f"Current feeder direction of energy consumer 675 terminal: {consumer_terminal.current_feeder_direction}")
+    print()
+
+    # Limited traces allow you to trace up to a number of steps, and optionally in a specified feeder direction (requires set_direction() to be run first).
+    print_heading("LIMITED TRACES")
+    line = network.get("l_632_671", AcLineSegment)
+    normal_distances = await normal_limited_connected_equipment_trace().run([line], maximum_steps=2, feeder_direction=FeederDirection.DOWNSTREAM)
+    print("Normal limited connected downstream trace from line 632-671 with maximum steps of 2:")
+    for eq, distance in normal_distances.items():
+        print(f"\tNumber of steps to {eq.mrid}: {distance}")
+    print(f"Number of equipment traced: {len(normal_distances)}")
+    print()
+
+    current_distances = await current_limited_connected_equipment_trace().run([line], maximum_steps=2, feeder_direction=FeederDirection.DOWNSTREAM)
+    print("Current limited connected downstream trace from line 632-671 with maximum steps of 2:")
+    for eq, distance in current_distances.items():
+        print(f"\tNumber of steps to {eq.mrid}: {distance}")
+    print(f"Number of equipment traced: {len(current_distances)}")
+    print()
+
+    # Use remove_direction().run(network) to remove feeder directions.
+    # While set_direction().run(network) must be awaited, remove_direction().run(network) does not, because it is not asynchronous.
+    print_heading("REMOVING FEEDER DIRECTION")
+
+    consumer_terminal = network.get("ec_675_t", Terminal)
+    print(f"Normal feeder direction of HV feeder head terminal: {hv_feeder.normal_head_terminal.normal_feeder_direction}")
+    print(f"Current feeder direction of HV feeder head terminal: {hv_feeder.normal_head_terminal.current_feeder_direction}")
+    print(f"Normal feeder direction of energy consumer 675 terminal: {consumer_terminal.normal_feeder_direction}")
+    print(f"Current feeder direction of energy consumer 675 terminal: {consumer_terminal.current_feeder_direction}")
+    print()
+    remove_direction().run(network)
+    print("Normal and current feeder direction removed.")
+    print()
+    print(f"Normal feeder direction of HV feeder head terminal: {hv_feeder.normal_head_terminal.normal_feeder_direction}")
+    print(f"Current feeder direction of HV feeder head terminal: {hv_feeder.normal_head_terminal.current_feeder_direction}")
+    print(f"Normal feeder direction of energy consumer 675 terminal: {consumer_terminal.normal_feeder_direction}")
+    print(f"Current feeder direction of energy consumer 675 terminal: {consumer_terminal.current_feeder_direction}")
+    print()
 
 
 async def main():
@@ -216,6 +270,7 @@ async def main():
     await connectivity_traces()
     await phase_traces()
     await assigning_equipment_to_feeders()
+    await feeder_direction_and_limited_traces()
 
 if __name__ == "__main__":
     asyncio.run(main())
