@@ -12,9 +12,11 @@ from zepben.evolve import Switch, connected_equipment_trace, ConductingEquipment
     normal_connected_equipment_trace, current_connected_equipment_trace, connectivity_trace, ConnectivityResult, connected_equipment, \
     connectivity_breadth_trace, SinglePhaseKind, normal_connectivity_trace, current_connectivity_trace, phase_trace, PhaseCode, PhaseStep, normal_phase_trace, \
     PowerTransformer, current_phase_trace, assign_equipment_to_feeders, Feeder, LvFeeder, assign_equipment_to_lv_feeders, set_direction, Terminal, \
-    normal_limited_connected_equipment_trace, AcLineSegment, current_limited_connected_equipment_trace, FeederDirection, remove_direction
+    normal_limited_connected_equipment_trace, AcLineSegment, current_limited_connected_equipment_trace, FeederDirection, remove_direction, \
+    normal_downstream_trace, current_downstream_trace
 
 from zepben.evolve.services.network.tracing.phases import phase_step
+from zepben.evolve.services.network.tracing.tracing import normal_upstream_trace, current_upstream_trace
 
 # For the purposes of this example, we will use the IEEE 13 node feeder.
 from zepben.examples.ieee_13_node_test_feeder import network
@@ -66,8 +68,10 @@ async def equipment_traces():
     visited.clear()
 
     # The normal connected equipment trace iterates through all equipment normally connected to the starting equipment.
-    # By setting the switch from node 671 to 692 to normally open, the traversal will not trace through the switch.
-    network.get("sw_671_692", Switch).set_normally_open(True)
+    # By setting the switch from node 671 to 692 to normally open on at least one phase, the traversal will not trace through the switch.
+    network.get("sw_671_692", Switch).set_normally_open(True, phase=SinglePhaseKind.A)
+    print("Switch set to normally open on phase A")
+    print()
     print("Normal Connected Equipment Trace:")
     await normal_connected_equipment_trace().add_step_action(print_step).run(start_item)
     print(f"Number of equipment visited: {len(visited)}")
@@ -76,19 +80,10 @@ async def equipment_traces():
 
     # The normal connected equipment trace iterates through all equipment normally connected to the starting equipment.
     # By setting the switch from node 671 to 692 to currently open on at least one phase, the traversal will not trace through the switch.
-    switch.set_normally_open(True, phase=SinglePhaseKind.A)
-    print("Switch set to normally open on phase A")
-    print("Normal Connected Equipment Trace:")
-    await current_connected_equipment_trace().add_step_action(print_step).run(start_item)
-    print(f"Number of equipment visited: {len(visited)}")
-    print()
-    visited.clear()
-
-    # The normal connected equipment trace iterates through all equipment normally connected to the starting equipment.
-    # By setting the switch from node 671 to 692 to currently open on at least one phase, the traversal will not trace through the switch.
-    switch.set_open(True, phase=SinglePhaseKind.B)
+    switch.set_normally_open(True, phase=SinglePhaseKind.B)
     print("Switch set to currently open on phase B")
-    print("Normal Connected Equipment Trace:")
+    print()
+    print("Current Connected Equipment Trace:")
     await current_connected_equipment_trace().add_step_action(print_step).run(start_item)
     print(f"Number of equipment visited: {len(visited)}")
     print()
@@ -128,6 +123,7 @@ async def connectivity_traces():
     # and likewise does not go through switches with at least open phase.
     switch.set_normally_open(True, phase=SinglePhaseKind.A)
     print("Switch set to normally open on phase A")
+    print()
     print("Normal Connectivity Trace:")
     await normal_connectivity_trace().add_step_action(print_connectivity).run(start_item)
     print(f"Number of connectivities visited: {len(visited)}")
@@ -136,6 +132,7 @@ async def connectivity_traces():
 
     switch.set_open(True, phase=SinglePhaseKind.B)
     print("Switch set to currently open on phase B")
+    print()
     print("Current Connectivity Trace:")
     await current_connectivity_trace().add_step_action(print_connectivity).run(start_item)
     print(f"Number of connectivities visited: {len(visited)}")
@@ -145,11 +142,48 @@ async def connectivity_traces():
     reset_switch()
 
 
+async def limited_connected_equipment_traces():
+    # Limited connected equipment traces allow you to trace up to a number of steps, and optionally in a specified feeder direction.
+    # Running the trace returns a dictionary from each visited equipment to the number of steps away it is from a starting equipment.
+    # set_direction() must be run on a network before running directed traces.
+    print_heading("LIMITED CONNECTED EQUIPMENT TRACES")
+
+    switch.set_normally_open(True, phase=SinglePhaseKind.A)
+    print(f"Switch set to normally open on phase A.")
+    print()
+
+    await set_direction().run(network)
+    print(f"Feeder direction set for each terminal.")
+    print()
+
+    line = network.get("l_632_671", AcLineSegment)
+    normal_distances = await normal_limited_connected_equipment_trace().run([line], maximum_steps=2, feeder_direction=FeederDirection.DOWNSTREAM)
+    print("Normal limited connected downstream trace from line 632-671 with maximum steps of 2:")
+    for eq, distance in normal_distances.items():
+        print(f"\tNumber of steps to {eq}: {distance}")
+    print(f"Number of equipment traced: {len(normal_distances)}")
+    print()
+
+    current_distances = await current_limited_connected_equipment_trace().run([line], maximum_steps=2, feeder_direction=FeederDirection.DOWNSTREAM)
+    print("Current limited connected downstream trace from line 632-671 with maximum steps of 2:")
+    for eq, distance in current_distances.items():
+        print(f"\tNumber of steps to {eq}: {distance}")
+    print(f"Number of equipment traced: {len(current_distances)}")
+    print()
+
+    remove_direction().run(network)
+    print(f"Feeder direction removed for each terminal.")
+    print()
+
+    reset_switch()
+
+
 async def phase_traces():
     # Phase traces account for which phases each terminal supports.
     print_heading("PHASE TRACING")
 
-    start_item = phase_step.start_at(regulator, PhaseCode.ABCN)
+    feeder_head_phase_step = phase_step.start_at(regulator, PhaseCode.ABCN)
+    switch_phase_step = phase_step.start_at(switch, PhaseCode.ABCN)
     visited = set()
 
     async def print_phase_step(phase_step: PhaseStep, _: bool):
@@ -163,7 +197,7 @@ async def phase_traces():
         print(f'\t{phase_step.previous and phase_step.previous.mrid or "(START)":-<15}-{phases: ^4}-{phase_step.conducting_equipment.mrid:->15}')
 
     print("Phase Trace:")
-    await phase_trace().add_step_action(print_phase_step).run(start_item)
+    await phase_trace().add_step_action(print_phase_step).run(feeder_head_phase_step)
     print(f"Number of phase steps visited: {len(visited)}")
     print()
     visited.clear()
@@ -171,18 +205,54 @@ async def phase_traces():
     # For each normally open phase on a switch, the normal phase trace will not trace through that phase for the switch.
     switch.set_normally_open(True, SinglePhaseKind.B)
     print("Normal Phase Trace:")
-    await normal_phase_trace().add_step_action(print_phase_step).run(start_item)
+    await normal_phase_trace().add_step_action(print_phase_step).run(feeder_head_phase_step)
     print(f"Number of phase steps visited: {len(visited)}")
     print()
     visited.clear()
 
-    # For each currently open phase on a switch, the normal phase trace will not trace through that phase for the switch.
+    # For each currently open phase on a switch, the current phase trace will not trace through that phase for the switch.
     switch.set_open(True, SinglePhaseKind.C)
     print("Current Phase Trace:")
-    await current_phase_trace().add_step_action(print_phase_step).run(start_item)
+    await current_phase_trace().add_step_action(print_phase_step).run(feeder_head_phase_step)
     print(f"Number of phase steps visited: {len(visited)}")
     print()
     visited.clear()
+
+    # There are also directed phase traces.
+    # set_direction() must be run on a network before running directed traces.
+    # Note that set_direction() does not trace through switches with at least one open phase,
+    # meaning that terminals beyond such a switch are left with a feeder direction of NONE.
+    await set_direction().run(network)
+    print(f"Feeder direction set for each terminal.")
+    print()
+
+    print("Normal Downstream Phase Trace:")
+    await normal_downstream_trace().add_step_action(print_phase_step).run(feeder_head_phase_step)
+    print(f"Number of phase steps visited: {len(visited)}")
+    print()
+    visited.clear()
+
+    print("Current Downstream Phase Trace:")
+    await current_downstream_trace().add_step_action(print_phase_step).run(feeder_head_phase_step)
+    print(f"Number of phase steps visited: {len(visited)}")
+    print()
+    visited.clear()
+
+    print("Normal Upstream Phase Trace:")
+    await normal_upstream_trace().add_step_action(print_phase_step).run(switch_phase_step)
+    print(f"Number of phase steps visited: {len(visited)}")
+    print()
+    visited.clear()
+
+    print("Current Upstream Phase Trace:")
+    await current_upstream_trace().add_step_action(print_phase_step).run(switch_phase_step)
+    print(f"Number of phase steps visited: {len(visited)}")
+    print()
+    visited.clear()
+
+    remove_direction().run(network)
+    print(f"Feeder direction removed for each terminal.")
+    print()
 
     reset_switch()
 
@@ -207,7 +277,7 @@ async def assigning_equipment_to_feeders():
     print()
 
 
-async def feeder_direction_and_limited_traces():
+async def set_and_remove_feeder_direction():
     # Use set_direction().run(network) to evaluate the feeder direction of each terminal.
     print_heading("SETTING FEEDER DIRECTION")
     switch.set_normally_open(True, phase=SinglePhaseKind.A)
@@ -226,23 +296,6 @@ async def feeder_direction_and_limited_traces():
     print(f"Current feeder direction of HV feeder head terminal: {hv_feeder.normal_head_terminal.current_feeder_direction}")
     print(f"Normal feeder direction of energy consumer 675 terminal: {consumer_terminal.normal_feeder_direction}")
     print(f"Current feeder direction of energy consumer 675 terminal: {consumer_terminal.current_feeder_direction}")
-    print()
-
-    # Limited traces allow you to trace up to a number of steps, and optionally in a specified feeder direction (requires set_direction() to be run first).
-    print_heading("LIMITED TRACES")
-    line = network.get("l_632_671", AcLineSegment)
-    normal_distances = await normal_limited_connected_equipment_trace().run([line], maximum_steps=2, feeder_direction=FeederDirection.DOWNSTREAM)
-    print("Normal limited connected downstream trace from line 632-671 with maximum steps of 2:")
-    for eq, distance in normal_distances.items():
-        print(f"\tNumber of steps to {eq.mrid}: {distance}")
-    print(f"Number of equipment traced: {len(normal_distances)}")
-    print()
-
-    current_distances = await current_limited_connected_equipment_trace().run([line], maximum_steps=2, feeder_direction=FeederDirection.DOWNSTREAM)
-    print("Current limited connected downstream trace from line 632-671 with maximum steps of 2:")
-    for eq, distance in current_distances.items():
-        print(f"\tNumber of steps to {eq.mrid}: {distance}")
-    print(f"Number of equipment traced: {len(current_distances)}")
     print()
 
     # Use remove_direction().run(network) to remove feeder directions.
@@ -264,13 +317,16 @@ async def feeder_direction_and_limited_traces():
     print(f"Current feeder direction of energy consumer 675 terminal: {consumer_terminal.current_feeder_direction}")
     print()
 
+    reset_switch()
+
 
 async def main():
+    await assigning_equipment_to_feeders()
+    await set_and_remove_feeder_direction()
     await equipment_traces()
+    await limited_connected_equipment_traces()
     await connectivity_traces()
     await phase_traces()
-    await assigning_equipment_to_feeders()
-    await feeder_direction_and_limited_traces()
 
 if __name__ == "__main__":
     asyncio.run(main())
