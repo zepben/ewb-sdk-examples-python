@@ -8,15 +8,15 @@
 # The Evolve SDK contains several factory functions for traversals that cover common use cases.
 import asyncio
 
-from zepben.evolve import Switch, connected_equipment_trace, ConductingEquipmentStep, ConductingEquipment, connected_equipment_breadth_trace, \
+from zepben.evolve import Switch, connected_equipment_trace, ConductingEquipmentStep, connected_equipment_breadth_trace, \
     normal_connected_equipment_trace, current_connected_equipment_trace, connectivity_trace, ConnectivityResult, connected_equipment, \
     connectivity_breadth_trace, SinglePhaseKind, normal_connectivity_trace, current_connectivity_trace, phase_trace, PhaseCode, PhaseStep, normal_phase_trace, \
     PowerTransformer, current_phase_trace, assign_equipment_to_feeders, Feeder, LvFeeder, assign_equipment_to_lv_feeders, set_direction, Terminal, \
     normal_limited_connected_equipment_trace, AcLineSegment, current_limited_connected_equipment_trace, FeederDirection, remove_direction, \
-    normal_downstream_trace, current_downstream_trace
+    normal_downstream_trace, current_downstream_trace, TreeNode
 
 from zepben.evolve.services.network.tracing.phases import phase_step
-from zepben.evolve.services.network.tracing.tracing import normal_upstream_trace, current_upstream_trace
+from zepben.evolve.services.network.tracing.tracing import normal_upstream_trace, current_upstream_trace, normal_downstream_tree, current_downstream_tree
 
 # For the purposes of this example, we will use the IEEE 13 node feeder.
 from zepben.examples.ieee_13_node_test_feeder import network
@@ -45,7 +45,8 @@ async def equipment_traces():
     # Equipment traces iterate over equipment connected in a network.
     print_heading("EQUIPMENT TRACING")
 
-    start_item = ConductingEquipmentStep(regulator)
+    # noinspection PyArgumentList
+    start_item = ConductingEquipmentStep(conducting_equipment=regulator)
     visited = set()
 
     async def print_step(ces: ConductingEquipmentStep, _):
@@ -186,15 +187,15 @@ async def phase_traces():
     switch_phase_step = phase_step.start_at(switch, PhaseCode.ABCN)
     visited = set()
 
-    async def print_phase_step(phase_step: PhaseStep, _: bool):
-        visited.add(phase_step)
+    async def print_phase_step(step: PhaseStep, _: bool):
+        visited.add(step)
         phases = ""
         for spk in PhaseCode.ABCN:
-            if spk in phase_step.phases:
+            if spk in step.phases:
                 phases += spk.short_name
             else:
                 phases += "-"
-        print(f'\t{phase_step.previous and phase_step.previous.mrid or "(START)":-<15}-{phases: ^4}-{phase_step.conducting_equipment.mrid:->15}')
+        print(f'\t{step.previous and step.previous.mrid or "(START)":-<15}-{phases: ^4}-{step.conducting_equipment.mrid:->15}')
 
     print("Phase Trace:")
     await phase_trace().add_step_action(print_phase_step).run(feeder_head_phase_step)
@@ -320,13 +321,61 @@ async def set_and_remove_feeder_direction():
     reset_switch()
 
 
+async def trees():
+    # A downstream tree contains all non-intersecting equipment paths starting from a common equipment and following downstream terminals.
+    # The same equipment may appear multiple times in the tree if the network contains multiple downstream paths to the equipment, i.e. loops.
+    # Similar to connected equipment traces, either the normal or current state of the network may be used to determine whether to trace through each switch.
+    print_heading("DOWNSTREAM TREES")
+
+    def desc_lines(node: TreeNode):
+        children = list(node.children)
+        for i, child in enumerate(children):
+            is_last_child = i == len(children) - 1
+            branch_char = "┗" if is_last_child else "┣"
+            stem_char = " " if is_last_child else "┃"
+            yield f"{branch_char}━{child.conducting_equipment}"
+            for line in desc_lines(child):
+                yield f"{stem_char} {line}"
+
+    def print_tree(root_node: TreeNode):
+        print(root_node.conducting_equipment)
+        for line in desc_lines(root_node):
+            print(line)
+
+    switch.set_open(True, SinglePhaseKind.C)
+    print("Switch set to currently open on phase C.")
+    print()
+
+    await set_direction().run(network)
+    print("Feeder direction set.")
+    print()
+
+    print("Normal Downstream Tree:")
+    ndt = await normal_downstream_tree().run(regulator)
+    print_tree(ndt)
+    print()
+
+    print("Current Downstream Tree:")
+    cdt = await current_downstream_tree().run(regulator)
+    print_tree(cdt)
+    print()
+
+    remove_direction().run(network)
+    print(f"Feeder direction removed for each terminal.")
+    print()
+
+    reset_switch()
+
+
 async def main():
+    # All examples are self-contained. Feel free to comment out any of the following lines to isolate specific examples.
     await assigning_equipment_to_feeders()
     await set_and_remove_feeder_direction()
     await equipment_traces()
     await limited_connected_equipment_traces()
     await connectivity_traces()
     await phase_traces()
+    await trees()
 
 if __name__ == "__main__":
     asyncio.run(main())
