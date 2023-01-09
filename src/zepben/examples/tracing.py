@@ -68,8 +68,9 @@ async def equipment_traces():
     print()
     visited.clear()
 
-    # The normal connected equipment trace iterates through all equipment normally connected to the starting equipment.
+    # The normal connected equipment trace iterates through all equipment connected to the starting equipment in the network's normal state.
     # By setting the switch from node 671 to 692 to normally open on at least one phase, the traversal will not trace through the switch.
+    # Even if a switch has closed phases, it will not be traced through if one or more of its phases are closed in the network's normal state.
     network.get("sw_671_692", Switch).set_normally_open(True, phase=SinglePhaseKind.A)
     print("Switch set to normally open on phase A")
     print()
@@ -79,9 +80,10 @@ async def equipment_traces():
     print()
     visited.clear()
 
-    # The normal connected equipment trace iterates through all equipment normally connected to the starting equipment.
+    # The normal connected equipment trace iterates through all equipment connected to the starting equipment in the network's current state.
     # By setting the switch from node 671 to 692 to currently open on at least one phase, the traversal will not trace through the switch.
-    switch.set_normally_open(True, phase=SinglePhaseKind.B)
+    # Even if a switch has closed phases, it will not be traced through if one or more of its phases are closed in the network's current state.
+    switch.set_open(True, phase=SinglePhaseKind.B)
     print("Switch set to currently open on phase B")
     print()
     print("Current Connected Equipment Trace:")
@@ -121,7 +123,7 @@ async def connectivity_traces():
     visited.clear()
 
     # The normal connectivity trace is analogous to the normal connected equipment trace,
-    # and likewise does not go through switches with at least open phase.
+    # and likewise does not go through switches with at least one open phase.
     switch.set_normally_open(True, phase=SinglePhaseKind.A)
     print("Switch set to normally open on phase A")
     print()
