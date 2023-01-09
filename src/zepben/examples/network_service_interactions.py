@@ -4,7 +4,7 @@
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 from zepben.evolve import NetworkService, AcLineSegment, PerLengthSequenceImpedance, Switch, Breaker, ConductingEquipment, NameType, Meter, EnergySource, \
-    IdentifiedObject, Terminal
+    Terminal
 
 # A `NetworkService` is a mutable node breaker network model that implements a subset of IEC61968 and IEC61970 CIM classes.
 # It is essentially a collection of `IdentifiedObject`s, and they may be added and removed as desired.
@@ -95,6 +95,29 @@ print("Adding plsi_789 to the network...")
 network.add(PerLengthSequenceImpedance(mrid="plsi_789"))
 print(f"Total unresolved references: {network.num_unresolved_references()}")
 print(f"PerLengthSequenceImpedance of acls_123: {line.per_length_sequence_impedance}")
+
+print("""
+########################
+# CONNECTING TERMINALS #
+########################
+""")
+# Terminals in a `NetworkService` may be connected using the `connect_terminals` method.
+# This automatically creates a connectivity node between the terminals, unless one of the terminals is already assigned to one.
+t1, t2, t3 = Terminal(mrid="t1"), Terminal(mrid="t2"), Terminal(mrid="t3")
+network.add(t1)
+network.add(t2)
+network.add(t3)
+network.connect_terminals(t1, t2)
+cn = t1.connectivity_node
+print(f"Connected to node {cn}:")
+for terminal in cn.terminals:
+    print(f"\t{terminal}")
+
+# The mrid of the connectivity node may also be used to connect a terminal
+network.connect_by_mrid(t3, cn.mrid)
+print(f"Connected to node {cn}:")
+for terminal in cn.terminals:
+    print(f"\t{terminal}")
 
 print("""
 ########################
