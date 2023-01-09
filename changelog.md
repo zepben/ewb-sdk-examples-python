@@ -10,6 +10,7 @@
   * Modelling network hierarchies
   * Interacting with a network model (e.g. adding and removing objects)
   * Examining connectivity of cores on equipment and terminals
+  * Running network traces
 
 ### Enhancements
 * None.
