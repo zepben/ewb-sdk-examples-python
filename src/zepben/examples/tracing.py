@@ -11,9 +11,9 @@ import asyncio
 from zepben.evolve import Switch, connected_equipment_trace, ConductingEquipmentStep, connected_equipment_breadth_trace, \
     normal_connected_equipment_trace, current_connected_equipment_trace, connectivity_trace, ConnectivityResult, connected_equipment, \
     connectivity_breadth_trace, SinglePhaseKind, normal_connectivity_trace, current_connectivity_trace, phase_trace, PhaseCode, PhaseStep, normal_phase_trace, \
-    PowerTransformer, current_phase_trace, assign_equipment_to_feeders, Feeder, LvFeeder, assign_equipment_to_lv_feeders, set_direction, Terminal, \
+    current_phase_trace, assign_equipment_to_feeders, Feeder, LvFeeder, assign_equipment_to_lv_feeders, set_direction, Terminal, \
     normal_limited_connected_equipment_trace, AcLineSegment, current_limited_connected_equipment_trace, FeederDirection, remove_direction, \
-    normal_downstream_trace, current_downstream_trace, TreeNode
+    normal_downstream_trace, current_downstream_trace, TreeNode, Breaker
 
 from zepben.evolve.services.network.tracing.phases import phase_step
 from zepben.evolve.services.network.tracing.tracing import normal_upstream_trace, current_upstream_trace, normal_downstream_tree, current_downstream_tree
@@ -21,7 +21,7 @@ from zepben.evolve.services.network.tracing.tracing import normal_upstream_trace
 # For the purposes of this example, we will use the IEEE 13 node feeder.
 from zepben.examples.ieee_13_node_test_feeder import network
 
-regulator = network.get("vr_650_632", PowerTransformer)
+feeder_head = network.get("br_650", Breaker)
 switch = network.get("sw_671_692", Switch)
 hv_feeder = network.get("hv_fdr", Feeder)
 lv_feeder = network.get("lv_fdr", LvFeeder)
@@ -46,7 +46,7 @@ async def equipment_traces():
     print_heading("EQUIPMENT TRACING")
 
     # noinspection PyArgumentList
-    start_item = ConductingEquipmentStep(conducting_equipment=regulator)
+    start_item = ConductingEquipmentStep(conducting_equipment=feeder_head)
     visited = set()
 
     async def print_step(ces: ConductingEquipmentStep, _):
@@ -100,7 +100,7 @@ async def connectivity_traces():
     # The tracker ensures that each equipment appears at most once as a destination in a connectivity.
     print_heading("CONNECTIVITY TRACING")
 
-    start_item = connected_equipment(regulator)[0]
+    start_item = connected_equipment(feeder_head)[0]
     visited = set()
 
     async def print_connectivity(cr: ConnectivityResult, _: bool):
@@ -185,7 +185,7 @@ async def phase_traces():
     # Phase traces account for which phases each terminal supports.
     print_heading("PHASE TRACING")
 
-    feeder_head_phase_step = phase_step.start_at(regulator, PhaseCode.ABCN)
+    feeder_head_phase_step = phase_step.start_at(feeder_head, PhaseCode.ABCN)
     switch_phase_step = phase_step.start_at(switch, PhaseCode.ABCN)
     visited = set()
 
@@ -353,12 +353,12 @@ async def trees():
     print()
 
     print("Normal Downstream Tree:")
-    ndt = await normal_downstream_tree().run(regulator)
+    ndt = await normal_downstream_tree().run(feeder_head)
     print_tree(ndt)
     print()
 
     print("Current Downstream Tree:")
-    cdt = await current_downstream_tree().run(regulator)
+    cdt = await current_downstream_tree().run(feeder_head)
     print_tree(cdt)
     print()
 
