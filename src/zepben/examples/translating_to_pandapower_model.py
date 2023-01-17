@@ -17,13 +17,22 @@ logger = logging.getLogger(__name__)
 async def main():
     add_energy_source(network, network["br_650_t1"])
     await set_direction().run(network)
-    result = await BasicPandaPowerNetworkCreator(logger=logger).create(network)
+    bbn_creator = BasicPandaPowerNetworkCreator(
+        logger=logger,
+        ec_load_provider=lambda ec: (5000, 0)  # Model each energy consumer with a 5kW nonreactive load
+    )
+    result = await bbn_creator.create(network)
+
     print(f"Translation successful: {result.was_successful}")
     print(result.network)
     print()
 
     print("bus table:")
     print(result.network["bus"])
+    print()
+
+    print("load table:")
+    print(result.network["load"])
     print()
 
     print("ext_grid table:")

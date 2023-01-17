@@ -13,6 +13,7 @@ from zepben.evolve import AcLineSegment, Disconnector, PowerTransformer, Transfo
 __all__ = ["network"]
 
 FEET_PER_MILE = 5280
+METRES_PER_FOOT = 0.3048
 
 #################
 # BASE VOLTAGES #
@@ -34,10 +35,10 @@ vr_650_632 = PowerTransformer(mrid="vr_650_632", function=TransformerFunctionKin
                               power_transformer_ends=[vr_650_632_e1, vr_650_632_e2])
 
 l_632_645_t1, l_632_645_t2 = Terminal(mrid="l_632_645_t1", phases=PhaseCode.BCN), Terminal(mrid="l_632_645_t2", phases=PhaseCode.BCN) 
-l_632_645 = AcLineSegment(mrid="l_632_645", length=500, terminals=[l_632_645_t1, l_632_645_t2], base_voltage=mv)
+l_632_645 = AcLineSegment(mrid="l_632_645", length=500 * METRES_PER_FOOT, terminals=[l_632_645_t1, l_632_645_t2], base_voltage=mv)
 
 l_632_633_t1, l_632_633_t2 = Terminal(mrid="l_632_633_t1", phases=PhaseCode.ABCN), Terminal(mrid="l_632_633_t2", phases=PhaseCode.ABCN) 
-l_632_633 = AcLineSegment(mrid="l_632_633", length=500, terminals=[l_632_633_t1, l_632_633_t2], base_voltage=mv)
+l_632_633 = AcLineSegment(mrid="l_632_633", length=500 * METRES_PER_FOOT, terminals=[l_632_633_t1, l_632_633_t2], base_voltage=mv)
 
 tx_633_634_t1, tx_633_634_t2 = Terminal(mrid="tx_633_634_t1", phases=PhaseCode.ABCN), Terminal(mrid="tx_633_634_t2", phases=PhaseCode.ABCN) 
 tx_633_634_e1 = PowerTransformerEnd(mrid="tx_633_634_e1", terminal=tx_633_634_t1, rated_u=mv.nominal_voltage)
@@ -45,31 +46,31 @@ tx_633_634_e2 = PowerTransformerEnd(mrid="tx_633_634_e2", terminal=tx_633_634_t2
 tx_633_634 = PowerTransformer(mrid="tx_633_634", terminals=[tx_633_634_t1, tx_633_634_t2], power_transformer_ends=[tx_633_634_e1, tx_633_634_e2])
 
 l_645_646_t1, l_645_646_t2 = Terminal(mrid="l_645_646_t1", phases=PhaseCode.BCN), Terminal(mrid="l_645_646_t2", phases=PhaseCode.BCN) 
-l_645_646 = AcLineSegment(mrid="l_645_646", length=300, terminals=[l_645_646_t1, l_645_646_t2], base_voltage=mv)
+l_645_646 = AcLineSegment(mrid="l_645_646", length=300 * METRES_PER_FOOT, terminals=[l_645_646_t1, l_645_646_t2], base_voltage=mv)
 
 l_650_632_t1, l_650_632_t2 = Terminal(mrid="l_650_632_t1", phases=PhaseCode.ABCN), Terminal(mrid="l_650_632_t2", phases=PhaseCode.ABCN) 
-l_650_632 = AcLineSegment(mrid="l_650_632", length=2000, terminals=[l_650_632_t1, l_650_632_t2], base_voltage=mv)
+l_650_632 = AcLineSegment(mrid="l_650_632", length=2000 * METRES_PER_FOOT, terminals=[l_650_632_t1, l_650_632_t2], base_voltage=mv)
 
 l_684_652_t1, l_684_652_t2 = Terminal(mrid="l_684_652_t1", phases=PhaseCode.AN), Terminal(mrid="l_684_652_t2", phases=PhaseCode.AN) 
-l_684_652 = AcLineSegment(mrid="l_684_652", length=800, terminals=[l_684_652_t1, l_684_652_t2], base_voltage=mv)
+l_684_652 = AcLineSegment(mrid="l_684_652", length=800 * METRES_PER_FOOT, terminals=[l_684_652_t1, l_684_652_t2], base_voltage=mv)
 
 l_632_671_t1, l_632_671_t2 = Terminal(mrid="l_632_671_t1", phases=PhaseCode.ABCN), Terminal(mrid="l_632_671_t2", phases=PhaseCode.ABCN) 
-l_632_671 = AcLineSegment(mrid="l_632_671", length=2000, terminals=[l_632_671_t1, l_632_671_t2], base_voltage=mv)
+l_632_671 = AcLineSegment(mrid="l_632_671", length=2000 * METRES_PER_FOOT, terminals=[l_632_671_t1, l_632_671_t2], base_voltage=mv)
 
 l_671_684_t1, l_671_684_t2 = Terminal(mrid="l_671_684_t1", phases=PhaseCode.ACN), Terminal(mrid="l_671_684_t2", phases=PhaseCode.ACN) 
-l_671_684 = AcLineSegment(mrid="l_671_684", length=300, terminals=[l_671_684_t1, l_671_684_t2], base_voltage=mv)
+l_671_684 = AcLineSegment(mrid="l_671_684", length=300 * METRES_PER_FOOT, terminals=[l_671_684_t1, l_671_684_t2], base_voltage=mv)
 
 l_671_680_t1, l_671_680_t2 = Terminal(mrid="l_671_680_t1", phases=PhaseCode.ABCN), Terminal(mrid="l_671_680_t2", phases=PhaseCode.ABCN) 
-l_671_680 = AcLineSegment(mrid="l_671_680", length=1000, terminals=[l_671_680_t1, l_671_680_t2], base_voltage=mv)
+l_671_680 = AcLineSegment(mrid="l_671_680", length=1000 * METRES_PER_FOOT, terminals=[l_671_680_t1, l_671_680_t2], base_voltage=mv)
 
 sw_671_692_t1, sw_671_692_t2 = Terminal(mrid="sw_671_692_t1", phases=PhaseCode.ABCN), Terminal(mrid="sw_671_692_t2", phases=PhaseCode.ABCN) 
 sw_671_692 = Disconnector(mrid="sw_671_692", terminals=[sw_671_692_t1, sw_671_692_t2], base_voltage=mv)
 
 l_684_611_t1, l_684_611_t2 = Terminal(mrid="l_684_611_t1", phases=PhaseCode.CN), Terminal(mrid="l_684_611_t2", phases=PhaseCode.CN) 
-l_684_611 = AcLineSegment(mrid="l_684_611", length=300, terminals=[l_684_611_t1, l_684_611_t2], base_voltage=mv)
+l_684_611 = AcLineSegment(mrid="l_684_611", length=300 * METRES_PER_FOOT, terminals=[l_684_611_t1, l_684_611_t2], base_voltage=mv)
 
 l_692_675_t1, l_692_675_t2 = Terminal(mrid="l_692_675_t1", phases=PhaseCode.ABCN), Terminal(mrid="l_692_675_t2", phases=PhaseCode.ABCN) 
-l_692_675 = AcLineSegment(mrid="l_692_675", length=500, terminals=[l_692_675_t1, l_692_675_t2], base_voltage=mv)
+l_692_675 = AcLineSegment(mrid="l_692_675", length=500 * METRES_PER_FOOT, terminals=[l_692_675_t1, l_692_675_t2], base_voltage=mv)
 
 ec_634_t = Terminal(mrid="ec_634_t", phases=PhaseCode.ABCN)
 ec_634_pha = EnergyConsumerPhase(mrid="ec_634_pha", phase=SinglePhaseKind.A, p_fixed=160000, q_fixed=110000)
@@ -133,8 +134,8 @@ lsc_611 = LinearShuntCompensator(mrid="lsc_611", terminals=[lsc_611_t1, lsc_611_
 # SETTING LINE IMPEDANCES #
 ###########################
 def plsi_from_z_per_mile(mrid: str, *impedances: Tuple[float, float]):
-    r_per_foot, x_per_foot = numpy.mean(impedances, axis=0) / FEET_PER_MILE
-    return PerLengthSequenceImpedance(mrid=mrid, r=r_per_foot, x=x_per_foot)
+    r_per_metre, x_per_metre = numpy.mean(impedances, axis=0) / (METRES_PER_FOOT * FEET_PER_MILE)
+    return PerLengthSequenceImpedance(mrid=mrid, r=r_per_metre, x=x_per_metre)
 
 
 plsi_601 = plsi_from_z_per_mile("plsi_601", (0.3465, 1.0179), (0.3375, 1.0478), (0.3414, 1.0348))
