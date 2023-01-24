@@ -5,6 +5,7 @@
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 import asyncio
 import logging
+import pandapower as pp
 
 from pp_creators.basic_creator import BasicPandaPowerNetworkCreator
 from zepben.evolve import set_direction, NetworkService, Terminal, EnergySource
@@ -49,6 +50,35 @@ async def main():
 
     print("line_geodata table:")
     print(result.network["line_geodata"])
+    print()
+
+    print("Running load flow study...", end="")
+    pp.runpp(result.network)
+    print("done.")
+    print()
+
+    print(result.network)
+    print()
+
+    print("res_bus table:")
+    print(result.network["res_bus"])
+    print()
+
+    print("res_line table:")
+    print(result.network["res_line"])
+    print()
+
+    print("res_trafo table:")
+    print(result.network["res_trafo"])
+    print()
+
+    print("res_ext_grid table:")
+    print(result.network["res_ext_grid"])
+    print()
+
+    print("res_load table:")
+    print(result.network["res_load"])
+    print()
 
 
 def add_energy_source(network: NetworkService, connect_to_terminal: Terminal):

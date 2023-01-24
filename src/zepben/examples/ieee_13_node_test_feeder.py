@@ -122,13 +122,13 @@ ec_611 = EnergyConsumer(mrid="ec_611", terminals=[ec_611_t], energy_consumer_pha
 
 # Distributed load on line 632-671 is unmodelled.
 
-lsc_675_t1, lsc_675_t2 = Terminal(mrid="lsc_675_t1", phases=PhaseCode.ABCN), Terminal(mrid="lsc_675_t2", phases=PhaseCode.ABCN) 
+lsc_675_t= Terminal(mrid="lsc_675_t1", phases=PhaseCode.ABCN)
 lsc_675_info = ShuntCompensatorInfo(mrid="lsc_675_info", rated_voltage=4160, rated_current=48.077, rated_reactive_power=200000)
-lsc_675 = LinearShuntCompensator(mrid="lsc_675", terminals=[lsc_675_t1, lsc_675_t2], asset_info=lsc_675_info)
+lsc_675 = LinearShuntCompensator(mrid="lsc_675", terminals=[lsc_675_t], asset_info=lsc_675_info)
 
-lsc_611_t1, lsc_611_t2 = Terminal(mrid="lsc_611_t1", phases=PhaseCode.CN), Terminal(mrid="lsc_611_t2", phases=PhaseCode.CN) 
+lsc_611_t = Terminal(mrid="lsc_611_t1", phases=PhaseCode.CN)
 lsc_611_info = ShuntCompensatorInfo(mrid="lsc_611_info", rated_voltage=4160, rated_current=24.048, rated_reactive_power=100000)
-lsc_611 = LinearShuntCompensator(mrid="lsc_611", terminals=[lsc_611_t1, lsc_611_t2], asset_info=lsc_611_info)
+lsc_611 = LinearShuntCompensator(mrid="lsc_611", terminals=[lsc_611_t], asset_info=lsc_611_info)
 
 ###########################
 # SETTING LINE IMPEDANCES #
@@ -174,16 +174,16 @@ for io in [br_650, br_650_t1, br_650_t2, vr_650_632, vr_650_632_t1, vr_650_632_t
            l_692_675_t1, l_692_675_t2, ec_634_t, ec_634_pha, ec_634_phb, ec_634_phc, ec_634, ec_645_t, ec_645_pha, ec_645_phb, ec_645_phc, ec_645, ec_646_t,
            ec_646_pha, ec_646_phb, ec_646_phc, ec_646, ec_652_t, ec_652_pha, ec_652_phb, ec_652_phc, ec_652, ec_671_t, ec_671_pha, ec_671_phb, ec_671_phc,
            ec_671, ec_675_t, ec_675_pha, ec_675_phb, ec_675_phc, ec_675, ec_692_t, ec_692_pha, ec_692_phb, ec_692_phc, ec_692, ec_611_t, ec_611_pha, ec_611_phb,
-           ec_611_phc, ec_611, lsc_675_t1, lsc_675_t2, lsc_675_info, lsc_675, lsc_611_t1, lsc_611_t2, lsc_611_info, lsc_611, plsi_601, plsi_602, plsi_603,
-           plsi_604, plsi_605, plsi_606, plsi_607, hv_fdr, lv_fdr, mv, lv]:
+           ec_611_phc, ec_611, lsc_675_t, lsc_675_info, lsc_675, lsc_611_t, lsc_611_info, lsc_611, plsi_601, plsi_602, plsi_603, plsi_604, plsi_605, plsi_606,
+           plsi_607, hv_fdr, lv_fdr, mv, lv]:
     network.add(io)
 
 # Complete 650-632 regulator + line
 network.connect_terminals(vr_650_632_t2, l_650_632_t1)
 
 # Node 611
-network.connect_terminals(l_684_611_t2, lsc_611_t1)
-network.connect_terminals(lsc_611_t2, ec_611_t)
+network.connect_terminals(l_684_611_t2, lsc_611_t)
+network.connect_terminals(l_684_611_t2, ec_611_t)
 
 # Node 632
 network.connect_terminals(l_650_632_t2, l_632_633_t1)
@@ -216,8 +216,8 @@ network.connect_terminals(l_632_671_t2, sw_671_692_t1)
 network.connect_terminals(l_632_671_t2, ec_671_t)
 
 # Node 675
-network.connect_terminals(l_692_675_t2, lsc_675_t1)
-network.connect_terminals(lsc_675_t2, ec_675_t)
+network.connect_terminals(l_692_675_t2, lsc_675_t)
+network.connect_terminals(l_692_675_t2, ec_675_t)
 
 # Node 684
 network.connect_terminals(l_671_684_t2, l_684_611_t1)
