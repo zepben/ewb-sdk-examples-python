@@ -1,7 +1,7 @@
 [
   {
     "id": "ec-heatmap",
-    "type": "circle",
+    "type": "heatmap",
     "paint": {
       "heatmap-opacity": 0.5
     }
@@ -20,8 +20,8 @@
     "type": "symbol",
     "layout": {
       "symbol-placement": "line",
-      "text-field": ["get", "length"],
-      "text-font": ["Arial Unicode MS Regular", "Sans-serif"],
+      "text-field": ["to-string", ["round", ["get", "length"]]],
+      "text-font": ["Arial Unicode MS Regular"],
       "text-size": 15
     },
     "paint": {

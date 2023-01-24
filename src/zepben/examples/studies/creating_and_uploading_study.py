@@ -19,19 +19,20 @@ from zepben.evolve import connect_insecure, SyncNetworkConsumerClient, AcLineSeg
 
 def main():
     # Fetch network model from Energy Workbench's gRPC service (see ../connecting_to_grpc_service.py for examples on different connection functions)
-    grpc_channel = connect_insecure("localhost", 9001)
+    grpc_channel = connect_insecure("localhost", 50052)
     grpc_client = SyncNetworkConsumerClient(grpc_channel)
-    grpc_client.retrieve_network()  # Use get_feeder("<feeder-id>") instead to fetch only a specific feeder
+    # Use get_equipment_container("<feeder-id>", include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS) instead to fetch only a specific feeder
+    grpc_client.retrieve_network()
     network = grpc_client.service
 
     # Make result that displays a heatmap of energy consumers.
     ec_geojson = []
     for ec in network.objects(EnergyConsumer):
         if ec.location is not None:
-            x, y = list(ec.location.points)[0]
+            coord = list(ec.location.points)[0]
             ec_feature = Feature(
                 id=ec.mrid,
-                geometry=Point((x, y))
+                geometry=Point((coord.x_position, coord.y_position))
             )
             ec_geojson.append(ec_feature)
 
@@ -69,7 +70,7 @@ def main():
         name="Example Study",
         description="Example study with two results.",
         tags=["example"],  # Tags make it easy to search for studies in a large list of them.
-        results=[lv_lines_result, ec_result],
+        results=[ec_result, lv_lines_result],
         styles=json.load(open("style.json", "r"))  # See Mapbox style specification documentation for information on making a style JSON.
     )
     eas_client = EasClient(
