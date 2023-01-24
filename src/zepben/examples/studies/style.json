@@ -20,7 +20,7 @@
     "type": "symbol",
     "layout": {
       "symbol-placement": "line",
-      "text-field": ["to-string", ["round", ["get", "length"]]],
+      "text-field": ["concat", ["round", ["get", "length"]], " m"],
       "text-font": ["Arial Unicode MS Regular"],
       "text-size": 15
     },
