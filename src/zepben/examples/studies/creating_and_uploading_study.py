@@ -16,13 +16,14 @@ from zepben.evolve import connect_insecure, SyncNetworkConsumerClient, AcLineSeg
 # For example, the first result may display per-unit voltage data, while the second result highlights overloaded equipment.
 # Two results are created in this example study: one makes a heatmap of energy consumers and the other highlights LV lines and displays their length.
 # Both Evolve App Server and Energy Workbench must be running for this example.
+from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
+
 
 def main():
     # Fetch network model from Energy Workbench's gRPC service (see ../connecting_to_grpc_service.py for examples on different connection functions)
-    grpc_channel = connect_insecure("localhost", 50052)
+    grpc_channel = connect_insecure("<EWB hostname>", 50052)
     grpc_client = SyncNetworkConsumerClient(grpc_channel)
-    # Use get_equipment_container("<feeder-id>", include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS) instead to fetch only a specific feeder
-    grpc_client.retrieve_network()
+    grpc_client.get_equipment_container("<feeder-id>", include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
     network = grpc_client.service
 
     # Make result that displays a heatmap of energy consumers.
@@ -37,7 +38,7 @@ def main():
             ec_geojson.append(ec_feature)
 
     ec_result = Result(
-        name="Energy Consumer Active Load",
+        name="Energy Consumers",
         geo_json_overlay=GeoJsonOverlay(
             data=FeatureCollection(ec_geojson),
             styles=["ec-heatmap"]
@@ -75,7 +76,7 @@ def main():
     )
     eas_client = EasClient(
         # Replace these values with the host/port and credentials for the instance of EAS you would like to upload the study to.
-        host="localhost",
+        host="<EAS hostname>",
         port=7654,
         client_id="<client-id>",
         username="<username or email>",
