@@ -41,7 +41,7 @@ def main():
         name="Energy Consumers",
         geo_json_overlay=GeoJsonOverlay(
             data=FeatureCollection(ec_geojson),
-            styles=["ec-heatmap"]
+            styles=["ec-heatmap"]  # Select which Mapbox layers to show for this result
         )
     )
 
@@ -62,7 +62,7 @@ def main():
         name="LV Lines",
         geo_json_overlay=GeoJsonOverlay(
             data=FeatureCollection(lv_lines_geojson),
-            styles=["lv-lines", "lv-lengths"]  # Select which styles to apply to this result
+            styles=["lv-lines", "lv-lengths"]  # Select which Mapbox layers to show for this result
         )
     )
 
@@ -72,7 +72,7 @@ def main():
         description="Example study with two results.",
         tags=["example"],  # Tags make it easy to search for studies in a large list of them.
         results=[ec_result, lv_lines_result],
-        styles=json.load(open("style.json", "r"))  # See Mapbox style specification documentation for information on making a style JSON.
+        styles=json.load(open("style.json", "r"))  # This is the "layers" property of a Mapbox GL JS style.
     )
     eas_client = EasClient(
         # Replace these values with the host/port and credentials for the instance of EAS you would like to upload the study to.
