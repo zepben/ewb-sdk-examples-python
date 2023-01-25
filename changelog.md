@@ -11,6 +11,7 @@
   * Interacting with a network model (e.g. adding and removing objects)
   * Examining connectivity of cores on equipment and terminals
   * Running network traces
+  * Creating and uploading studies
   * Translating a CIM network model into a pandapower model
 
 ### Enhancements

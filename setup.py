@@ -27,7 +27,8 @@ setup(
         "zepben.protobuf==0.23.0b5",
         "zepben.edith==0.3.0b3",
         "pp-translator==0.7.0b2",
-        "numba==0.56.4"
+        "numba==0.56.4",
+        "geojson==2.5.0"
     ],
     extras_require={
         "test": test_deps,
