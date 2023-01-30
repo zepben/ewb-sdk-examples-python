@@ -73,7 +73,8 @@ def main():
         tags=["example"],  # Tags make it easy to search for studies in a large list of them.
         results=[ec_result, lv_lines_result],
         styles=json.load(open("style.json", "r"))  # This is the "layers" property of a Mapbox GL JS style.
-        # Layers specify how features are rendered. For more information about layers, read https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/
+        # Layers specify how features are rendered. For more information about layers, read https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/.
+        # Each layer may have an entry in the legend via the metadata["zb:legend"] field.
     )
     eas_client = EasClient(
         # Replace these values with the host/port and credentials for the instance of EAS you would like to upload the study to.
