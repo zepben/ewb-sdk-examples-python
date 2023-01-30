@@ -4,15 +4,51 @@
     "type": "heatmap",
     "paint": {
       "heatmap-opacity": 0.5
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Energy Consumer Density"
+      }
     }
   },
   {
     "id": "lv-lines",
     "type": "line",
     "paint": {
-      "line-color": "yellow",
-      "line-width": 5,
+      "line-color": "orange",
+      "line-width": ["log2", ["max", ["get", "length"], 1]],
       "line-opacity": 0.5
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "LV Line",
+        "states": [
+          {
+            "label": "1 m",
+            "properties": {
+              "length": 1
+            }
+          },
+          {
+            "label": "10 m",
+            "properties": {
+              "length": 10
+            }
+          },
+          {
+            "label": "100 m",
+            "properties": {
+              "length": 100
+            }
+          },
+          {
+            "label": "1000 m",
+            "properties": {
+              "length": 1000
+            }
+          }
+        ]
+      }
     }
   },
   {
