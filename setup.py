@@ -22,7 +22,7 @@ setup(
     python_requires='>=3.7',
     install_requires=[
         "zepben.auth==0.10.0",
-        "zepben.eas==0.9.0",
+        "zepben.eas==0.10.0",
         "zepben.evolve==0.35.0b9",
         "zepben.protobuf==0.23.0b5",
         "zepben.edith==0.3.0b3",
