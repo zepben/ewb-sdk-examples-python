@@ -24,7 +24,6 @@ setup(
         "zepben.auth==0.10.0",
         "zepben.eas==0.10.0",
         "zepben.evolve==0.35.0b17",
-        "zepben.protobuf==0.23.0b5",
         "zepben.edith==0.3.0b4",
         "pp-translator==0.7.0b3",
         "numba==0.56.4",
