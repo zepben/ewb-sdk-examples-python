@@ -13,6 +13,7 @@
   * Running network traces
   * Creating and uploading studies
   * Translating a CIM network model into a pandapower model
+  * Create demo for requesting PF model through SDK
 
 ### Enhancements
 * None.

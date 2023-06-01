@@ -21,14 +21,14 @@ setup(
     package_dir={'': 'src'},
     python_requires='>=3.7',
     install_requires=[
-        "zepben.auth==0.10.0b2",
-        "zepben.eas==0.9.0b1",
-        "zepben.evolve==0.35.0b9",
-        "zepben.protobuf==0.23.0b5",
-        "zepben.edith==0.3.0b3",
-        "pp-translator==0.7.0b2",
+        "zepben.auth==0.10.0",
+        "zepben.eas==0.10.0",
+        "zepben.evolve==0.35.0b17",
+        "zepben.edith==0.3.0b4",
+        "pp-translator==0.7.0b3",
         "numba==0.56.4",
-        "geojson==2.5.0"
+        "geojson==2.5.0",
+        "graphqlclient==0.2.4"
     ],
     extras_require={
         "test": test_deps,
