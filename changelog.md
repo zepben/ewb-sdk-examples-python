@@ -16,7 +16,7 @@
   * Create demo for requesting PF model through SDK
 
 ### Enhancements
-* None.
+* Limited power factory demo to 1 job at a time.
 
 ### Fixes
 * None.
