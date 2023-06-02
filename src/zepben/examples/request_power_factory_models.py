@@ -20,10 +20,10 @@ target_zone_substation = {"zonesub-mRID-or-name"}
 target_feeder = {"feeder-mRID-or-name"}
 target_lv = {"lvfeeder-mRID-or-name"}
 
-# Resulting PFD file name
+# resulting PFD file name
 file_name = "test_file"
 
-# GraphQL endpoint access settings.
+# graphQL endpoint access settings
 network_endpoint = 'https://{url}/api/network/graphql'
 api_endpoint = 'https://{url}/api/graphql'
 audience = "https://{url}/"
@@ -87,9 +87,13 @@ def request_pf_model_for_a_zone_with_hv_lv():
           }
         }
             '''
-    result = retrieve_network_hierarchy(body, tft)
-    target = get_target(target, result)
-    request_pf_model(target, file_name, tft)
+
+    if check_if_currently_generating_a_model(tft):
+        result = retrieve_network_hierarchy(body, tft)
+        target = get_target(target, result)
+        request_pf_model(target, file_name, tft)
+    else:
+        print("Warning: Still generating previous model, current model will not be generated.")
 
 
 def request_pf_model_for_a_zone_with_hv_only():
@@ -112,9 +116,12 @@ def request_pf_model_for_a_zone_with_hv_only():
           }
         }
             '''
-    result = retrieve_network_hierarchy(body, tft)
-    target = get_target(target, result)
-    request_pf_model(target, file_name, tft)
+    if check_if_currently_generating_a_model(tft):
+        result = retrieve_network_hierarchy(body, tft)
+        target = get_target(target, result)
+        request_pf_model(target, file_name, tft)
+    else:
+        print("Warning: Still generating previous model, current model will not be generated.")
 
 
 def retrieve_network_hierarchy(body, tft):
@@ -193,6 +200,47 @@ def request_pf_model(equipment_container_list: List[str], filename: str, tft: st
                            },
         'isPublic': 'true'}}
     client.execute(body, variables)
+
+
+def check_if_currently_generating_a_model(tft):
+    body = '''
+    query pagedNetModels(
+      $limit: Int!
+      $offset: Long!
+      $filter: GetNetModelsFilterInput
+      $sort: GetNetModelsSortCriteriaInput
+    ) {
+        pagedNetModels(
+            limit: $limit
+            offset: $offset
+            filter: $filter
+            sort: $sort
+        ) {
+            totalCount
+            offset
+            netModels {
+                id
+                name
+                createdAt
+                state
+                errors
+            }
+        }
+    }
+    '''
+    variables = {
+        "limit": 10,
+        "offset": 0,
+        "filter": {}
+    }
+    client = GraphQLClient(api_endpoint)
+    client.inject_token(tft)
+    result = client.execute(body, variables)
+    entries = json.loads(result)
+    for entry in entries['data']['pagedNetModels']['netModels']:
+        if entry['state'] == 'CREATION':
+            return False
+    return True
 
 
 if __name__ == "__main__":
