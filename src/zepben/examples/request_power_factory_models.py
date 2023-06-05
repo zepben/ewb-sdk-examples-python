@@ -5,8 +5,10 @@
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import json
+import os
 from typing import List
 
+import requests
 from graphqlclient import GraphQLClient
 from zepben.auth import get_token_fetcher
 
@@ -22,6 +24,7 @@ target_lv = {"lvfeeder-mRID-or-name"}
 
 # resulting PFD file name
 file_name = "test_file"
+output_dir = "path to output dir"
 
 # graphQL endpoint access settings
 network_endpoint = 'https://{url}/api/network/graphql'
@@ -91,7 +94,8 @@ def request_pf_model_for_a_zone_with_hv_lv():
     if check_if_currently_generating_a_model(tft):
         result = retrieve_network_hierarchy(body, tft)
         target = get_target(target, result)
-        request_pf_model(target, file_name, tft)
+        model_id = request_pf_model(target, file_name, tft)
+        print("Power factory model creation requested, model id: " + model_id)
     else:
         print("Warning: Still generating previous model, current model will not be generated.")
 
@@ -119,7 +123,8 @@ def request_pf_model_for_a_zone_with_hv_only():
     if check_if_currently_generating_a_model(tft):
         result = retrieve_network_hierarchy(body, tft)
         target = get_target(target, result)
-        request_pf_model(target, file_name, tft)
+        model_id = request_pf_model(target, file_name, tft)
+        print("Power factory model creation requested, model id: " + model_id)
     else:
         print("Warning: Still generating previous model, current model will not be generated.")
 
@@ -199,7 +204,8 @@ def request_pf_model(equipment_container_list: List[str], filename: str, tft: st
                            }
                            },
         'isPublic': 'true'}}
-    client.execute(body, variables)
+    result = client.execute(body, variables)
+    return json.loads(result)['data']['createNetModel']
 
 
 def check_if_currently_generating_a_model(tft):
@@ -243,9 +249,55 @@ def check_if_currently_generating_a_model(tft):
     return True
 
 
+def download_model(model_number):
+    # Set up auth
+    token_fetcher = get_token_fetcher(audience=audience, issuer_domain=issuer_domain, client_id=client_id, username=username, password=password)
+    tft = token_fetcher.fetch_token()
+
+    # Request model
+    model_url = api_endpoint.replace("graphql", "net-model/") + str(model_number)
+    body = '''
+    query netModelById($modelId: ID!) {
+      netModelById(modelId: $modelId) {
+        id
+        name
+        createdAt
+        state
+        generationSpec {
+          equipmentContainerMrids
+          distributionTransformerConfig {
+            rGround
+            xGround
+          }
+        }
+        isPublic
+        errors
+      }
+    }
+    '''
+    variables = {
+        "modelId": model_number,
+    }
+    client = GraphQLClient(api_endpoint)
+    client.inject_token(tft)
+    result = json.loads(client.execute(body, variables))
+    model_status = result['data']['netModelById']['state']
+    if model_status == "COMPLETED":
+        model = requests.get(model_url, headers={'Authorization': tft})
+        open(os.path.join(output_dir, file_name) + ".pfd", 'wb').write(model.content)
+        print(file_name + ".pfd saved at " + output_dir)
+    elif model_status == "CREATION":
+        print("Model is still being created, please download at a later time")
+    elif model_status == "FAILED":
+        print("Model creation error: " + str(result['data']['netModelById']['errors']))
+
+
 if __name__ == "__main__":
     # Generate model with lv
     request_pf_model_for_a_zone_with_hv_lv()
 
     # Generate model without lv
     request_pf_model_for_a_zone_with_hv_only()
+
+    # Download a model via model number
+    download_model(123)

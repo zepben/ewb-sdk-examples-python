@@ -17,6 +17,7 @@
 
 ### Enhancements
 * Limited power factory demo to 1 job at a time.
+* Added model download function to power factory demo
 
 ### Fixes
 * None.
