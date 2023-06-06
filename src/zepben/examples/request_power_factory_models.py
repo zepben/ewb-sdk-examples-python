@@ -4,12 +4,12 @@
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-import json
 import os
 from typing import List
 
 import requests
-from graphqlclient import GraphQLClient
+from gql import gql, Client
+from gql.transport.requests import RequestsHTTPTransport
 from zepben.auth import get_token_fetcher
 
 # This example utilises the EWB GraphQL APIs to fetch the network hierarchy from the server and
@@ -64,15 +64,49 @@ query network {
     }
 }
 '''
+token_fetcher = get_token_fetcher(audience=audience, issuer_domain=issuer_domain, client_id=client_id, username=username, password=password)
+tft = token_fetcher.fetch_token()
+network_transport = RequestsHTTPTransport(url=network_endpoint, headers={'Authorization': tft})
+api_transport = RequestsHTTPTransport(url=api_endpoint, headers={'Authorization': tft})
+
+network_client = Client(transport=network_transport)
+api_client = Client(transport=api_transport)
+
+# full network hierarchy, simply remove levels that is not required
+# Zone sub is the highest level supported in this example code
+'''
+query network {
+    getNetworkHierarchy {
+        geographicalRegions {
+            mRID
+            name
+            subGeographicalRegions {
+                mRID
+                name
+                substations {
+                    mRID
+                    name
+                    feeders {
+                        mRID
+                        name
+                        normalEnergizedLvFeeders {
+                            mRID
+                            name
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+'''
 
 
 def request_pf_model_for_a_zone_with_hv_lv():
     # Set up auth
-    token_fetcher = get_token_fetcher(audience=audience, issuer_domain=issuer_domain, client_id=client_id, username=username, password=password)
-    tft = token_fetcher.fetch_token()
     target = []
     # Request for ZoneSub -> Feeder -> lvFeeder
-    body = '''
+    body = gql('''
     query network {
       getNetworkHierarchy {
             substations {
@@ -89,24 +123,20 @@ def request_pf_model_for_a_zone_with_hv_lv():
             }
           }
         }
-            '''
-
+    ''')
     if check_if_currently_generating_a_model(tft):
-        result = retrieve_network_hierarchy(body, tft)
+        result = retrieve_network_hierarchy(body)
         target = get_target(target, result)
-        model_id = request_pf_model(target, file_name, tft)
+        model_id = request_pf_model(target, file_name)
         print("Power factory model creation requested, model id: " + model_id)
     else:
         print("Warning: Still generating previous model, current model will not be generated.")
 
 
 def request_pf_model_for_a_zone_with_hv_only():
-    # Set up auth
-    token_fetcher = get_token_fetcher(audience=audience, issuer_domain=issuer_domain, client_id=client_id, username=username, password=password)
-    tft = token_fetcher.fetch_token()
     target = []
     # Request for ZoneSub -> Feeder
-    body = '''
+    body = gql('''
     query network {
       getNetworkHierarchy {
             substations {
@@ -119,30 +149,28 @@ def request_pf_model_for_a_zone_with_hv_only():
             }
           }
         }
-            '''
+    ''')
     if check_if_currently_generating_a_model(tft):
-        result = retrieve_network_hierarchy(body, tft)
+        result = retrieve_network_hierarchy(body)
         target = get_target(target, result)
-        model_id = request_pf_model(target, file_name, tft)
+        model_id = request_pf_model(target, file_name)
         print("Power factory model creation requested, model id: " + model_id)
     else:
         print("Warning: Still generating previous model, current model will not be generated.")
 
 
-def retrieve_network_hierarchy(body, tft):
-    client = GraphQLClient(network_endpoint)
-    client.inject_token(tft)
-    result = client.execute(body)
-    return json.loads(result)
+def retrieve_network_hierarchy(body):
+    return network_client.execute(body)
 
 
 def get_target(target, result):
     if len(target_zone_substation) == 0:
         # No Zone sub was specified thus no zone sub will be added to target
-        for zone_sub in result['data']['getNetworkHierarchy']["substations"]:
+        for zone_sub in result['getNetworkHierarchy']["substations"]:
             target = get_feeder(target, zone_sub)
     else:
-        queried_zone_sub = [x for x in result['data']['getNetworkHierarchy']["substations"] if x['mRID'] in target_zone_substation or x['name'] in target_zone_substation]
+        queried_zone_sub = [x for x in result['getNetworkHierarchy']["substations"] if
+                            x['mRID'] in target_zone_substation or x['name'] in target_zone_substation]
         for zone_sub in queried_zone_sub:
             target.append(zone_sub['mRID'])
             target = get_feeder(target, zone_sub)
@@ -179,7 +207,7 @@ def get_lvfeeder(target, feeder):
     return target
 
 
-def request_pf_model(equipment_container_list: List[str], filename: str, tft: str):
+def request_pf_model(equipment_container_list: List[str], filename: str):
     """
     Performs the GraphQL request to create the Powerfactory model for the provided list of equipment containers.
 
@@ -187,14 +215,12 @@ def request_pf_model(equipment_container_list: List[str], filename: str, tft: st
     :param filename: Desired PFD filename
     :param tft: Bearer token to use for auth
     """
-    client = GraphQLClient(api_endpoint)
-    client.inject_token(tft)
     # Set isPublic to false if you only want the specific user to see the model
-    body = '''
+    body = gql('''
     mutation createNetModel($input: NetModelInput!) {
         createNetModel(input: $input)
     }
-    '''
+    ''')
     variables = {'input': {
         'name': filename,
         'generationSpec': {'equipmentContainerMrids': equipment_container_list,
@@ -204,12 +230,12 @@ def request_pf_model(equipment_container_list: List[str], filename: str, tft: st
                            }
                            },
         'isPublic': 'true'}}
-    result = client.execute(body, variables)
-    return json.loads(result)['data']['createNetModel']
+    result = api_client.execute(body, variable_values=variables)
+    return result['createNetModel']
 
 
-def check_if_currently_generating_a_model(tft):
-    body = '''
+def check_if_currently_generating_a_model():
+    body = gql('''
     query pagedNetModels(
       $limit: Int!
       $offset: Long!
@@ -233,30 +259,23 @@ def check_if_currently_generating_a_model(tft):
             }
         }
     }
-    '''
+    ''')
     variables = {
         "limit": 10,
         "offset": 0,
         "filter": {}
     }
-    client = GraphQLClient(api_endpoint)
-    client.inject_token(tft)
-    result = client.execute(body, variables)
-    entries = json.loads(result)
-    for entry in entries['data']['pagedNetModels']['netModels']:
+    result = api_client.execute(body, variable_values=variables)
+    for entry in result['pagedNetModels']['netModels']:
         if entry['state'] == 'CREATION':
             return False
     return True
 
 
 def download_model(model_number):
-    # Set up auth
-    token_fetcher = get_token_fetcher(audience=audience, issuer_domain=issuer_domain, client_id=client_id, username=username, password=password)
-    tft = token_fetcher.fetch_token()
-
     # Request model
     model_url = api_endpoint.replace("graphql", "net-model/") + str(model_number)
-    body = '''
+    body = gql('''
     query netModelById($modelId: ID!) {
       netModelById(modelId: $modelId) {
         id
@@ -274,14 +293,12 @@ def download_model(model_number):
         errors
       }
     }
-    '''
+    ''')
     variables = {
         "modelId": model_number,
     }
-    client = GraphQLClient(api_endpoint)
-    client.inject_token(tft)
-    result = json.loads(client.execute(body, variables))
-    model_status = result['data']['netModelById']['state']
+    result = api_client.execute(body, variable_values=variables)
+    model_status = result['netModelById']['state']
     if model_status == "COMPLETED":
         model = requests.get(model_url, headers={'Authorization': tft})
         open(os.path.join(output_dir, file_name) + ".pfd", 'wb').write(model.content)
@@ -289,7 +306,7 @@ def download_model(model_number):
     elif model_status == "CREATION":
         print("Model is still being created, please download at a later time")
     elif model_status == "FAILED":
-        print("Model creation error: " + str(result['data']['netModelById']['errors']))
+        print("Model creation error: " + str(result['netModelById']['errors']))
 
 
 if __name__ == "__main__":

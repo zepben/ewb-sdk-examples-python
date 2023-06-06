@@ -28,7 +28,7 @@ setup(
         "pp-translator==0.7.0b3",
         "numba==0.56.4",
         "geojson==2.5.0",
-        "graphqlclient==0.2.4"
+        "gql[requests]",
     ],
     extras_require={
         "test": test_deps,
