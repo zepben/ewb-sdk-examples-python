@@ -1,6 +1,6 @@
 # EWB Python SDK examples
 
-This repo contains examples for utilising the [Pytho SDK](https://github.com/zepben/evolve-sdk-python). If you don't wish us Python, you can alternatively use
+This repo contains examples for utilising the [Python SDK](https://github.com/zepben/evolve-sdk-python). If you don't wish us Python, you can alternatively use
 the [JVM SDK](https://github.com/zepben/evolve-sdk-jvm), which is written in Kotlin and compatible with Java.
 
 ## Adding the EWB SDK to your own project
@@ -9,15 +9,15 @@ Add the following items to your setup.py:
 
 ```
     install_requires=[
-        "zepben.auth==<VERSION>>",
-        "zepben.evolve==<VERSION>>"
+        "zepben.auth==<VERSION>",
+        "zepben.evolve==<VERSION>"
     ],
 ```
 
 The latest versions can be found on the Python package index:
 
 * [zepben.evolve](https://pypi.org/project/zepben.evolve/)
-* [zepben.auth]([https://pypi.org/project/zepben.auth/)
+* [zepben.auth](https://pypi.org/project/zepben.auth/)
 
 > [!NOTE]  
 > If you are a keen developer and want access to the latest updates, beta versions that have been released since the latest official release can be found in
@@ -53,7 +53,7 @@ In addition to the [EWB SDK requirements](#adding-the-ewb-sdk-to-your-own-projec
 
 ```
     install_requires=[
-        "zepben.eas==<VERSION>>",
+        "zepben.eas==<VERSION>",
     ],
 ```
 
