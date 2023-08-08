@@ -13,9 +13,11 @@ from zepben.evolve import Feeder, PowerTransformer, Switch, assign_equipment_to_
 
 """
 Primary question to answer/example for:
-1. How to access the CIM model? Show examples of how the static/design and dynamic/current states of the network model is typically accessed by software developers?
+1. How to access the CIM model? Show examples of how the static/design and dynamic/current states of the network model is typically accessed by software
+ developers?
     a. Can Zepben model be updated with dynamic ADMS state information
-    b. if we have current state of network (dynamically updated from ADMS), can we query the model to find all current connected HV feeders in a voltage bus? (VVC Example)
+    b. if we have current state of network (dynamically updated from ADMS), can we query the model to find all current connected HV feeders in a voltage bus?
+     (VVC Example)
     c. How fast can we retrieve a model (dynamic sate) from CIM for near real time applications? (VVC Example)
 2. Show how the static and dynamic states of the network model is used by applications.
 """
@@ -113,7 +115,7 @@ async def zone_bus_trace(client: NetworkConsumerClient):
 
     for it in feeder_head_other_terms:
         print(f"   connecting {[feeder.mrid for feeder in it.conducting_equipment.normal_feeders]} to bus...")
-        # disconnect the terminal from its energy soruce and move it to the bus
+        # disconnect the terminal from its energy source and move it to the bus
         client.service.disconnect(it)
         client.service.connect_terminals(bus_terminal, it)
 
@@ -135,7 +137,8 @@ async def log_bus(desc: str, bus: ConductingEquipment, feeder_heads: List[Conduc
     print("==========================")
     print(desc)
 
-    # we run a trace on teh assumptoon that the real model may have more equipment between the bus and the feeder heads (e.g. other minor busbars or ac line segments
+    # we run a trace on the assumption that the real model may have more equipment between the bus and the feeder heads.
+    # e.g. other minor busbars or ac line segments
     trace = tracing.connected_equipment_trace()
     open_heads: List[ConductingEquipment] = []
     closed_heads: List[ConductingEquipment] = []
@@ -252,6 +255,7 @@ async def main():
     if len(sys.argv) != 6:
         raise TypeError("you must provided the CLIENT_ID, username, password, host and port to connect")
 
+    # noinspection PyTypeChecker
     async with connect_with_password(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]) as secure_channel:
         await run_simple(NetworkConsumerClient(secure_channel))
         await run_swap_feeder(NetworkConsumerClient(secure_channel))
