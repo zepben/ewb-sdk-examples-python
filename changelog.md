@@ -13,7 +13,8 @@
   * Running network traces
   * Creating and uploading studies
   * Translating a CIM network model into a pandapower model
-  * Create demo for requesting PF model through SDK
+  * Requesting a PowerFactory model through the SDK
+  * Manipulating the current state of the network, including swapping a zone open point.
 
 ### Enhancements
 * Limited power factory demo to 1 job at a time.
@@ -24,4 +25,3 @@
 
 ### Notes
 * None.
-
