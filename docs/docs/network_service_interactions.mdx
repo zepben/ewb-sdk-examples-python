@@ -4,6 +4,9 @@ title: Interacting With a Network Model
 slug: /
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 A `NetworkService` is a mutable node breaker network model that implements a subset of IEC61968 and IEC61970 CIM classes.
 It is essentially a collection of `IdentifiedObject`s, and they may be added and removed as desired.
 This tutorial demonstrates how to interact with a network service to add or remove objects, query objects and types, add reference resolvers and names, and connect terminals.
@@ -31,7 +34,8 @@ network = NetworkService()
 
 ## Example 1: Adding Objects
 
-You can add objects such as Ac Line Segments, Power Transformers, Breakers, Energy Consumers, and many more to a network. A few examples are shown below. A full list can be found in the [SDK documentation](https://zepben.github.io/evolve/docs/python-sdk/next/sdk-consumer)
+You can add objects such as Ac Line Segments, Power Transformers, Breakers, Energy Consumers, and many more to a network. A few examples are shown below.
+>>>>>>> 0ba5724 (Initial commit of docs)
 
 We start by adding a line segment and a breaker to the network model, as follows.
 
@@ -158,7 +162,7 @@ For this tutorial, we will use the power system network created above. The netwo
 `PerLengthSequenceImpedance` is typically used with AcLineSegment and contains the sequence impedance and admittance parameters per unit length.
 
 First, we will add a reference resolver to the network. The `resolve_or_defer_reference` method can be used to add a reference resolver. It takes two arguments, unresolved object (in this case, a per_length_sequence_impedance element), and a unique identifier for that object (e.g., "plsi_789").
-The following will add a reference resolver for the per_length_sequence_impedance associated with the `AcLineSegment` (line) created in above examples.
+The following will add a reference resolver for the per_length_sequence_impedance associated with the AcLineSegment (line) created in above examples.
 
 ```python
 network.resolve_or_defer_reference(per_length_sequence_impedance(line), "plsi_789")
@@ -197,10 +201,10 @@ You can verify that the reference resolution was successful by checking the unre
 ## Example 5: Connecting Terminals
 
 In power system modeling, it is essential to establish connectivity between different terminals in a network.
-`Terminal`s in a `NetworkService` can be connected using the `connect_terminals` method.
+Terminals in a `NetworkService` can be connected using the `connect_terminals` method.
 
 This tutorial will guide you through the process of connecting terminals and creating connectivity nodes.
-First, let us create instances of the `Terminal` class with unique identifiers (mRIDs) and add them to the network.
+First, let us create instances of the Terminal class with unique identifiers (mRIDs) and add them to the network.
 
 ```python
 t1, t2, t3 = Terminal(mrid="t1"), Terminal(mrid="t2"), Terminal(mrid="t3")
@@ -248,11 +252,12 @@ Output:
 
 ## Example 6: Managing Names in a Network Model
 
-In this tutorial, we will explore how to use the `NetworkService` to manage names in a network model.
+
+In this tutorial, we will explore how to use the NetworkService to manage names in a network model.
 Names are associated with identified objects, and each name has a specific type.
 We'll focus on the example of adding National Meter Identifier (NMI) names to meters in the network model.
 
-To get started with this example, create two instances of the `Meter` class as follows:
+To get started with this example, create two instances of the Meter class as follows:
 
 ```python
 meter1 = Meter()
@@ -288,7 +293,7 @@ This tutorial covers the usage of the `remove` method in the NetworkService clas
 The `remove` method allows you to remove identified objects based on their type and mRID.
 
 To get started with this example, ensure that you have imported the required dependencies and have created a 'network' using the instance of a `NetworkService`.
-We will use the name network that we have created for the above examples and will use the `remove` method to remove the instances of `Line`, `Breaker` and a `PerLengthSequenceImpedance`.
+We will use the name network that we have created for the above examples and will use the `remove` method to remove the instances of Line, Breaker and a PerLengthSequenceImpedance.
 
 - Remove Line
 
@@ -312,7 +317,7 @@ network.remove(plsi)
 print(f"{plsi} removed successfully.")
 ```
 
-Note that the `remove` method will raise a `KeyError` if the object is not found in the network model.
+Note that the `remove` method will raise a KeyError if the object is not found in the network model.
 Therefore, it is important to handle the exception to provide a meaningfully feedback to the user.
 In the following exercise, we will try to remove the `Line` again (which was already removed).
 

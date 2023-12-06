@@ -1,0 +1,5 @@
+{
+  "host": "hostname",
+  "rpc_port": 1234,
+  "access_token": "your_access_token"
+}
