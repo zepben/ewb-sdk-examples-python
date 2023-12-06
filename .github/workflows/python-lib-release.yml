@@ -4,8 +4,9 @@ on: workflow_dispatch
 
 jobs:
   run:
-    uses: zepben/.github/.github/workflows/python-lib-release.yml@main
+    uses: zepben/.github/.github/workflows/python-lib-release-with-docs.yml@main
     with:
       private: false
-      licencecheck: true  
+      licencecheck: true
+      product-key: "ewb-sdk-examples-python"
     secrets: inherit
