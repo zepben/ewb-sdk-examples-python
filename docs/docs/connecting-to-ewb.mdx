@@ -12,7 +12,7 @@ This tutorial provides a guide to establish a secure connection to the EWB serve
 
 **Note**: Ensure that the required dependencies are installed, and replace the placeholder values such as `hostname`, `client ID`, `username`, `password`, and `client secret` with your actual configuration.
 
-## 1. Installing Dependencies
+## Getting Started
 
 Make sure you have the required dependencies installed by running the following command:
 
@@ -25,16 +25,14 @@ The latest version can be found on the Python package index:
 - [zepben.evolve](https://pypi.org/project/zepben.evolve/)
 - [zepben.auth](https://pypi.org/project/zepben.auth/)
 
-
-## 2. Importing Dependencies
-Include the necessary imports at the beginning of your script:
+Also ensure that you have included the necessary imports at the beginning of your script, as follows:
 
 ```bash
 from zepben.auth import AuthMethod
 from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, connect_with_password, connect_with_secret, SyncNetworkConsumerClient
 ```
 
-## 3. Connecting Without TLS or Authentication
+## Connecting Without TLS or Authentication
 
 The plaintext_connection uses **connect_insecure** function that communicates with the gRPC service over plaintext to connect to an RPC server without TLS or authentication.
 **Note**: This type of connection is only suitable/recommended for development and demonstration purposes.
@@ -56,7 +54,7 @@ async def plaintext_connection():
 
 - A plaintext connection to the gRPC service
 
-## 4. Connecting Over TLS Without User Credentials
+## Connecting Over TLS Without User Credentials
 
 The secure_connection uses **connect_tls** function that communicates with the gRPC service using SSL/TLS transport security to connect to the EWB server over TLS, but does not use/require user or client credentials.
 
@@ -81,7 +79,7 @@ async def secure_connection():
 
 - An encrypted connection to the gRPC service
 
-### 5. Connecting Over TLS With User Credentials
+### Connecting Over TLS With User Credentials
 
 The secure_connection_with_user_credentials connects to the EWB server over TLS with user credentials. It uses **connect_with_password** function that communicates with the gRPC service using SSL/TLS transport security and the OAuth password grant flow.
 The authentication config is fetched from https://hostname/auth or https://hostname/ewb/auth by default, which includes the domain of the OAuth token provider.
@@ -113,7 +111,7 @@ async def secure_connection_with_user_credentials():
 
 - An Auth0-authenticated, encrypted connection to the gRPC service. If the authentication configuration specifies that no authentication is required, a non-authenticated, encrypted connection is returned instead.
 
-### 6. Connecting Over TLS With Client Credentials
+### Connecting Over TLS With Client Credentials
 
 The secure_connection_with_client_credentials connects to the EWB server over TLS with client credentials. It uses **connect_with_secret** function that communicates with the gRPC service using SSL/TLS transport security and the OAuth client credentials flow.
 The authentication config is fetched from https://hostname/auth or https://hostname/ewb/auth by default, which includes the domain of the OAuth token provider.
