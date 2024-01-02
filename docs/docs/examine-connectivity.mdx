@@ -11,7 +11,16 @@ In this example, we will build a simple network shown below and test the connect
 
 ![](./assets/simple_eg.jpg)
 
-## Create a Network (Simple Example)
+## Getting Started
+
+Ensure that you have installed and imported the required dependencies.
+
+```bash
+from zepben.evolve import EnergySource, AcLineSegment, Fuse, PowerTransformer, Breaker, EnergyConsumer, NetworkService, Terminal, connected_equipment, \
+    ConductingEquipment, PhaseCode, connected_terminals, ConnectivityResult
+```
+
+## Part A: Create a Network (Simple Example)
 
 ### Step 1: Create an Energy Source
 
@@ -142,7 +151,7 @@ network.connect_terminals(breaker_t2, lv_line_t1)
 network.connect_terminals(lv_line_t2, ec_t)
 ```
 
-## Examine Connectivity of the Network
+## Part B: Examine Connectivity of the Network
 
 This section explores examples of connectivity analysis of power systems (particularly the simple example that was built using the above guide).
 This example provides functions to print connectivity results between different equipment and terminals, including information about nominal phase paths.
@@ -183,33 +192,25 @@ def fancy_print_connected_equipment(equipment: ConductingEquipment, phases=None)
 
 This section demonstrates how to use the above functions with different equipment and phase configurations.
 
-#### Example 1:
+Example 1: The code snippet `fancy_print_connected_equipment(tx)` prints the connectivity results for the Power Transformer (tx). Since no phase information is provided, the `default=None` is used.
 
-The code snippet `fancy_print_connected_equipment(tx)` prints the connectivity results for the Power Transformer (tx). Since no phase information is provided, the `default=None` is used.
-
-#### Output:
+Output:
 
 ![](./assets/connectivity_ex1.png)
 
-#### Example 2:
+Example 2: The code snippet `fancy_print_connected_equipment(tx, phases=PhaseCode.N)` prints the connectivity results for the Power Transformer (tx), considering only the `N` phase.
 
-The code snippet `fancy_print_connected_equipment(tx, phases=PhaseCode.N)` prints the connectivity results for the Power Transformer (tx), considering only the `N` phase.
-
-#### Output:
+Output:
 
 ![](./assets/connectivity_ex2.png)
 
-#### Example 3:
+Example 3: The code snippet `fancy_print_connected_equipment(breaker, phases=PhaseCode.BC)` prints the connectivity results for the Breaker (breaker), considering only the `B` and `C` phases.
 
-The code snippet `fancy_print_connected_equipment(breaker, phases=PhaseCode.BC)` prints the connectivity results for the Breaker (breaker), considering only the `B` and `C` phases.
-
-#### Output:
+Output:
 
 ![](./assets/connectivity_ex3.png)
 
-#### Example 4:
-
-The following code prints the connectivity results for the terminal `lv_fuse_t2` with phases `ACN` using the `connected_terminals` function. Note that `connected_terminals` is essentially `connected_equipment` where only one terminal is considered.
+Example 4: The following code prints the connectivity results for the terminal `lv_fuse_t2` with phases `ACN` using the `connected_terminals` function. Note that `connected_terminals` is essentially `connected_equipment` where only one terminal is considered.
 
 ```bash
 print(f"Connectivity results for terminal {lv_fuse_t2} on phases {PhaseCode.ACN}:")
@@ -217,6 +218,6 @@ for connectivity_result in connected_terminals(lv_fuse_t2, PhaseCode.ACN):
     fancy_print_connectivity_result(connectivity_result)
 ```
 
-#### Output:
+Output:
 
 ![](./assets/connectivity_ex4.png)
