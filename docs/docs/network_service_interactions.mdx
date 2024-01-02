@@ -12,7 +12,7 @@ This tutorial demonstrates how to interact with a network service to add or remo
 
 ## Getting Started
 
-For this example, you will need the import `NetworkService`, `AcLineSegment`, `PerLengthSequenceImpedance`, `Switch`, `Breaker`, `ConductingEquipment`, `NameType`, `Meter`, `EnergySource`, and `Terminal` from `zepben.evolve`.
+For this example, you will need to import `NetworkService`, `AcLineSegment`, `PerLengthSequenceImpedance`, `Switch`, `Breaker`, `ConductingEquipment`, `NameType`, `Meter`, `EnergySource`, and `Terminal` from `zepben.evolve`.
 
 ```bash
 from zepben.evolve import NetworkService, AcLineSegment, PerLengthSequenceImpedance, Switch, Breaker,
@@ -248,3 +248,83 @@ Output:
 
 ![](./assets/connecting_terminal_ex2.png)
 
+## Example 6: Managing Names in a Network Model
+
+In this tutorial, we will explore how to use the NetworkService to manage names in a network model.
+Names are associated with identified objects, and each name has a specific type.
+We'll focus on the example of adding National Meter Identifier (NMI) names to meters in the network model.
+
+To get started with this example, create two instances of the Meter class as follows:
+
+```bash
+meter1 = Meter()
+meter2 = Meter()
+```
+
+Now, create a `NameType` for "NMI" (National Meter Identifier) with a description.
+Then, associate the NMI names with the meters using the `get_or_add_name` method.
+
+```bash
+name_type = NameType(name="NMI", description="National Meter Identifier")
+name_type.get_or_add_name("987654321", meter1)
+name_type.get_or_add_name("546372819", meter2)
+```
+
+Add the NameType to the network model using the `add_name_type` method. Finally, display the assigned names and available name types.
+
+```bash
+network.add_name_type(name_type)
+for name in network.get_name_type("NMI").names:
+    print(f"NMI name {name.name} is assigned to {name.identified_object}")
+for name_type in network.name_types:
+    print(f"Network has name type {name_type}")
+```
+
+Output:
+
+![](./assets/names_ex1.png)
+
+## Example 7: Removing Objects
+
+This tutorial covers the usage of the `remove` method in the NetworkService class to remove objects from a network model.
+The `remove` method allows you to remove identified objects based on their type and mRID.
+
+To get started with this example, ensure that you have imported the required dependencies and have created a 'network' using the instance of a `NetworkService`.
+We will use the name network that we have created for the above examples and will use the `remove` method to remove the instances of Line, Breaker and a PerLengthSequenceImpedance.
+
+- Remove Line
+
+```bash
+network.remove(line)
+print(f"{line} removed successfully.")
+```
+
+- Remove Breaker
+
+```bash
+network.remove(breaker)
+print(f"{breaker} removed successfully.")
+```
+
+- Remove PerLengthSequenceImpedance
+
+```bash
+plsi = PerLengthSequenceImpedance(mrid="plsi_789")
+network.remove(plsi)
+print(f"{plsi} removed successfully.")
+```
+
+Note that the `remove` method will raise a KeyError if the object is not found in the network model.
+Therefore, it is important to handle the exception to provide a meaningfully feedback to the user.
+In the following exercise, we will try to remove the `Line` again (which was already removed).
+
+```bash
+try:
+    network.remove(line)
+except KeyError as error:
+    print(f"Error: {error}. The specified object was not found in the network model.")
+```
+
+Output:
+
+![](./assets/remove_ex1.png)
