@@ -11,6 +11,10 @@ module.exports = {
         "examples-connecting-to-ewb",
         "examples-network-service-interactions",
         "examples-examine-connectivity",
-        "examples-ieee-13-node-feeder"
+        "examples-ieee-13-node-feeder",
+        "examples-build-network-hierarchy",
+        "examples-fetching-network-hierarchy",
+        "examples-fetching-network-model",
+        "examples-creating-and-uploading-studies"
     ]
 };
