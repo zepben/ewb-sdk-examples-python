@@ -25,9 +25,9 @@ setup(
         "zepben.evolve==0.37.2",
         "numpy==1.26.4",
         "geojson==2.5.0",
-        "gql[requests]",
-        "pandapower=2.13.1",
-        "pp-translator",
+        "gql[requests]==3.4.1",
+        "pandapower==2.13.1",
+        "pp-translator==0.7.0",
     ],
     extras_require={
         "test": test_deps,
