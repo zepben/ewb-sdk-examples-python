@@ -1,0 +1,27 @@
+[
+  {
+    "id": "batteries",
+    "name": "Evergen Batteries",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 25,
+      "circle-color": "#ffc73c",
+      "circle-stroke-color": "blue",
+      "circle-stroke-width": 1,
+      "circle-opacity": ["interpolate", ["linear"], ["zoom"], 17, 0.9, 18, 1]
+    }
+  },
+  {
+    "id": "labels",
+    "name": "Battery Labels",
+    "type": "symbol",
+    "layout": {
+      "text-field": ["get", "label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 12
+    },
+    "paint": {
+      "text-color": "black"
+    }
+  }
+]

@@ -1,0 +1,18 @@
+{
+    "ewb_server": {
+        "host": "ewb.local",
+        "rpc_port": 50051,
+        "secure": false
+    },
+    "eas_server": {
+        "host": "ewb.local",
+        "port": 7624,
+        "protocol": "https",
+        "client_id": "rAFAmVo5goW5ZSApsZ6RrB5kfCPRZiwX",
+        "client_secret": "yVfQPBa8MSMDJdNE087RNSoAj1TTj0RcSayZdWWysZw2giehY3tIuBqCe1hrCaSt",
+        "username": "auth0-test@zepben.com",
+        "password": "Vd3BHfnd7cgeUm3",
+        "verify_certificate": false,
+        "ca_filename": "cachain.crt"
+    }
+}
