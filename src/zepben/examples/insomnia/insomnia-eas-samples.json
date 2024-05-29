@@ -1,7 +1,7 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2024-05-29T05:56:29.165Z",
+  "__export_date": "2024-05-29T06:04:08.685Z",
   "__export_source": "insomnia.desktop.app:v9.2.0",
   "resources": [
     {
@@ -128,7 +128,7 @@
     {
       "_id": "req_4264455705174d9aab9c44c5eb0b3128",
       "parentId": "wrk_c5544448f40e4d1a853e6967ee6c668c",
-      "modified": 1716962108265,
+      "modified": 1716962582424,
       "created": 1716961328575,
       "url": "https://localhost:7654/api/graphql",
       "name": "getMetrics",
@@ -136,7 +136,7 @@
       "method": "POST",
       "body": {
         "mimeType": "application/graphql",
-        "text": "{\"query\":\"query getMetrics {\\n\\tgetMetrics(\\n\\t\\tjobId: \\\"job UUID\\\",\\n\\t\\tcontainerType: FeederTotal,\\n\\t\\tcontainerId: \\\"feeder mRID\\\" # can be left empty if containerType is TOTAL\\n\\t) {\\n\\t\\tname\\n\\t\\tvalue\\n\\t}\\n}\\n\",\"operationName\":\"getMetrics\"}"
+        "text": "{\"query\":\"query getMetrics {\\n\\tgetMetrics(\\n\\t\\tjobId: \\\"job UUID\\\"\\n\\t\\tcontainerType: FeederTotal\\n\\t\\tcontainerId: \\\"feeder mRID\\\" # can be left empty if containerType is TOTAL\\n\\t) {\\n\\t\\tname\\n\\t\\tvalue\\n\\t}\\n}\\n\",\"operationName\":\"getMetrics\"}"
       },
       "preRequestScript": "",
       "parameters": [],
