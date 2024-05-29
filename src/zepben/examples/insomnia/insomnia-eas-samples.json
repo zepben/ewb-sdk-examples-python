@@ -1,0 +1,188 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2024-05-29T05:46:40.730Z",
+  "__export_source": "insomnia.desktop.app:v9.2.0",
+  "resources": [
+    {
+      "_id": "req_f3088439b15c44518ca6d74cbba02dc7",
+      "parentId": "wrk_c5544448f40e4d1a853e6967ee6c668c",
+      "modified": 1716961507798,
+      "created": 1716958634873,
+      "url": "https://localhost:7654/api/graphql",
+      "name": "getAllJobs",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query getAllJobs {\\n\\tgetAllJobs {\\n\\t\\tid\\n\\t\\tapplication\\n\\t\\tapplicationVersion\\n\\t\\tstartTime\\n\\t\\tsource\\n\\t}\\n}\\n\",\"operationName\":\"getAllJobs\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "User-Agent",
+          "value": "insomnia/9.2.0"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1716958634873,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "wrk_c5544448f40e4d1a853e6967ee6c668c",
+      "parentId": null,
+      "modified": 1716957940212,
+      "created": 1716957931372,
+      "name": "EAS Queries",
+      "description": "",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "req_775d1d83ecfb4c70aa29220548eb0eb0",
+      "parentId": "wrk_c5544448f40e4d1a853e6967ee6c668c",
+      "modified": 1716960965511,
+      "created": 1716960936309,
+      "url": "https://localhost:7654/api/graphql",
+      "name": "getNewestJob",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query getNewestJob {\\n\\tgetNewestJob {\\n\\t\\tid\\n\\t\\tapplication\\n\\t\\tapplicationVersion\\n\\t\\tstartTime\\n\\t\\tsource\\n\\t}\\n}\\n\",\"operationName\":\"getNewestJob\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "User-Agent",
+          "value": "insomnia/9.2.0"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1707234874922.5,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_31c0de2fe1ab44c5a77e30f16f8e83ef",
+      "parentId": "wrk_c5544448f40e4d1a853e6967ee6c668c",
+      "modified": 1716961303719,
+      "created": 1716961003625,
+      "url": "https://localhost:7654/api/graphql",
+      "name": "getSources",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query getSources {\\n\\tgetSources(jobId: \\\"fb2b8a7d-2cb7-4c9d-8295-50a8fbe456c1\\\") {\\n\\t\\tname\\n\\t\\tfileHash\\n\\t\\ttimestamp\\n\\t}\\n}\\n\",\"operationName\":\"getSources\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "User-Agent",
+          "value": "insomnia/9.2.0"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1702372994947.25,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_4264455705174d9aab9c44c5eb0b3128",
+      "parentId": "wrk_c5544448f40e4d1a853e6967ee6c668c",
+      "modified": 1716961363342,
+      "created": 1716961328575,
+      "url": "https://localhost:7654/api/graphql",
+      "name": "getMetrics",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query getMetrics {\\n\\tgetMetrics(jobId: \\\"fb2b8a7d-2cb7-4c9d-8295-50a8fbe456c1\\\", containerType: TOTAL, containerId: \\\"GLOBAL\\\") {\\n\\t\\tname\\n\\t\\tvalue\\n\\t}\\n}\\n\",\"operationName\":\"getMetrics\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "User-Agent",
+          "value": "insomnia/9.2.0"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1699942054959.625,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "env_dd0b702a3f02d3358dd08d34aeb093c4dbaa5368",
+      "parentId": "wrk_c5544448f40e4d1a853e6967ee6c668c",
+      "modified": 1716957931373,
+      "created": 1716957931373,
+      "name": "Base Environment",
+      "data": {},
+      "dataPropertyOrder": null,
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1716957931373,
+      "_type": "environment"
+    },
+    {
+      "_id": "jar_dd0b702a3f02d3358dd08d34aeb093c4dbaa5368",
+      "parentId": "wrk_c5544448f40e4d1a853e6967ee6c668c",
+      "modified": 1716957931374,
+      "created": 1716957931374,
+      "name": "Default Jar",
+      "cookies": [],
+      "_type": "cookie_jar"
+    }
+  ]
+}
