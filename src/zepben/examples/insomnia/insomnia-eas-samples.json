@@ -1,7 +1,7 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2024-05-29T05:46:40.730Z",
+  "__export_date": "2024-05-29T05:56:29.165Z",
   "__export_source": "insomnia.desktop.app:v9.2.0",
   "resources": [
     {
@@ -91,7 +91,7 @@
     {
       "_id": "req_31c0de2fe1ab44c5a77e30f16f8e83ef",
       "parentId": "wrk_c5544448f40e4d1a853e6967ee6c668c",
-      "modified": 1716961303719,
+      "modified": 1716962019155,
       "created": 1716961003625,
       "url": "https://localhost:7654/api/graphql",
       "name": "getSources",
@@ -99,7 +99,7 @@
       "method": "POST",
       "body": {
         "mimeType": "application/graphql",
-        "text": "{\"query\":\"query getSources {\\n\\tgetSources(jobId: \\\"fb2b8a7d-2cb7-4c9d-8295-50a8fbe456c1\\\") {\\n\\t\\tname\\n\\t\\tfileHash\\n\\t\\ttimestamp\\n\\t}\\n}\\n\",\"operationName\":\"getSources\"}"
+        "text": "{\"query\":\"query getSources {\\n\\tgetSources(jobId: \\\"job UUID\\\") {\\n\\t\\tname\\n\\t\\tfileHash\\n\\t\\ttimestamp\\n\\t}\\n}\\n\",\"operationName\":\"getSources\"}"
       },
       "preRequestScript": "",
       "parameters": [],
@@ -128,7 +128,7 @@
     {
       "_id": "req_4264455705174d9aab9c44c5eb0b3128",
       "parentId": "wrk_c5544448f40e4d1a853e6967ee6c668c",
-      "modified": 1716961363342,
+      "modified": 1716962108265,
       "created": 1716961328575,
       "url": "https://localhost:7654/api/graphql",
       "name": "getMetrics",
@@ -136,7 +136,7 @@
       "method": "POST",
       "body": {
         "mimeType": "application/graphql",
-        "text": "{\"query\":\"query getMetrics {\\n\\tgetMetrics(jobId: \\\"fb2b8a7d-2cb7-4c9d-8295-50a8fbe456c1\\\", containerType: TOTAL, containerId: \\\"GLOBAL\\\") {\\n\\t\\tname\\n\\t\\tvalue\\n\\t}\\n}\\n\",\"operationName\":\"getMetrics\"}"
+        "text": "{\"query\":\"query getMetrics {\\n\\tgetMetrics(\\n\\t\\tjobId: \\\"job UUID\\\",\\n\\t\\tcontainerType: FeederTotal,\\n\\t\\tcontainerId: \\\"feeder mRID\\\" # can be left empty if containerType is TOTAL\\n\\t) {\\n\\t\\tname\\n\\t\\tvalue\\n\\t}\\n}\\n\",\"operationName\":\"getMetrics\"}"
       },
       "preRequestScript": "",
       "parameters": [],
