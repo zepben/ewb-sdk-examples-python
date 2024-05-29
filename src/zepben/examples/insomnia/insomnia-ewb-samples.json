@@ -1,7 +1,7 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2024-05-29T06:04:19.204Z",
+  "__export_date": "2024-05-29T06:30:28.820Z",
   "__export_source": "insomnia.desktop.app:v9.2.0",
   "resources": [
     {
@@ -116,7 +116,7 @@
     {
       "_id": "req_eb25c2e6842b4879accc465e49ad01c9",
       "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
-      "modified": 1682322083069,
+      "modified": 1716964198554,
       "created": 1682322083069,
       "url": "http://localhost:9000/ewb/api/graphql",
       "name": "findIdentifiedObjectsByName",
@@ -124,7 +124,7 @@
       "method": "POST",
       "body": {
         "mimeType": "application/graphql",
-        "text": "{\"query\":\"query {\\n    findIdentifiedObjectsByName(\\n        criteria: [{ nameType: \\\"NMI\\\", names: [\\\"1234567890\\\"] }]\\n    ) {\\n        mRID\\n        names {\\n            name\\n            type {\\n                name\\n            }\\n        }\\n    }\\n}\\n\"}"
+        "text": "{\"query\":\"query {\\n    findIdentifiedObjectsByName(\\n        criteria: [{ nameType: \\\"NMI\\\", names: [\\\"1234567890\\\"] }]\\n\\t\\tincludeClasses: [\\\"UsagePoint\\\"] # optional\\n    ) {\\n        mRID\\n        names {\\n            name\\n            type {\\n                name\\n            }\\n        }\\n    }\\n}\\n\"}"
       },
       "preRequestScript": "",
       "parameters": [],
@@ -149,7 +149,7 @@
     {
       "_id": "req_fff84e79aeee4c75bd0bd9ae7fc94c9a",
       "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
-      "modified": 1682322103769,
+      "modified": 1716963755076,
       "created": 1682322083068,
       "url": "http://localhost:9000/ewb/api/graphql",
       "name": "getAssetInfo",
@@ -157,7 +157,7 @@
       "method": "POST",
       "body": {
         "mimeType": "application/graphql",
-        "text": "{\"query\":\"query {\\n    getAssetInfo(types: \\\"PerLengthSequenceIpedance\\\") {\\n        mRID\\n        ... on PerLengthSequenceImpedance {\\n            r\\n            x\\n        }\\n    }\\n}\\n\"}"
+        "text": "{\"query\":\"query {\\n    getAssetInfo(types: \\\"PerLengthSequenceImpedance\\\") {\\n        mRID\\n        ... on PerLengthSequenceImpedance {\\n            r\\n            x\\n        }\\n    }\\n}\\n\"}"
       },
       "preRequestScript": "",
       "parameters": [],
@@ -281,7 +281,7 @@
     {
       "_id": "req_f74685fddb814e45bf29676cec488aa5",
       "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
-      "modified": 1716962478758,
+      "modified": 1716963808794,
       "created": 1682322083062,
       "url": "http://localhost:9000/ewb/api/graphql",
       "name": "getUpstreamEquipment",
@@ -289,7 +289,7 @@
       "method": "POST",
       "body": {
         "mimeType": "application/graphql",
-        "text": "{\"query\":\"query {\\n    getUpstreamEquipment(\\n        mRID: \\\"mRID\\\"\\n        includeFilter: [\\\"Switch\\\"] # optional\\n        stopMRID: \\\"targetMRID\\\" # optional\\n        networkState: NORMAL # optional\\n    ) {\\n        identifiedObjects {\\n        \\tmRID\\n        \\tname\\n\\t\\t}\\n\\t\\treturnedObjectCount\\n    }\\n}\\n\"}"
+        "text": "{\"query\":\"query {\\n    getUpstreamEquipment(\\n        mRID: \\\"mRID\\\"\\n        includeFilter: [\\\"Switch\\\"] # optional\\n\\t\\texcludeFilter: [\\\"Recloser\\\"] # optional\\n\\t\\tstopType: \\\"Breaker\\\" # optional\\n        stopMRID: \\\"targetMRID\\\" # optional\\n        networkState: NORMAL # optional\\n    ) {\\n        identifiedObjects {\\n        \\tmRID\\n        \\tname\\n\\t\\t}\\n\\t\\treturnedObjectCount\\n    }\\n}\\n\"}"
       },
       "preRequestScript": "",
       "parameters": [],
@@ -314,7 +314,7 @@
     {
       "_id": "req_b917ce48923c43299066648ba678ffc1",
       "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
-      "modified": 1716962400715,
+      "modified": 1716964054077,
       "created": 1682322083061,
       "url": "http://localhost:9000/ewb/api/graphql",
       "name": "getDownstreamEquipment",
@@ -322,7 +322,7 @@
       "method": "POST",
       "body": {
         "mimeType": "application/graphql",
-        "text": "{\"query\":\"query {\\n    getDownstreamEquipment(\\n        mRID: \\\"mRID\\\"\\n        networkState: NORMAL # optional\\n    ) {\\n\\t\\tidentifiedObjects {\\n\\t\\t\\tmRID\\n\\t\\t\\tname\\n\\t\\t}\\n    }\\n}\\n\"}"
+        "text": "{\"query\":\"query {\\n    getDownstreamEquipment(\\n        mRID: \\\"mRID\\\"\\n\\t\\tincludeFilter: [\\\"Switch\\\"] # optional\\n\\t\\texcludeFilter: [\\\"Breaker\\\"] # optional\\n        networkState: NORMAL # optional\\n    ) {\\n\\t\\tidentifiedObjects {\\n\\t\\t\\tmRID\\n\\t\\t\\tname\\n\\t\\t}\\n    }\\n}\\n\"}"
       },
       "preRequestScript": "",
       "parameters": [],
@@ -347,15 +347,15 @@
     {
       "_id": "req_fb2e4fd05910428aadaca6c309c6b5b9",
       "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
-      "modified": 1682322110104,
+      "modified": 1716964118385,
       "created": 1682322083059,
-      "url": "",
+      "url": "http://localhost:9000/ewb/api/graphql",
       "name": "getConnectedEquipment",
       "description": "",
       "method": "POST",
       "body": {
         "mimeType": "application/graphql",
-        "text": "{\"query\":\"query {\\n    getConnectedEquipment(\\n        mRID: \\\"mRID\\\"\\n        steps: 3 # optional\\n        networkState: NORMAL # optional\\n        feederDirection: DOWNSTREAM # optional\\n    ) {\\n        conductingEquipment {\\n            mRID\\n            name\\n        }\\n        step\\n    }\\n}\\n\"}"
+        "text": "{\"query\":\"query {\\n    getConnectedEquipment(\\n        mRID: \\\"mRID\\\"\\n        steps: 3 # optional\\n\\t\\tincludeFilter: [\\\"Switch\\\"] # optional\\n\\t\\texcludeFilter: [\\\"Breaker\\\"] # optional\\n        networkState: NORMAL # optional\\n        feederDirection: DOWNSTREAM # optional\\n    ) {\\n\\t\\tconductingEquipmentSteps {\\n\\t\\t\\tconductingEquipment {\\n\\t\\t\\t\\tmRID\\n\\t\\t\\t\\tname\\n\\t\\t\\t}\\n\\t\\t\\tstep\\n\\t\\t}\\n        returnedObjectCount\\n    }\\n}\\n\"}"
       },
       "preRequestScript": "",
       "parameters": [],
@@ -380,7 +380,7 @@
     {
       "_id": "req_dc94ae5c7b584a05999ed7a1bf1f2aef",
       "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
-      "modified": 1716962525636,
+      "modified": 1716964158061,
       "created": 1682322083057,
       "url": "http://localhost:9000/ewb/api/graphql",
       "name": "getIsolatedEquipment",
@@ -388,7 +388,7 @@
       "method": "POST",
       "body": {
         "mimeType": "application/graphql",
-        "text": "{\"query\":\"query {\\n    getIsolatedEquipment(\\n        isolationPoints: [\\n            {\\n                mRID: \\\"mRID1\\\"\\n                longitude: 0.0 # optional paired with latitude\\n                latitude: 0.0 # optional paired with longitude\\n            }, {\\n                mRID: \\\"mRID2\\\"                \\n            }\\n        ]\\n\\t\\t\\t\\tinsideIsolation: [ # optional if isolating below subtrans\\n            {\\n                mRID: \\\"mRID3\\\"\\n                longitude: 0.0 # optional paired with latitude\\n                latitude: 0.0 # optional paired with longitude\\n            }, {\\n                mRID: \\\"mRID4\\\"                \\n            }\\n        ]\\n\\t\\t\\t\\tmaxSwitches: 7 # optional\\n        includeFilter: [\\\"Type\\\"] # optional\\n        networkState: NORMAL # optional\\n    ) {\\n        identifiedObjects {\\n        \\tmRID\\n        \\tname\\n\\t\\t}\\n\\t\\treturnedObjectCount\\n    }\\n}\\n\"}"
+        "text": "{\"query\":\"query {\\n    getIsolatedEquipment(\\n        isolationPoints: [\\n            {\\n                mRID: \\\"mRID1\\\"\\n                longitude: 0.0 # optional paired with latitude\\n                latitude: 0.0 # optional paired with longitude\\n            }, {\\n                mRID: \\\"mRID2\\\"                \\n            }\\n        ]\\n\\t\\tinsideIsolation: [ # optional if isolating below subtrans\\n            {\\n                mRID: \\\"mRID3\\\"\\n                longitude: 0.0 # optional paired with latitude\\n                latitude: 0.0 # optional paired with longitude\\n            }, {\\n                mRID: \\\"mRID4\\\"                \\n            }\\n        ]\\n\\t\\tmaxSwitches: 7 # optional\\n        includeFilter: [\\\"Type\\\"] # optional\\n\\t\\texcludeFilter: [\\\"Subtype\\\"] # optional\\n        networkState: NORMAL # optional\\n    ) {\\n        identifiedObjects {\\n        \\tmRID\\n        \\tname\\n\\t\\t}\\n\\t\\treturnedObjectCount\\n    }\\n}\\n\"}"
       },
       "preRequestScript": "",
       "parameters": [],
