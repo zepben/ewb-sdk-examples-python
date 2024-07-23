@@ -1,6 +1,6 @@
 # EWB Python SDK examples
 
-This repo contains examples for utilising the [Python SDK](https://github.com/zepben/evolve-sdk-python). If you don't wish us Python, you can alternatively use
+This repo contains examples for utilising the [Python SDK](https://github.com/zepben/evolve-sdk-python). If you don't wish to use Python, you can alternatively use
 the [JVM SDK](https://github.com/zepben/evolve-sdk-jvm), which is written in Kotlin and compatible with Java.
 
 Some of the examples covering basic concepts are highlighted in this section, an [index of the examples](#examples-index) containing more advanced concepts can
@@ -57,7 +57,7 @@ the [IEEE 13 node test feeder](./src/zepben/examples/ieee_13_node_test_feeder.py
 
 The EAS adds additional functionality to EWB.
 
-## Adding the SDK to your own project
+## Adding the EAS client to your own project
 
 In addition to the [EWB SDK requirements](#adding-the-ewb-sdk-to-your-own-project), add the following item to your setup.py:
 
