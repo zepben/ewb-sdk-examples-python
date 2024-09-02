@@ -207,18 +207,19 @@ def get_lvfeeder(target, feeder):
     return target
 
 
-def request_pf_model(equipment_container_list: List[str], filename: str):
+def request_pf_model(equipment_container_list: List[str], filename: str, spread_max_demand: bool = False):
     """
     Performs the GraphQL request to create the Powerfactory model for the provided list of equipment containers.
 
     :param equipment_container_list: List of EquipmentContainer mRIDs to include in the Powerfactory model.
     :param filename: Desired PFD filename
     :param tft: Bearer token to use for auth
+    :param spread_max_demand: Whether to spread max demand load across transformers/loads. False will instead configure the timeseries database.
     """
     # Set isPublic to false if you only want the specific user to see the model
     body = gql('''
-    mutation createNetModel($input: NetModelInput!) {
-        createNetModel(input: $input)
+    mutation createPowerFactoryModel($input: PowerFactoryModelInput!) {
+        createPowerFactoryModel(input: $input)
     }
     ''')
     variables = {'input': {
@@ -227,22 +228,25 @@ def request_pf_model(equipment_container_list: List[str], filename: str):
                            'distributionTransformerConfig': {
                                'rGround': 0.01,
                                'xGround': 0.01
+                           },
+                           'loadConfig': {
+                               'spreadMaxDemand': spread_max_demand
                            }
                            },
         'isPublic': 'true'}}
     result = api_client.execute(body, variable_values=variables)
-    return result['createNetModel']
+    return result['createPowerFactoryModel']
 
 
 def check_if_currently_generating_a_model():
     body = gql('''
-    query pagedNetModels(
+    query pagedPowerFactoryModels(
       $limit: Int!
       $offset: Long!
-      $filter: GetNetModelsFilterInput
-      $sort: GetNetModelsSortCriteriaInput
+      $filter: GetPowerFactoryModelsFilterInput
+      $sort: GetPowerFactoryModelsSortCriteriaInput
     ) {
-        pagedNetModels(
+        pagedPowerFactoryModels(
             limit: $limit
             offset: $offset
             filter: $filter
@@ -250,7 +254,7 @@ def check_if_currently_generating_a_model():
         ) {
             totalCount
             offset
-            netModels {
+            powerFactoryModels {
                 id
                 name
                 createdAt
@@ -266,7 +270,7 @@ def check_if_currently_generating_a_model():
         "filter": {}
     }
     result = api_client.execute(body, variable_values=variables)
-    for entry in result['pagedNetModels']['netModels']:
+    for entry in result['pagedPowerFactoryModels']['powerFactoryModels']:
         if entry['state'] == 'CREATION':
             return False
     return True
@@ -274,10 +278,10 @@ def check_if_currently_generating_a_model():
 
 def download_model(model_number):
     # Request model
-    model_url = api_endpoint.replace("graphql", "net-model/") + str(model_number)
+    model_url = api_endpoint.replace("graphql", "power-factory-model/") + str(model_number)
     body = gql('''
-    query netModelById($modelId: ID!) {
-      netModelById(modelId: $modelId) {
+    query powerFactoryModelById($modelId: ID!) {
+      powerFactoryModelById(modelId: $modelId) {
         id
         name
         createdAt
@@ -298,7 +302,7 @@ def download_model(model_number):
         "modelId": model_number,
     }
     result = api_client.execute(body, variable_values=variables)
-    model_status = result['netModelById']['state']
+    model_status = result['powerFactoryModelById']['state']
     if model_status == "COMPLETED":
         model = requests.get(model_url, headers={'Authorization': tft})
         open(os.path.join(output_dir, file_name) + ".pfd", 'wb').write(model.content)
@@ -306,7 +310,7 @@ def download_model(model_number):
     elif model_status == "CREATION":
         print("Model is still being created, please download at a later time")
     elif model_status == "FAILED":
-        print("Model creation error: " + str(result['netModelById']['errors']))
+        print("Model creation error: " + str(result['powerFactoryModelById']['errors']))
 
 
 if __name__ == "__main__":
