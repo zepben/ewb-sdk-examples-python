@@ -26,6 +26,10 @@ target_lv = {"lvfeeder-mRID-or-name"}
 file_name = "test_file"
 output_dir = "path to output dir"
 
+# use feeder max demand for load?
+# False will create time series characteristic for load
+feeder_max_demand = False
+
 # graphQL endpoint access settings
 network_endpoint = 'https://{url}/api/network/graphql'
 api_endpoint = 'https://{url}/api/graphql'
@@ -124,10 +128,10 @@ def request_pf_model_for_a_zone_with_hv_lv():
           }
         }
     ''')
-    if check_if_currently_generating_a_model(tft):
+    if check_if_currently_generating_a_model():
         result = retrieve_network_hierarchy(body)
         target = get_target(target, result)
-        model_id = request_pf_model(target, file_name)
+        model_id = request_pf_model(target, file_name, feeder_max_demand)
         print("Power factory model creation requested, model id: " + model_id)
     else:
         print("Warning: Still generating previous model, current model will not be generated.")
@@ -150,10 +154,10 @@ def request_pf_model_for_a_zone_with_hv_only():
           }
         }
     ''')
-    if check_if_currently_generating_a_model(tft):
+    if check_if_currently_generating_a_model():
         result = retrieve_network_hierarchy(body)
         target = get_target(target, result)
-        model_id = request_pf_model(target, file_name)
+        model_id = request_pf_model(target, file_name, feeder_max_demand)
         print("Power factory model creation requested, model id: " + model_id)
     else:
         print("Warning: Still generating previous model, current model will not be generated.")
@@ -213,7 +217,6 @@ def request_pf_model(equipment_container_list: List[str], filename: str, spread_
 
     :param equipment_container_list: List of EquipmentContainer mRIDs to include in the Powerfactory model.
     :param filename: Desired PFD filename
-    :param tft: Bearer token to use for auth
     :param spread_max_demand: Whether to spread max demand load across transformers/loads. False will instead configure the timeseries database.
     """
     # Set isPublic to false if you only want the specific user to see the model
