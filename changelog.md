@@ -15,6 +15,7 @@
   * Translating a CIM network model into a pandapower model
   * Requesting a PowerFactory model through the SDK
   * Manipulating the current state of the network, including swapping a zone open point.
+* Added insomnia collections for EWB and EAS GraphQL queries
 
 ### Enhancements
 * Limited power factory demo to 1 job at a time.
