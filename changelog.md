@@ -19,6 +19,7 @@
 ### Enhancements
 * Limited power factory demo to 1 job at a time.
 * Added model download function to power factory demo
+* restrict installation to supported Python versions from 3.9 to 3.12
 
 ### Fixes
 * None.
