@@ -24,4 +24,5 @@
 * None.
 
 ### Notes
-* None.
+* support zepben.eas up to 0.15.0.
+* support zepben.evolve up to 0.43.0.
