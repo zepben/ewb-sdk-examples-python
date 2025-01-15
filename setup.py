@@ -19,9 +19,9 @@ setup(
      ],
     packages=find_namespace_packages(where="src"),
     package_dir={'': 'src'},
-    python_requires='>=3.7',
+    python_requires='>=3.9, <3.12',
     install_requires=[
-        "zepben.eas==0.15.0b3",
+        "zepben.eas==0.16.0",
         "zepben.evolve==0.43.0b1",
         "numpy==1.26.4",
         "geojson==2.5.0",
