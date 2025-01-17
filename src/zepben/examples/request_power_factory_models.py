@@ -34,7 +34,7 @@ feeder_max_demand = False
 network_endpoint = 'https://{url}/api/network/graphql'
 api_endpoint = 'https://{url}/api/graphql'
 audience = "https://{url}/"
-issuer_domain = "issuer_domain"
+issuer = "issuer_domain"
 client_id = 'client_id'
 username = 'username'
 password = 'password'
@@ -68,7 +68,7 @@ query network {
     }
 }
 '''
-token_fetcher = get_token_fetcher(audience=audience, issuer_domain=issuer_domain, client_id=client_id, username=username, password=password)
+token_fetcher = get_token_fetcher(audience=audience, issuer=issuer, client_id=client_id, username=username, password=password)
 tft = token_fetcher.fetch_token()
 network_transport = RequestsHTTPTransport(url=network_endpoint, headers={'Authorization': tft})
 api_transport = RequestsHTTPTransport(url=api_endpoint, headers={'Authorization': tft})

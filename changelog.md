@@ -19,9 +19,11 @@
 ### Enhancements
 * Limited power factory demo to 1 job at a time.
 * Added model download function to power factory demo
+* restrict installation to supported Python versions from 3.9 to 3.11
 
 ### Fixes
 * None.
 
 ### Notes
-* None.
+* Support `zepben.eas` up to 0.16.0.
+* Support `zepben.evolve` up to 0.43.0.
