@@ -104,3 +104,16 @@ which will then be available via the UI for visualisation.
 
 * [Translating a CIM network model into a pandapower model](src/zepben/examples/translating_to_pandapower_model.py)
 * [Requesting a PowerFactory model through the SDK](src/zepben/examples/request_power_factory_models.py)
+
+# GraphQL Queries
+
+This repo also contains example GraphQL queries in the form of Insomnia exports. They can be imported into a project as collections and edited within Insomnia
+for experimentation. The following GraphQL endpoints have examples:
+
+* [EWB (`/ewb/api/graphql`)](src/zepben/examples/insomnia/insomnia-ewb-samples.json)
+  * Queries for retrieving CIM objects
+  * Query for retrieving network hierarchy
+  * Queries involving equipment tracing
+  * Query for retrieving geographical view config
+* [EAS (`/api/graphql`)](src/zepben/examples/insomnia/insomnia-eas-samples.json)
+  * Queries for retrieving ingestion jobs and their sources and metrics

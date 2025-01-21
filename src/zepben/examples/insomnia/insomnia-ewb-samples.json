@@ -1,0 +1,469 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2024-05-29T06:30:28.820Z",
+  "__export_source": "insomnia.desktop.app:v9.2.0",
+  "resources": [
+    {
+      "_id": "req_aef270ded1c645298a023cebce483d4d",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1682322113110,
+      "created": 1682322083074,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "getIdentifiedObject",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    getIdentifiedObject(mRID: \\\"mRID\\\") {\\n        ... on IdentifiedObject {\\n            mRID\\n            name\\n        }\\n        ... on Feeder {\\n            normalHeadTerminal {\\n                conductingEquipment {\\n                    mRID\\n                }\\n                sequenceNumber\\n            }\\n            normalEnergizingSubstation {\\n                mRID\\n                name\\n                subGeographicalRegion {\\n                    mRID\\n                    name\\n                    geographicalRegion {\\n                        mRID\\n                        name\\n                    }\\n                }\\n            }\\n            equipment {\\n                mRID\\n            }\\n            currentEquipment {\\n                mRID\\n            }\\n        }\\n        ... on Substation {\\n            feeders {\\n                mRID\\n                name\\n                normalHeadTerminal {\\n                    conductingEquipment {\\n                        mRID\\n                    }\\n                    sequenceNumber\\n                }\\n            }\\n            subGeographicalRegion {\\n                mRID\\n                name\\n                geographicalRegion {\\n                    mRID\\n                    name\\n                }\\n            }\\n        }\\n        ... on SubGeographicalRegion {\\n            substations {\\n                mRID\\n                name\\n                feeders {\\n                    normalHeadTerminal {\\n                        conductingEquipment {\\n                            mRID\\n                        }\\n                        sequenceNumber\\n                    }\\n                }\\n            }\\n            geographicalRegion {\\n                mRID\\n                name\\n            }\\n        }\\n        ... on GeographicalRegion {\\n            subGeographicalRegions {\\n                mRID\\n                name\\n                substations {\\n                    mRID\\n                    name\\n                    feeders {\\n                        normalHeadTerminal {\\n                            conductingEquipment {\\n                                mRID\\n                            }\\n                            sequenceNumber\\n                        }\\n                    }\\n                }\\n            }\\n        }\\n        ... on PowerTransformer {\\n            function\\n            ends {\\n                endNumber\\n                ratedS\\n                ratedU\\n            }\\n            assetInfo {\\n                mRID\\n            }\\n        }\\n        ... on AcLineSegment {\\n            length\\n            perLengthSequenceImpedance {\\n                mRID\\n            }\\n            assetInfo {\\n                ... on OverheadWireInfo {\\n                    overhead: mRID\\n                }\\n                ... on CableInfo {\\n                    underground: mRID\\n                }\\n            }\\n        }\\n        ... on Switch {\\n            isNormallyOpen\\n            isOpen\\n        }\\n        ... on ConductingEquipment {\\n            terminals {\\n                sequenceNumber\\n                phases\\n                connectivityNode {\\n                    mRID\\n                    terminals {\\n                        mRID\\n                    }\\n                }\\n            }\\n            baseVoltage {\\n                nominalVoltage\\n            }\\n        }\\n        ... on Equipment {\\n            containers {\\n                ... on Feeder {\\n                    feeder: name\\n                }\\n                ... on LvFeeder {\\n                    lvFeeder: name\\n                }\\n                ... on Site {\\n                    site: mRID\\n                    name\\n                }\\n                ... on Substation {\\n                    substation: name\\n                }\\n                ... on Circuit {\\n                    circuit: name\\n                }\\n            }\\n            currentContainers {\\n                ... on Feeder {\\n                    feeder: name\\n                }\\n                ... on LvFeeder {\\n                    lvFeeder: name\\n                }\\n            }\\n        }\\n        ... on PowerSystemResource {\\n            location {\\n                points {\\n                    longitude: xPosition\\n                    latitude: yPosition\\n                }\\n            }\\n        }\\n        ... on DiagramObject {\\n            style\\n            points {\\n                x: xPosition\\n                y: yPosition\\n            }\\n            diagram {\\n                mRID\\n            }\\n        }\\n        ... on EnergyConsumer {\\n            usagePoints {\\n                mRID\\n                name\\n                names {\\n                    name\\n                    type {\\n                        name\\n                    }\\n                }\\n                endDevices {\\n                    mRID\\n                    name\\n                }\\n            }\\n        }\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083074,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "parentId": null,
+      "modified": 1716957852178,
+      "created": 1716957852178,
+      "name": "EWB Queries",
+      "description": "",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "req_569052a5d67d4ccfbe6fb830577af27a",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1682322097831,
+      "created": 1682322083072,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "getIdentifiedObjects",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    getIdentifiedObjects(mRIDs: [\\\"mRID1\\\", \\\"mRID2\\\"]) {\\n        ... on IdentifiedObject {\\n            mRID\\n            name\\n        }\\n        ... on Feeder {\\n            normalHeadTerminal {\\n                conductingEquipment {\\n                    mRID\\n                }\\n                sequenceNumber\\n            }\\n            normalEnergizingSubstation {\\n                mRID\\n                name\\n                subGeographicalRegion {\\n                    mRID\\n                    name\\n                    geographicalRegion {\\n                        mRID\\n                        name\\n                    }\\n                }\\n            }\\n            equipment {\\n                mRID\\n            }\\n            currentEquipment {\\n                mRID\\n            }\\n        }\\n        ... on Substation {\\n            feeders {\\n                mRID\\n                name\\n                normalHeadTerminal {\\n                    conductingEquipment {\\n                        mRID\\n                    }\\n                    sequenceNumber\\n                }\\n            }\\n            subGeographicalRegion {\\n                mRID\\n                name\\n                geographicalRegion {\\n                    mRID\\n                    name\\n                }\\n            }\\n        }\\n        ... on SubGeographicalRegion {\\n            substations {\\n                mRID\\n                name\\n                feeders {\\n                    normalHeadTerminal {\\n                        conductingEquipment {\\n                            mRID\\n                        }\\n                        sequenceNumber\\n                    }\\n                }\\n            }\\n            geographicalRegion {\\n                mRID\\n                name\\n            }\\n        }\\n        ... on GeographicalRegion {\\n            subGeographicalRegions {\\n                mRID\\n                name\\n                substations {\\n                    mRID\\n                    name\\n                    feeders {\\n                        normalHeadTerminal {\\n                            conductingEquipment {\\n                                mRID\\n                            }\\n                            sequenceNumber\\n                        }\\n                    }\\n                }\\n            }\\n        }\\n        ... on PowerTransformer {\\n            function\\n            ends {\\n                endNumber\\n                ratedS\\n                ratedU\\n            }\\n            assetInfo {\\n                mRID\\n            }\\n        }\\n        ... on AcLineSegment {\\n            length\\n            perLengthSequenceImpedance {\\n                mRID\\n            }\\n            assetInfo {\\n                ... on OverheadWireInfo {\\n                    overhead: mRID\\n                }\\n                ... on CableInfo {\\n                    underground: mRID\\n                }\\n            }\\n        }\\n        ... on Switch {\\n            isNormallyOpen\\n            isOpen\\n        }\\n        ... on ConductingEquipment {\\n            terminals {\\n                sequenceNumber\\n                phases\\n                connectivityNode {\\n                    mRID\\n                    terminals {\\n                        mRID\\n                    }\\n                }\\n            }\\n            baseVoltage {\\n                nominalVoltage\\n            }\\n        }\\n        ... on Equipment {\\n            containers {\\n                ... on Feeder {\\n                    feeder: name\\n                }\\n                ... on LvFeeder {\\n                    lvFeeder: name\\n                }\\n                ... on Site {\\n                    site: mRID\\n                    name\\n                }\\n                ... on Substation {\\n                    substation: name\\n                }\\n                ... on Circuit {\\n                    circuit: name\\n                }\\n            }\\n            currentContainers {\\n                ... on Feeder {\\n                    feeder: name\\n                }\\n                ... on LvFeeder {\\n                    lvFeeder: name\\n                }\\n            }\\n        }\\n        ... on PowerSystemResource {\\n            location {\\n                points {\\n                    longitude: xPosition\\n                    latitude: yPosition\\n                }\\n            }\\n        }\\n        ... on DiagramObject {\\n            style\\n            points {\\n                x: xPosition\\n                y: yPosition\\n            }\\n            diagram {\\n                mRID\\n            }\\n        }\\n        ... on EnergyConsumer {\\n            usagePoints {\\n                mRID\\n                name\\n                names {\\n                    name\\n                    type {\\n                        name\\n                    }\\n                }\\n                endDevices {\\n                    mRID\\n                    name\\n                }\\n            }\\n        }\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083072,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_9ffc0dffaeea41e3832d24363a6cfc04",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1682322102712,
+      "created": 1682322083070,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "findIdentifiedObjects",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    findIdentifiedObjects(\\n        criteria: {\\n            toMatch: \\\"search\\\"\\n            exactMatchesOnly: false # optional\\n            tryMatchMRID: true # optional\\n            tryMatchName: true # optional\\n            tryMatchNameTypeName: true # optional\\n            includeClasses: [\\\"IdentifiedObject\\\"] # optional\\n            includeNameTypes: [\\\"NMI\\\"] # optional\\n            inDiagrams: [\\\"diagramMRID\\\"] # optional\\n            limit: 100 # optional\\n        }\\n    ) {\\n        mRID\\n        name\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083070,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_eb25c2e6842b4879accc465e49ad01c9",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1716964198554,
+      "created": 1682322083069,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "findIdentifiedObjectsByName",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    findIdentifiedObjectsByName(\\n        criteria: [{ nameType: \\\"NMI\\\", names: [\\\"1234567890\\\"] }]\\n\\t\\tincludeClasses: [\\\"UsagePoint\\\"] # optional\\n    ) {\\n        mRID\\n        names {\\n            name\\n            type {\\n                name\\n            }\\n        }\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083069,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_fff84e79aeee4c75bd0bd9ae7fc94c9a",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1716963755076,
+      "created": 1682322083068,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "getAssetInfo",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    getAssetInfo(types: \\\"PerLengthSequenceImpedance\\\") {\\n        mRID\\n        ... on PerLengthSequenceImpedance {\\n            r\\n            x\\n        }\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083068,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_c76d6d32944944989b4d35d3df74e579",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1682322105658,
+      "created": 1682322083066,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "getNetworkHierarchy",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    getNetworkHierarchy {\\n        geographicalRegions {\\n            mRID\\n            name\\n        }\\n        subGeographicalRegions {\\n            mRID\\n            name\\n            geographicalRegion {\\n                mRID\\n            }\\n        }\\n        substations {\\n            mRID\\n            name\\n            subGeographicalRegion {\\n                mRID\\n            }\\n        }\\n        feeders {\\n            mRID\\n            name\\n            normalEnergizingSubstation {\\n                mRID\\n            }\\n        }\\n        lvFeeders {\\n            mRID\\n            name\\n            normalEnergizingFeeders {\\n                mRID\\n            }\\n        }\\n        circuits {\\n            mRID\\n            name\\n            endSubstations {\\n                mRID\\n            }\\n        }\\n        loops {\\n            mRID\\n            name\\n            energizingSubstations {\\n                mRID\\n            }\\n            substations {\\n                mRID\\n            }\\n            circuits {\\n                mRID\\n            }\\n        }\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083066,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_46a390017ad243c5b9eede42bee6a81c",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1716962359103,
+      "created": 1682322083065,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "getDownstreamEquipmentTree",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    getDownstreamEquipmentTree(\\n        mRID: \\\"50435442\\\"\\n        networkState: NORMAL # optional\\n    ) {\\n\\t\\tconductingEquipmentTree {\\n\\t\\t\\tconductingEquipment {\\n\\t\\t\\t\\tmRID\\n\\t\\t\\t}\\n\\t\\t\\tchildren\\n\\t\\t}\\n\\t\\treturnedObjectCount\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083065,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_ab9285b68b2c4769b7549b4eae47688a",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1716962383813,
+      "created": 1682322083064,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "findUpstreamEquipment",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    findUpstreamEquipment(\\n        mRID: \\\"mRID\\\"\\n        type: \\\"Switch\\\" # optional\\n        networkState: NORMAL # optional\\n    ) {\\n\\t\\tidentifiedObjects {\\n        \\tmRID\\n        \\tname\\n\\t\\t}\\n\\t\\treturnedObjectCount\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083064,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_f74685fddb814e45bf29676cec488aa5",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1716963808794,
+      "created": 1682322083062,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "getUpstreamEquipment",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    getUpstreamEquipment(\\n        mRID: \\\"mRID\\\"\\n        includeFilter: [\\\"Switch\\\"] # optional\\n\\t\\texcludeFilter: [\\\"Recloser\\\"] # optional\\n\\t\\tstopType: \\\"Breaker\\\" # optional\\n        stopMRID: \\\"targetMRID\\\" # optional\\n        networkState: NORMAL # optional\\n    ) {\\n        identifiedObjects {\\n        \\tmRID\\n        \\tname\\n\\t\\t}\\n\\t\\treturnedObjectCount\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083062,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_b917ce48923c43299066648ba678ffc1",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1716964054077,
+      "created": 1682322083061,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "getDownstreamEquipment",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    getDownstreamEquipment(\\n        mRID: \\\"mRID\\\"\\n\\t\\tincludeFilter: [\\\"Switch\\\"] # optional\\n\\t\\texcludeFilter: [\\\"Breaker\\\"] # optional\\n        networkState: NORMAL # optional\\n    ) {\\n\\t\\tidentifiedObjects {\\n\\t\\t\\tmRID\\n\\t\\t\\tname\\n\\t\\t}\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083061,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_fb2e4fd05910428aadaca6c309c6b5b9",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1716964118385,
+      "created": 1682322083059,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "getConnectedEquipment",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    getConnectedEquipment(\\n        mRID: \\\"mRID\\\"\\n        steps: 3 # optional\\n\\t\\tincludeFilter: [\\\"Switch\\\"] # optional\\n\\t\\texcludeFilter: [\\\"Breaker\\\"] # optional\\n        networkState: NORMAL # optional\\n        feederDirection: DOWNSTREAM # optional\\n    ) {\\n\\t\\tconductingEquipmentSteps {\\n\\t\\t\\tconductingEquipment {\\n\\t\\t\\t\\tmRID\\n\\t\\t\\t\\tname\\n\\t\\t\\t}\\n\\t\\t\\tstep\\n\\t\\t}\\n        returnedObjectCount\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083059,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_dc94ae5c7b584a05999ed7a1bf1f2aef",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1716964158061,
+      "created": 1682322083057,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "getIsolatedEquipment",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n    getIsolatedEquipment(\\n        isolationPoints: [\\n            {\\n                mRID: \\\"mRID1\\\"\\n                longitude: 0.0 # optional paired with latitude\\n                latitude: 0.0 # optional paired with longitude\\n            }, {\\n                mRID: \\\"mRID2\\\"                \\n            }\\n        ]\\n\\t\\tinsideIsolation: [ # optional if isolating below subtrans\\n            {\\n                mRID: \\\"mRID3\\\"\\n                longitude: 0.0 # optional paired with latitude\\n                latitude: 0.0 # optional paired with longitude\\n            }, {\\n                mRID: \\\"mRID4\\\"                \\n            }\\n        ]\\n\\t\\tmaxSwitches: 7 # optional\\n        includeFilter: [\\\"Type\\\"] # optional\\n\\t\\texcludeFilter: [\\\"Subtype\\\"] # optional\\n        networkState: NORMAL # optional\\n    ) {\\n        identifiedObjects {\\n        \\tmRID\\n        \\tname\\n\\t\\t}\\n\\t\\treturnedObjectCount\\n    }\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083057,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_04b74e8e507c4ef682cfc56a4df99dec",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1716962534753,
+      "created": 1692670845506,
+      "url": "http://localhost:9000/ewb/api/graphql",
+      "name": "getGeoViewConfig",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/graphql",
+        "text": "{\"query\":\"query {\\n\\tgetGeoViewConfig {\\n\\t\\tmaxZoom\\n\\t\\tkeepLevelSpec {\\n\\t\\t\\tclassName\\n\\t\\t\\tcomparator\\n\\t\\t\\tfilters { \\n\\t\\t\\t\\tvalue\\n\\t\\t\\t}\\n\\t\\t\\ttype\\n\\t\\t\\tzoomLevel\\n\\t\\t}\\n\\t}\\n}\\n\"}"
+      },
+      "preRequestScript": "",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1682322083007,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "env_5687c3f6e7554beb964f8337761b4a26",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1682322092736,
+      "created": 1682322092736,
+      "name": "Base Environment",
+      "data": {},
+      "dataPropertyOrder": null,
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1682322092736,
+      "_type": "environment"
+    },
+    {
+      "_id": "jar_a7001c3453434396a1cc023a7d58cf48",
+      "parentId": "wrk_38908f7cdbc84e41905cac2df4388780",
+      "modified": 1682322092737,
+      "created": 1682322092737,
+      "name": "Default Jar",
+      "cookies": [],
+      "_type": "cookie_jar"
+    }
+  ]
+}
