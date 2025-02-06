@@ -18,31 +18,58 @@ Information about connecting to the Energy Workbench Server can be found in the 
 
 ## Getting Started
 
-Ensure that you have installed the required dependencies and imported the libraries. For this example, we will use `json`, `geojson`, `zepben.eas` and `zepben.evolve` libraries.
+Ensure that you have installed the required dependencies and imported the libraries. For this example, we will use `json`, `geojson`, `zepben.eas`, `zepben.evolve`, and `nest_asyncio` libraries.
 
 ```bash
 import json
+import nest_asyncio
 from geojson import Feature, LineString, FeatureCollection, Point
 from zepben.eas import Study, Result, GeoJsonOverlay, EasClient
-from zepben.evolve import connect_insecure, SyncNetworkConsumerClient, AcLineSegment, EnergyConsumer
+from zepben.evolve import connect_with_token, NetworkConsumerClient, AcLineSegment, EnergyConsumer
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
+```
+
+We also need to call `nest_asyncio.apply()` to enable asynchronous behavior within the environment:
+
+```bash
+# Apply nest_asyncio to enable asynchronous behavior within the environment
+nest_asyncio.apply()
 ```
 
 ## Connecting to the EWB gRPC Service
 
-Here, we connect to the EWB Server, using the `connect_insecure` function. Then, we create a synchronous client for EWB's gRPC service and fetch equipment container data for the specified feeder, including energized LV feeders.
+Here, we connect to the EWB Server, using the `connect_with_token` function.
 
 ```bash
-channel = connect_insecure(host="EWB Hostname", rpc_port=1234)
-grpc_client = SyncNetworkConsumerClient(grpc_channel)
-grpc_client.get_equipment_container("feeder_mrid", include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
-network = grpc_client.service
-```
+with open("../config.json") as f:
+    c = json.loads(f.read())
 
-You will need to replace the host and port with the appropriate values for your environment. Also, provide a genuine feeder mRID to fetch the equipment container data for the feeder.
+channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+
+```
+You will need to replace the values in the config.json file with the appropriate configuration for your environment. The config file should look like this:
+
+```json
+{
+  "host": "EWB Hostname",
+  "access_token": "your_access_token",
+  "rpc_port": 1234
+}
+```
 More information about connecting to the EWB Server using different methods can be found in the [Connecting to the EWB Server](connecting-to-ewb.mdx) tutorial.
 
-**Note:** All other examples relating to using the EWB server can use any of the connection methods depending on the configuration of the EWB server.
+You will need to specify the mRID of the feeder that you want to fetch, ensuring that the feeder with the specified mRID exists.
+Then, create a `NetworkConsumerClient` and retrieve the network service.
+The `get_equipment_container` method is used to fetch information about the specified feeder (feeder_mrid).
+The `INCLUDE_ENERGIZED_LV_FEEDERS` flag indicates that the client should include information about energized LV (Low Voltage) feeders in the response.
+
+
+```bash
+feeder_mrid = "LV007"
+grpc_client = NetworkConsumerClient(grpc_channel)
+await grpc_client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
+network = grpc_client.service
+```
 
 ## Connecting to the Evolve App Server
 
@@ -50,24 +77,10 @@ We use the `EasClient` to connect to the Evolve App Server. `EasClient` is a cla
 For the examples in this tutorial, we will use the following code to connect to the EAS.
 
 ```bash
-eas_client = EasClient(
-        host="<EAS hostname>",
-        port=7654,
-        client_id="<client-id>",
-        username="<username or email>",
-        password="<password>"
-    )
+eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
 ```
 
-> INPUT:
-
-- **host** - The domain of the Evolve App Server, e.g. "evolve.local"
-- **port** - The port on which to make requests to the Evolve App Server, e.g. 7624
-- **client_id** - The Auth0 client ID used to specify to the auth server which application to request a token for.
-- **username** - The username used for account authentication.
-- **password** - The password used for account authentication.
-
-Note: Replace the above values with the host/port and credentials for the instance of EAS you would like to upload the study to.
+Note: Ensure that the values for host, port, and token are correctly provided in the config.json file.
 
 ## Create Results for Energy Consumers Density Example
 
@@ -242,7 +255,7 @@ Note: Each layer may have an entry in the legend via the metadata["zb:legend"] f
 The final step after creating the study is to upload it on the EAS and close the EAS client, as follows.
 
 ```bash
-eas_client.upload_study(study)
+await eas_client.async_upload_study(study)
 eas_client.close()
 ```
 

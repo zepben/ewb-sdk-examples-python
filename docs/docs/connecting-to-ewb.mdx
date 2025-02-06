@@ -7,10 +7,10 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 The examples/applications related to using the Energy Workbench (EWB) server requires connection to the EWB server. You can use various connection scenarios,
-including insecure connections (for development and demos), secure connections over TLS, and secure connections with user or client credentials.
+including insecure connections (for development and demos), secure connections over TLS, secure connections with user or client credentials, and secure connections with access token.
 This tutorial provides a guide to establish a secure connection to the EWB server.
 
-**Note**: Ensure that the required dependencies are installed, and replace the placeholder values such as `hostname`, `client ID`, `username`, `password`, and `client secret` with your actual configuration.
+**Note**: Ensure that the required dependencies are installed, and replace the placeholder values such as `hostname`, `client ID`, `username`, `password`, `client secret` and `access_token` with your actual configuration.
 
 ## Getting Started
 
@@ -29,7 +29,7 @@ Also ensure that you have included the necessary imports at the beginning of you
 
 ```bash
 from zepben.auth import AuthMethod
-from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, connect_with_password, connect_with_secret, SyncNetworkConsumerClient
+from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, connect_with_password, connect_with_secret, connect_with_token, SyncNetworkConsumerClient
 ```
 
 ## Connecting Without TLS or Authentication
@@ -140,3 +140,30 @@ async with connect_with_secret("client ID", "client secret", "hostname", 1234) a
 > OUTPUT:
 
 - An Auth0-authenticated, encrypted connection to the gRPC service. If the authentication configuration specifies that no authentication is required, a non-authenticated, encrypted connection is returned instead.
+
+
+### Connecting Using Access Token
+
+The connect_using_token function establishes a connection to the EWB server using an access token for authentication.
+
+```bash
+async def connect_using_token():
+    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    client = NetworkConsumerClient(channel)
+    grpc_result = await client.get_network_hierarchy()
+    print(grpc_result.result)
+
+````
+
+> INPUT:
+
+- **host** (String, default localhost) - The hostname where the gRPC service is hosted
+- **rpc_port** (int, default 50051) - The port of the gRPC service
+- **access_token** (String) - The token string of the client generated using Evolve App
+- **ca_filename** (Optional, default None) - he filename of a truststore containing additional trusted root certificates. This parameter is optional
+                        and defaults to null, in which case only the system CAs are used to verify certificates.
+
+> OUTPUT:
+
+- An authenticated, encrypted connection to the gRPC service based on OAuth2 flows. If the authentication configuration specifies that no
+             authentication is required, a non-authenticated, encrypted connection is returned instead.

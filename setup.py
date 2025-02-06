@@ -21,10 +21,8 @@ setup(
     package_dir={'': 'src'},
     python_requires='>=3.7',
     install_requires=[
-        "zepben.eas==0.10.0",
-        "zepben.evolve==0.35.0b19",
-        "zepben.edith==0.3.0b5",
-        "pp-translator==0.7.0b4",
+        "zepben.eas==0.16.0",
+        "zepben.evolve==0.44.1",
         "numba==0.56.4",
         "geojson==2.5.0",
         "gql[requests]",

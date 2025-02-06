@@ -3,16 +3,23 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+import asyncio
+import json
 
-from zepben.evolve import SyncNetworkConsumerClient, connect_insecure
+from zepben.evolve import connect_with_token, NetworkConsumerClient
+
+with open("config.json") as f:
+    c = json.loads(f.read())
 
 
-def main():
+async def main():
     # See connecting_to_grpc_service.py for examples of each connect function
-    channel = connect_insecure(host="EWB hostname", rpc_port=1234)
-    client = SyncNetworkConsumerClient(channel=channel)
+    print("Connecting to EWB..")
+    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    client = NetworkConsumerClient(channel)
+    print("Connection established..")
     # Fetch network hierarchy
-    network_hierarchy = client.get_network_hierarchy()
+    network_hierarchy = await client.get_network_hierarchy()
 
     print("Network hierarchy:")
     for gr in network_hierarchy.result.geographical_regions.values():
@@ -26,4 +33,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
