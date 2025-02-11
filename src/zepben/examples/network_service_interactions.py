@@ -8,7 +8,7 @@ from zepben.evolve import NetworkService, AcLineSegment, PerLengthSequenceImpeda
 
 # A `NetworkService` is a mutable node breaker network model that implements a subset of IEC61968 and IEC61970 CIM classes.
 # It is essentially a collection of `IdentifiedObject`s, and they may be added and removed as desired.
-from zepben.evolve.services.common.resolver import per_length_sequence_impedance
+from zepben.evolve.services.common.resolver import per_length_impedance
 network = NetworkService()
 
 print("""
@@ -79,7 +79,7 @@ print("""
 """)
 # There may be times when you need to reconstruct a network model from an unordered collection of identified objects.
 # `NetworkService` allows you to add reference resolvers, which complete associations when the remaining object in an association is added.
-network.resolve_or_defer_reference(per_length_sequence_impedance(line), "plsi_789")
+network.resolve_or_defer_reference(per_length_impedance(line), "plsi_789")
 
 print(f"Network has unresolved references? {network.has_unresolved_references()}")
 print(f"plsi_789 has unresolved references? {network.has_unresolved_references('plsi_789')}")
