@@ -3,6 +3,9 @@ id: examples-ieee-13-node-feeder
 title: Building an IEEE Test Feeder
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 Sometimes you do not want to pull a model from the EWB server, and instead want to build it locally.
 This tutorial demonstrates how to build a model locally. In this example, we will build the IEEE 13 node test feeder (shown below) using the `zepben.evolve` framework.
 The detailed information about the IEEE 13 node test feeder can be found [here](https://cmte.ieee.org/pes-testfeeders/resources/).
@@ -25,8 +28,8 @@ __all__ = ["network"]
 ```
 
 Also ensure that you have correctly defined the constants `METRES_PER_FOOT` and `FEET_PER_MILE`.
-In this example, the constant named `METRES_PER_FOOT` is defined with a value of 0.3048. This constant represents the conversion factor from feet to meters, and will be used later in the code when setting the lengths of various power lines in the network model.
-The constant named `FEET_PER_MILE` is defined with a value of 5280. This constant represents the number of feet in a mile. It is used in the calculation of per-meter impedance values for the power lines in the network model.
+In this example, the constant named METRES_PER_FOOT is defined with a value of 0.3048. This constant represents the conversion factor from feet to meters, and will be used later in the code when setting the lengths of various power lines in the network model.
+The constant named FEET_PER_MILE is defined with a value of 5280. This constant represents the number of feet in a mile. It is used in the calculation of per-meter impedance values for the power lines in the network model.
 
 ```python
 FEET_PER_MILE = 5280
@@ -52,7 +55,7 @@ For more details about creating specific power system equipment and terminals, r
 
 - Create the Voltage Regulator
 
-Note that we will use the `PowerTransformer` class to create a Power Transformer and then select the function as `TransformerFunctionKind.voltageRegulator` to create a Voltage Regulator.
+Note that we will use the PowerTransformer class to create a Power Transformer and then select the function as `TransformerFunctionKind.voltageRegulator` to create a Voltage Regulator.
 For each Power Transformer you create, you will need to also create the Power Transformer Ends to associate the primary and secondary winding details about the transformer. For example, for a two-winding transformer, you will need to create two ends (a primary and a secondary end).
 
 ```python
@@ -116,7 +119,7 @@ tx_633_634_e2 = PowerTransformerEnd(mrid="tx_633_634_e2", terminal=tx_633_634_t2
 tx_633_634 = PowerTransformer(mrid="tx_633_634", terminals=[tx_633_634_t1, tx_633_634_t2], power_transformer_ends=[tx_633_634_e1, tx_633_634_e2])
 ```
 
-- Create the `Disconnector` (Switch)
+- Create the Disconnector (Switch)
 
 ```python
 sw_671_692_t1, sw_671_692_t2 = Terminal(mrid="sw_671_692_t1", phases=PhaseCode.ABCN), Terminal(mrid="sw_671_692_t2", phases=PhaseCode.ABCN)
@@ -137,7 +140,7 @@ lsc_611 = LinearShuntCompensator(mrid="lsc_611", terminals=[lsc_611_t], asset_in
 
 - Create Energy Consumers and Energy Consumer Phases
 
-Note that you will need specify the phases for the `EnergyConsumer`. `EnergyConsumerPhase is a single phase of an energy consumer, which takes the following arguments.
+Note that you will need specify the phases for the EnergyConsumer. EnergyConsumerPhase is a single phase of an energy consumer, which takes the following arguments.
 
 >- phase: SinglePhaseKind = SinglePhaseKind.X - Phase of this energy consumer component.
 >- p: Optional[float] = None - Active power of the load.

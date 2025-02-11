@@ -1,0 +1,169 @@
+---
+id: examples-connecting-to-ewb
+title: Connecting to the EWB Server
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+The examples/applications related to using the Energy Workbench (EWB) server requires connection to the EWB server. You can use various connection scenarios,
+including insecure connections (for development and demos), secure connections over TLS, secure connections with user or client credentials, and secure connections with access token.
+This tutorial provides a guide to establish a secure connection to the EWB server.
+
+**Note**: Ensure that the required dependencies are installed, and replace the placeholder values such as `hostname`, `client ID`, `username`, `password`, `client secret` and `access_token` with your actual configuration.
+
+## Getting Started
+
+Make sure you have the required dependencies installed by running the following command:
+
+```bash
+pip install zepben.evolve==<VERSION>
+pip install zepben.auth==<VERSION>
+```
+The latest version can be found on the Python package index:
+
+- [zepben.evolve](https://pypi.org/project/zepben.evolve/)
+- [zepben.auth](https://pypi.org/project/zepben.auth/)
+
+Also ensure that you have included the necessary imports at the beginning of your script, as follows:
+
+```python
+from zepben.auth import AuthMethod
+from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, connect_with_password, connect_with_secret, connect_with_token, SyncNetworkConsumerClient
+```
+
+## Connecting Without TLS or Authentication
+
+The plaintext_connection uses **connect_insecure** function that communicates with the gRPC service over plaintext to connect to an RPC server without TLS or authentication.
+**Note**: This type of connection is only suitable/recommended for development and demonstration purposes.
+
+```python
+async def plaintext_connection():
+    insecure_channel = connect_insecure(host="hostname", rpc_port=1234)
+    client = NetworkConsumerClient(insecure_channel)
+    grpc_result = await client.get_network_hierarchy()
+    print(grpc_result.result)
+```
+
+> INPUT:
+
+- **host** (String, default localhost) - The hostname where the gRPC service is hosted
+- **rpc_port** (int, default 50051) - The port of the gRPC service
+
+> OUTPUT:
+
+- A plaintext connection to the gRPC service
+
+## Connecting Over TLS Without User Credentials
+
+The secure_connection uses **connect_tls** function that communicates with the gRPC service using SSL/TLS transport security to connect to the EWB server over TLS, but does not use/require user or client credentials.
+
+```python
+async def secure_connection():
+    secure_channel = connect_tls(host="hostname", rpc_port=1234, ca_filename=None)
+    client = NetworkConsumerClient(secure_channel)
+    grpc_result = await client.get_network_hierarchy()
+    print(grpc_result.result)
+```
+
+> INPUT:
+
+- **host** (String, default localhost) - The hostname where the gRPC service is hosted
+- **rpc_port** (int, default 50051) - The port of the gRPC service
+
+> OPTIONAL
+
+- **ca_filename** (String, default None) - The filename of a truststore containing additional trusted root certificates. This parameter is optional and defaults to null, in which case only the system CAs are used to verify certificates.
+
+> OUTPUT:
+
+- An encrypted connection to the gRPC service
+
+### Connecting Over TLS With User Credentials
+
+The secure_connection_with_user_credentials connects to the EWB server over TLS with user credentials. It uses **connect_with_password** function that communicates with the gRPC service using SSL/TLS transport security and the OAuth password grant flow.
+The authentication config is fetched from https://hostname/auth or https://hostname/ewb/auth by default, which includes the domain of the OAuth token provider.
+
+```python
+async def secure_connection_with_user_credentials():
+    secure_channel = connect_with_password("client ID", "username", "password", "hostname", 1234)
+    client = NetworkConsumerClient(secure_channel)
+    grpc_result = await client.get_network_hierarchy()
+    print(grpc_result.result)
+```
+
+> INPUT:
+
+- **host** (String, default localhost) - The hostname where the gRPC service is hosted
+- **rpc_port** (int, default 50051) - The port of the gRPC service
+- **client_id** (String) - The client ID of the OAuth application to authenticate for
+- **username** (String) - The username of the user to authenticate with
+- **password** (String) - The password of the user to authenticate with
+- **verify_conf** (Union [Boolean, String], default True) - Passed through to `requests.get()` when fetching the authentication configuration
+- **verify_auth** (Union [Boolean, String], default True) - Passed through to `requests.post()` when fetching access tokens
+
+> OPTIONAL
+
+- **conf_address** (String, default None) - The address of the authentication configuration
+- **ca_filename** (String, default None) - The filename of a truststore containing additional trusted root certificates. This parameter is optional and defaults to null, in which case only the system CAs are used to verify certificates.
+
+> OUTPUT:
+
+- An Auth0-authenticated, encrypted connection to the gRPC service. If the authentication configuration specifies that no authentication is required, a non-authenticated, encrypted connection is returned instead.
+
+### Connecting Over TLS With Client Credentials
+
+The secure_connection_with_client_credentials connects to the EWB server over TLS with client credentials. It uses **connect_with_secret** function that communicates with the gRPC service using SSL/TLS transport security and the OAuth client credentials flow.
+The authentication config is fetched from https://hostname/auth or https://hostname/ewb/auth by default, which includes the domain of the OAuth token provider.
+
+```python
+async def secure_connection_with_client_credentials():
+    secure_channel = connect_with_secret("client ID", "client secret", "hostname", 1234)
+    client = NetworkConsumerClient(secure_channel)
+    grpc_result = await client.get_network_hierarchy()
+    print(grpc_result.result)
+````
+
+> INPUT:
+
+- **host** (String, default localhost) - The hostname where the gRPC service is hosted
+- **rpc_port** (int, default 50051) - The port of the gRPC service
+- **client_id** (String) - The client ID of the OAuth application to authenticate for
+- **client_secret** (String) - The client secret of the 0Auth application to authenticate for
+
+> OPTIONAL
+
+- **conf_address** (String, default None) - The address of the authentication configuration
+- **verify_conf** (Union [Boolean, String], default True) - Passed through to `requests.get()` when fetching the authentication configuration
+- **verify_auth** (Union [Boolean, String], default True) - Passed through to `requests.post()` when fetching access tokens
+- **ca_filename** (String, default None) - The filename of a truststore containing additional trusted root certificates. This parameter is optional and defaults to null, in which case only the system CAs are used to verify certificates.
+
+> OUTPUT:
+
+- An Auth0-authenticated, encrypted connection to the gRPC service. If the authentication configuration specifies that no authentication is required, a non-authenticated, encrypted connection is returned instead.
+
+
+### Connecting Using Access Token
+
+The connect_using_token function establishes a connection to the EWB server using an access token for authentication.
+
+```python
+async def connect_using_token():
+    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    client = NetworkConsumerClient(channel)
+    grpc_result = await client.get_network_hierarchy()
+    print(grpc_result.result)
+````
+
+> INPUT:
+
+- **host** (String, default localhost) - The hostname where the gRPC service is hosted
+- **rpc_port** (int, default 50051) - The port of the gRPC service
+- **access_token** (String) - The token string of the client generated using Evolve App
+- **ca_filename** (Optional, default None) - he filename of a truststore containing additional trusted root certificates. This parameter is optional
+                        and defaults to null, in which case only the system CAs are used to verify certificates.
+
+> OUTPUT:
+
+- An authenticated, encrypted connection to the gRPC service based on OAuth2 flows. If the authentication configuration specifies that no
+             authentication is required, a non-authenticated, encrypted connection is returned instead.

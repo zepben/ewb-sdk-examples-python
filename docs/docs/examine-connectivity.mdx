@@ -3,6 +3,9 @@ id: examples-examine-connectivity
 title: Examine Connectivity of a Power Network
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 This example demonstrates how to examine the connectivity of a power system network.
 In this example, we will build a simple network shown below and test the connectivity between different equipment.
 
@@ -119,14 +122,33 @@ for io in [es_t, es, hv_line_t1, hv_line_t2, hv_line, hv_fuse_t1, hv_fuse_t2, hv
 The final step is to connect the objects (created in Steps 1 to 8) and add it to the network (created in Step 9).
 The `connect_terminals` function will be used to connect the two terminals, as follows:
 
+- Connect Energy Source to the HV Line
 ```python
-network.connect_terminals(es_t, hv_line_t1) # Connect Energy Source to the HV Line
-network.connect_terminals(hv_line_t2, hv_fuse_t1) # Connect HV Line to the HV Fuse
-network.connect_terminals(hv_fuse_t2, tx_t1) # Connect HV Fuse to the Power Transformer
-network.connect_terminals(tx_t2, lv_fuse_t1) # Connect Power Transformer to the LV Fuse
-network.connect_terminals(lv_fuse_t2, breaker_t1) # Connect LV Fuse to the Breaker
-network.connect_terminals(breaker_t2, lv_line_t1) # Connect Breaker to the LV Line
-network.connect_terminals(lv_line_t2, ec_t) # Connect LV Line to the Energy Consumer
+network.connect_terminals(es_t, hv_line_t1)
+```
+- Connect HV Line to the HV Fuse
+```python
+network.connect_terminals(hv_line_t2, hv_fuse_t1)
+```
+- Connect HV Fuse to the Power Transformer
+```python
+network.connect_terminals(hv_fuse_t2, tx_t1)
+```
+- Connect Power Transformer to the LV Fuse
+```python
+network.connect_terminals(tx_t2, lv_fuse_t1)
+```
+- Connect LV Fuse to the Breaker
+```python
+network.connect_terminals(lv_fuse_t2, breaker_t1)
+```
+- Connect Breaker to the LV Line
+```python
+network.connect_terminals(breaker_t2, lv_line_t1)
+```
+- Connect LV Line to the Energy Consumer
+```python
+network.connect_terminals(lv_line_t2, ec_t)
 ```
 
 ## Part B: Examine Connectivity of the Network

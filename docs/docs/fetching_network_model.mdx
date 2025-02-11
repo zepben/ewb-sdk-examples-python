@@ -3,6 +3,9 @@ id: examples-fetching-network-model
 title: Fetching Network Model
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 In this tutorial, we will explore a Python script that utilizes the APIs to fetch information about an electrical network from the Energy Workbench.
 The script connects to the EWB Server, retrieves data about a specific feeder, and prints details about the network equipment such as conductors, transformers, energy consumers, and switches.
 
@@ -11,18 +14,32 @@ The script connects to the EWB Server, retrieves data about a specific feeder, a
 Ensure that you have imported necessary modules from the Zepben library.
 
 ```python
-from zepben.evolve import Conductor, PowerTransformer, SyncNetworkConsumerClient, ConductingEquipment, EnergyConsumer, Switch, \
-    connect_insecure
+import asyncio
+import json
+from zepben.evolve import Conductor, PowerTransformer, NetworkConsumerClient, ConductingEquipment, EnergyConsumer, Switch, \
+    connect_with_token
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS, INCLUDE_ENERGIZED_FEEDERS, INCLUDE_ENERGIZING_SUBSTATIONS, \
     INCLUDE_ENERGIZING_FEEDERS
 ```
-Also ensure that you have connected to the EWB Server. In this example, the `connect_insecure` function is used to connect to the EWB Server but you will need the connection mechanism appropriate for your server.
+Also, ensure that you have connected to the EWB Server using a token for authentication. In this example, the connect_with_token function is used to connect to the EWB Server.
 
 ```python
-channel = connect_insecure(host="EWB Hostname", rpc_port=1234)
+with open("config.json") as f:
+    c = json.loads(f.read())
+
+channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+
 ```
-You will need to replace the host and port with the appropriate values for your environment.
-More information about connecting to the EWB Server using different methods can be found in the [Connecting to the EWB Server](https://zepben.github.io/evolve/docs/python-sdk/next/sdk-consumer#connecting-to-a-server) guide.
+You will need to replace the values in the config.json file with the appropriate configuration for your environment. The config file should look like this:
+
+```json
+{
+  "host": "EWB Hostname",
+  "access_token": "your_access_token",
+  "rpc_port": 1234
+}
+```
+More information about connecting to the EWB Server using different methods can be found in the [Connecting to the EWB Server](connecting-to-ewb.mdx) tutorial.
 
 **Note:** All other examples relating to using the EWB server can use any of the connection methods depending on the configuration of the EWB server.
 
@@ -30,17 +47,18 @@ More information about connecting to the EWB Server using different methods can 
 ## Fetch Feeder Information
 
 You will need to specify the mRID of the feeder that you want to fetch, ensuring that the feeder with the specified mRID exists.
-Then, create a `SyncNetworkConsumerClient` and retrieve the network service.
-The `get_equipment_container` method is used to fetch information about the specified feeder (`feeder_mrid`).
+
+Then, create a `NetworkConsumerClient` and retrieve the network service.
+The `get_equipment_container` method is used to fetch information about the specified feeder (feeder_mrid).
 The `INCLUDE_ENERGIZED_LV_FEEDERS` flag indicates that the client should include information about energized LV (Low Voltage) feeders in the response.
 
-**Note:** You should create a new client for each Feeder you retrieve. There is also a `NetworkConsumerClient` that is asyncio compatible, with the same API.
+**Note:** You should create a new client for each Feeder you retrieve.
 
 ```python
 feeder_mrid = "LV007"
-client = SyncNetworkConsumerClient(channel=channel)
+client = NetworkConsumerClient(channel=channel)
 network = client.service
-client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS).throw_on_error()
+await client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS).throw_on_error()
 ```
 
 There are other methods available to fetch a container. Some of them are explained below:

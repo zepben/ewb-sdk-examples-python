@@ -11,10 +11,9 @@ setup(
     license="MPL 2.0",
     classifiers=[
          "Programming Language :: Python :: 3",
-         "Programming Language :: Python :: 3.7",
-         "Programming Language :: Python :: 3.8",
          "Programming Language :: Python :: 3.9",
          "Programming Language :: Python :: 3.10",
+         "Programming Language :: Python :: 3.11",
          "Operating System :: OS Independent"
      ],
     packages=find_namespace_packages(where="src"),
@@ -22,8 +21,8 @@ setup(
     python_requires='>=3.9, <3.12',
     install_requires=[
         "zepben.eas==0.16.0",
-        "zepben.evolve==0.44.0b3",
-        "numpy==1.26.4",
+        "zepben.evolve==0.44.1",
+        "numba==0.60.0",
         "geojson==2.5.0",
         "gql[requests]==3.4.1"
     ],
