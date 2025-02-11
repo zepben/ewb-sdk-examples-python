@@ -15,7 +15,7 @@ For demonstration purpose only, we will build a simple network hierarchy shown i
 
 Ensure that you have installed and imported the required dependencies.
 
-```bash
+```python
 from zepben.evolve import NetworkHierarchy, GeographicalRegion, SubGeographicalRegion, Feeder, Substation, Loop, Circuit
 ```
 
@@ -23,7 +23,7 @@ from zepben.evolve import NetworkHierarchy, GeographicalRegion, SubGeographicalR
 
 First, you will need to create instances of Feeders, Substations, Circuits, Loops, and Geographical and Sub-Geographical Regions to represent the components of the network hierarchy.
 
-```bash
+```python
 fdr1 = Feeder(name="Sydney feeder 1")
 fdr2 = Feeder(name="Sydney feeder 2")
 fdr3 = Feeder(name="Sydney feeder 3")
@@ -48,7 +48,7 @@ gr_nsw = GeographicalRegion(name="New South Wales", sub_geographical_regions=[sg
 In this step, we build the network hierarchy by organizing the previously defined components into the hierarchy structure.
 The `NetworkHierarchy` class is used to represent the overall structure, as follows.
 
-```bash
+```python
 network_hierarchy = NetworkHierarchy(
     geographical_regions={gr_nsw.mrid: gr_nsw},
     sub_geographical_regions={sgr.mrid: sgr for sgr in (sgr_sydney, sgr_newcastle)},
@@ -64,7 +64,7 @@ network_hierarchy = NetworkHierarchy(
 You can print the constructed network hierarchy to visualize its structure.
 The script iterates through geographical regions, sub-geographical regions, substations, and feeders to display the hierarchy.
 
-```bash
+```python
 print("Network hierarchy:")
 for gr in network_hierarchy.geographical_regions.values():
     print(f"- {gr.name}")

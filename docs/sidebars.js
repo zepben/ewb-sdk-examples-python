@@ -15,6 +15,7 @@ module.exports = {
         "examples-build-network-hierarchy",
         "examples-fetching-network-hierarchy",
         "examples-fetching-network-model",
-        "examples-creating-and-uploading-studies"
+        "examples-creating-and-uploading-studies",
+        "examples-downstream-and-upstream-trace"
     ]
 };

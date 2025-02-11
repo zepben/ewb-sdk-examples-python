@@ -6,17 +6,22 @@
 
 import asyncio
 import csv
+import json
+import os
 from typing import Any
 
-from zepben.evolve import NetworkConsumerClient, PhaseStep, PhaseCode, AcLineSegment, connect_insecure, \
-    Switch, normal_downstream_trace, FeederDirection
+from zepben.evolve import NetworkConsumerClient, PhaseStep, PhaseCode, AcLineSegment, \
+    Switch, normal_downstream_trace, FeederDirection, connect_with_token
 from zepben.evolve.services.network.tracing.phases.phase_step import start_at
 from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
+
+with open("config.json") as f:
+    c = json.loads(f.read())
 
 
 async def main():
     print("Connecting to Server")
-    channel = connect_insecure(host="EWB hostname", rpc_port=1234)
+    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
 
     client = NetworkConsumerClient(channel)
     result = (await client.get_network_hierarchy()).throw_on_error().result
@@ -24,6 +29,7 @@ async def main():
 
     switch_to_line_type: dict[str, tuple[list[Any], bool]] = {}
 
+    os.makedirs("csvs", exist_ok=True)
     for feeder in result.feeders.values():
         print(f"Fetching {feeder.mrid}")
         network = await get_feeder_network(channel, feeder.mrid)
@@ -38,7 +44,8 @@ async def main():
             sw_name = io.name
             sw_id = io.mrid
 
-            if "LV" in sw_name and "Circuit" in sw_name and "Isolator" in sw_name:
+            # Currently using switch with the following name as a marker for LV circuit heads
+            if "Circuit Head Switch" in sw_name:
                 switch_to_line_type[sw_id] = (
                     await get_downstream_trace(start_at(io, PhaseCode.ABCN)),
                     loop
@@ -47,7 +54,7 @@ async def main():
 
 
 async def save_to_csv(data: dict[str, tuple[list[Any], bool]], feeder_mrid):
-    filename = f"conductor_types_{feeder_mrid}.csv"
+    filename = f"csvs/conductor_types_{feeder_mrid}.csv"
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Feeder", "Switch", "Line", "Line Type", "Length", "Loop"])

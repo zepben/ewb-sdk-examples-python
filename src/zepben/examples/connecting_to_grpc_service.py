@@ -3,8 +3,16 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+import asyncio
+import json
+
 from zepben.auth import AuthMethod
-from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, connect_with_password, connect_with_secret, SyncNetworkConsumerClient
+from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, connect_with_password, connect_with_secret, SyncNetworkConsumerClient, \
+    connect_with_token
+
+
+with open("config.json") as f:
+    c = json.loads(f.read())
 
 
 async def plaintext_connection():
@@ -66,3 +74,17 @@ def connect_sync():
     client = SyncNetworkConsumerClient(channel)
     grpc_result = client.get_network_hierarchy()
     print(grpc_result.result)
+
+
+async def connect_using_token():
+    print("Connecting to EWB..")
+    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    client = NetworkConsumerClient(channel)
+    print("Connection established..")
+    print("Printing network hierarchy..")
+    grpc_result = await client.get_network_hierarchy()
+    print(grpc_result.result)
+
+
+if __name__ == "__main__":
+    asyncio.run(connect_using_token())
