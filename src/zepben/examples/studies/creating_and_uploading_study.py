@@ -90,7 +90,8 @@ async def main():
     print("Connection established..")
 
     print("Uploading study...")
-    await eas_client.async_upload_study(study)
+    response = await eas_client.async_upload_study(study)
+    print(response)
     print("Study uploaded! Please check the Evolve Web App.")
 
     await eas_client.aclose()

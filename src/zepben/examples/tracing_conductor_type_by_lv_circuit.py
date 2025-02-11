@@ -33,6 +33,9 @@ async def main():
     for feeder in result.feeders.values():
         print(f"Fetching {feeder.mrid}")
         network = await get_feeder_network(channel, feeder.mrid)
+        if not network:  # Skip feeders that fail to pull down
+            print(f"Failed to retrieve feeder {feeder.mrid}")
+            continue
         for io in network.objects(Switch):
             loop = False
 
@@ -71,8 +74,10 @@ async def save_to_csv(data: dict[str, tuple[list[Any], bool]], feeder_mrid):
 
 async def get_feeder_network(channel, feeder_mrid):
     client = NetworkConsumerClient(channel)
-    (await client.get_equipment_container(mrid=feeder_mrid,
-                                          include_energized_containers=IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS)).throw_on_error()
+    result = (await client.get_equipment_container(mrid=feeder_mrid, include_energized_containers=IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS))
+    if result.was_failure:
+        print(f"Failed: {result.thrown}")
+        return None
     return client.service
 
 
