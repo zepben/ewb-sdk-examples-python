@@ -20,27 +20,19 @@ Information about connecting to the Energy Workbench Server can be found in the 
 
 Ensure that you have installed the required dependencies and imported the libraries. For this example, we will use `json`, `geojson`, `zepben.eas`, `zepben.evolve`, and `nest_asyncio` libraries.
 
-```bash
+```python
 import json
-import nest_asyncio
 from geojson import Feature, LineString, FeatureCollection, Point
 from zepben.eas import Study, Result, GeoJsonOverlay, EasClient
 from zepben.evolve import connect_with_token, NetworkConsumerClient, AcLineSegment, EnergyConsumer
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 ```
 
-We also need to call `nest_asyncio.apply()` to enable asynchronous behavior within the environment:
-
-```bash
-# Apply nest_asyncio to enable asynchronous behavior within the environment
-nest_asyncio.apply()
-```
-
 ## Connecting to the EWB gRPC Service
 
 Here, we connect to the EWB Server, using the `connect_with_token` function.
 
-```bash
+```python
 with open("../config.json") as f:
     c = json.loads(f.read())
 
@@ -64,7 +56,7 @@ The `get_equipment_container` method is used to fetch information about the spec
 The `INCLUDE_ENERGIZED_LV_FEEDERS` flag indicates that the client should include information about energized LV (Low Voltage) feeders in the response.
 
 
-```bash
+```python
 feeder_mrid = "LV007"
 grpc_client = NetworkConsumerClient(grpc_channel)
 await grpc_client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
@@ -76,7 +68,7 @@ network = grpc_client.service
 We use the `EasClient` to connect to the Evolve App Server. `EasClient` is a class used to represent a client to the Evolve App Server, with methods that represent requests to its API.
 For the examples in this tutorial, we will use the following code to connect to the EAS.
 
-```bash
+```python
 eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
 ```
 
@@ -89,7 +81,7 @@ First, we will iterate through each `EnergyConsumer` object in the network and c
 If `EnergyConsumer`s have locations, we will create GeoJSON features for those `EnergyConsumer`s with their mRID and `Point` geometry based on the extracted coordinates.
 The created GeoJSON feature will be added to the list `ec_geojson`.
 
-```bash
+```python
 ec_geojson = []
     for ec in network.objects(EnergyConsumer):
         if ec.location is not None:
@@ -103,7 +95,7 @@ ec_geojson = []
 
 Now, we will create a `Result` object named "Energy Consumers" with a GeoJSON overlay. The GeoJSON overlay includes the collected GeoJSON features in a `FeatureCollection` and a style named "ec-heatmap".
 
-```bash
+```python
 ec_result = Result(
         name="Energy Consumers",
         geo_json_overlay=GeoJsonOverlay(
@@ -139,7 +131,7 @@ We then create GeoJSON features for those LV lines with their mRID.
 The geometry is a `LineString` constructed from the line's location points, and additional line length property is included to display the length of each LV line.
 The created GeoJSON feature is added to the list `lv_lines_geojson`.
 
-```bash
+```python
 lv_lines_geojson = []
     for line in network.objects(AcLineSegment):
         if line.base_voltage_value <= 1000 and line.location is not None:
@@ -155,7 +147,7 @@ lv_lines_geojson = []
 
 Now, we will create a `Result` object named "LV Lines" with a GeoJSON overlay. The GeoJSON overlay includes the collected GeoJSON features in a FeatureCollection.
 
-```bash
+```python
 lv_lines_result = Result(
         name="LV Lines",
         geo_json_overlay=GeoJsonOverlay(
@@ -232,7 +224,7 @@ The following styles are used for "lv_lines" and "lv_lengths". Note that you wil
 Once you have created the Results for the studies, the next step is to create and upload the study on EAS.
 A data class (`Study`) represents an Evolve App Server study. The user need to provide information such as name, descriptions, tags, results, and styles to successfully create a study.
 
-```bash
+```python
 study = Study(
         name="Example Study",
         description="Example study with two results.",
@@ -254,9 +246,9 @@ Note: Each layer may have an entry in the legend via the metadata["zb:legend"] f
 
 The final step after creating the study is to upload it on the EAS and close the EAS client, as follows.
 
-```bash
+```python
 await eas_client.async_upload_study(study)
-eas_client.close()
+await eas_client.aclose()
 ```
 
 ## Output (Studies)

@@ -24,7 +24,7 @@ The results are printed as follows:
 
 To run/test this example, ensure that you have installed the following libraries as they are used to interact with the Evolve API, perform network tracing, and work with the network equipment models.
 
-```bash
+```python
 import asyncio
 import json
 from zepben.evolve import NetworkConsumerClient, PhaseStep, PhaseCode, AcLineSegment, normal_downstream_trace, connect_with_token, EnergyConsumer, PowerTransformer, normal_upstream_trace
@@ -50,7 +50,7 @@ The `config.json` file contains the connection details for the server. It includ
 
 The code first loads the connection configuration from `config.json`, then establishes a connection to the server using `connect_with_token`:
 
-```bash
+```python
 channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
 ```
 
@@ -60,7 +60,7 @@ A `NetworkConsumerClient` object is created, which will be used to interact with
 
 Once connected, the code retrieves the network hierarchy of the feeders using the `get_network_hierarchy` method:
 
-```bash
+```python
 result = (await client.get_network_hierarchy()).throw_on_error().result
 ```
 
@@ -70,7 +70,7 @@ The network data for each feeder is processed and fetched through the `get_feede
 
 For each `PowerTransformer`, the downstream trace is performed using `normal_downstream_trace`. The `get_downstream_customer_count` function is called for each `PowerTransformer` to determine the number of `EnergyConsumers` downstream:
 
-```bash
+```python
 for io in network.objects(PowerTransformer):
     customers = await get_downstream_customer_count(start_at(io, PhaseCode.ABCN))
     print(f"Transformer {io.mrid} has {customers} Energy Consumer(s)")
@@ -82,7 +82,7 @@ Here, `start_at(io, PhaseCode.ABCN)` indicates that the trace starts from the `P
 
 For each `EnergyConsumer`, the upstream trace is performed using `normal_upstream_trace`. The `get_upstream_length` function calculates the total upstream length for each `EnergyConsumer`:
 
-```bash
+```python
 for ec in network.objects(EnergyConsumer):
     upstream_length = await get_upstream_length(start_at(ec, PhaseCode.ABCN))
     print(f"Energy Consumer {ec.mrid} --> Upstream Length: {upstream_length}")
@@ -96,7 +96,7 @@ The `get_downstream_customer_count` and `get_upstream_length` functions use trac
 
 For downstream tracing:
 
-```bash
+```python
 async def get_downstream_customer_count(ce: PhaseStep) -> int:
     trace = normal_downstream_trace()
     customer_count = 0
@@ -115,7 +115,7 @@ async def get_downstream_customer_count(ce: PhaseStep) -> int:
 
 For upstream tracing:
 
-```bash
+```python
 async def get_upstream_length(ce: PhaseStep) -> int:
     trace = normal_upstream_trace()
     upstream_length = 0
@@ -137,7 +137,7 @@ async def get_upstream_length(ce: PhaseStep) -> int:
 
 Finally, the main function runs the process using `asyncio`. It processes the specified feeder, performs downstream traces for `PowerTransformers`, and upstream traces for `EnergyConsumers`.
 
-```bash
+```python
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())

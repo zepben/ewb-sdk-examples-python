@@ -27,7 +27,7 @@ The latest version can be found on the Python package index:
 
 Also ensure that you have included the necessary imports at the beginning of your script, as follows:
 
-```bash
+```python
 from zepben.auth import AuthMethod
 from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, connect_with_password, connect_with_secret, connect_with_token, SyncNetworkConsumerClient
 ```
@@ -37,7 +37,7 @@ from zepben.evolve import connect_insecure, NetworkConsumerClient, connect_tls, 
 The plaintext_connection uses **connect_insecure** function that communicates with the gRPC service over plaintext to connect to an RPC server without TLS or authentication.
 **Note**: This type of connection is only suitable/recommended for development and demonstration purposes.
 
-```bash
+```python
 async def plaintext_connection():
     async with connect_insecure(host="hostname", rpc_port=1234) as insecure_channel:
         client = NetworkConsumerClient(insecure_channel)
@@ -58,7 +58,7 @@ async def plaintext_connection():
 
 The secure_connection uses **connect_tls** function that communicates with the gRPC service using SSL/TLS transport security to connect to the EWB server over TLS, but does not use/require user or client credentials.
 
-```bash
+```python
 async def secure_connection():
     async with connect_tls(host="hostname", rpc_port=1234, ca_filename=None) as secure_channel:
         client = NetworkConsumerClient(secure_channel)
@@ -84,7 +84,7 @@ async def secure_connection():
 The secure_connection_with_user_credentials connects to the EWB server over TLS with user credentials. It uses **connect_with_password** function that communicates with the gRPC service using SSL/TLS transport security and the OAuth password grant flow.
 The authentication config is fetched from https://hostname/auth or https://hostname/ewb/auth by default, which includes the domain of the OAuth token provider.
 
-```bash
+```python
 async def secure_connection_with_user_credentials():
     async with connect_with_password("client ID", "username", "password", "hostname", 1234) as secure_channel:
         client = NetworkConsumerClient(secure_channel)
@@ -116,7 +116,7 @@ async def secure_connection_with_user_credentials():
 The secure_connection_with_client_credentials connects to the EWB server over TLS with client credentials. It uses **connect_with_secret** function that communicates with the gRPC service using SSL/TLS transport security and the OAuth client credentials flow.
 The authentication config is fetched from https://hostname/auth or https://hostname/ewb/auth by default, which includes the domain of the OAuth token provider.
 
-```bash
+```python
 async with connect_with_secret("client ID", "client secret", "hostname", 1234) as secure_channel:
     client = NetworkConsumerClient(secure_channel)
     grpc_result = await client.get_network_hierarchy()
@@ -146,7 +146,7 @@ async with connect_with_secret("client ID", "client secret", "hostname", 1234) a
 
 The connect_using_token function establishes a connection to the EWB server using an access token for authentication.
 
-```bash
+```python
 async def connect_using_token():
     channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
     client = NetworkConsumerClient(channel)

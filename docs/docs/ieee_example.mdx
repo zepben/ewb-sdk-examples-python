@@ -16,7 +16,7 @@ The detailed information about the IEEE 13 node test feeder can be found [here](
 
 Ensure that you have installed and imported the required dependencies.
 
-```bash
+```python
 from typing import Tuple
 
 import numpy
@@ -31,7 +31,7 @@ Also ensure that you have correctly defined the constants `METRES_PER_FOOT` and 
 In this example, the constant named METRES_PER_FOOT is defined with a value of 0.3048. This constant represents the conversion factor from feet to meters, and will be used later in the code when setting the lengths of various power lines in the network model.
 The constant named FEET_PER_MILE is defined with a value of 5280. This constant represents the number of feet in a mile. It is used in the calculation of per-meter impedance values for the power lines in the network model.
 
-```bash
+```python
 FEET_PER_MILE = 5280
 METRES_PER_FOOT = 0.3048
 ```
@@ -42,7 +42,7 @@ We define base voltages for medium voltage (mv) and low voltage (lv).
 These are crucial for specifying the nominal voltage of various components in the network.
 The medium and low voltages of the IEEE 13 node network are defined at 4.16kV and 0.48kV, respectively.
 
-```bash
+```python
 mv = BaseVoltage(mrid="mv", nominal_voltage=4_160)
 lv = BaseVoltage(mrid="lv", nominal_voltage=480)
 ```
@@ -58,7 +58,7 @@ For more details about creating specific power system equipment and terminals, r
 Note that we will use the PowerTransformer class to create a Power Transformer and then select the function as `TransformerFunctionKind.voltageRegulator` to create a Voltage Regulator.
 For each Power Transformer you create, you will need to also create the Power Transformer Ends to associate the primary and secondary winding details about the transformer. For example, for a two-winding transformer, you will need to create two ends (a primary and a secondary end).
 
-```bash
+```python
 vr_650_632_t1, vr_650_632_t2 = Terminal(mrid="vr_650_632_t1"), Terminal(mrid="vr_650_632_t2")
 vr_650_632_e1 = PowerTransformerEnd(mrid="vr_650_632_e1", terminal=vr_650_632_t1, rated_u=mv.nominal_voltage)
 vr_650_632_e2 = PowerTransformerEnd(mrid="vr_650_632_e2", terminal=vr_650_632_t2, rated_u=mv.nominal_voltage)
@@ -68,7 +68,7 @@ vr_650_632 = PowerTransformer(mrid="vr_650_632", function=TransformerFunctionKin
 
 - Create AC Line Segments
 
-```bash
+```python
 # Line 632 to 645
 l_632_645_t1, l_632_645_t2 = Terminal(mrid="l_632_645_t1", phases=PhaseCode.BCN), Terminal(mrid="l_632_645_t2", phases=PhaseCode.BCN)
 l_632_645 = AcLineSegment(mrid="l_632_645", length=500 * METRES_PER_FOOT, terminals=[l_632_645_t1, l_632_645_t2], base_voltage=mv)
@@ -112,7 +112,7 @@ l_692_675 = AcLineSegment(mrid="l_692_675", length=500 * METRES_PER_FOOT, termin
 
 - Create Power Transformers and Power Transformer Ends
 
-```bash
+```python
 tx_633_634_t1, tx_633_634_t2 = Terminal(mrid="tx_633_634_t1", phases=PhaseCode.ABCN), Terminal(mrid="tx_633_634_t2", phases=PhaseCode.ABCN)
 tx_633_634_e1 = PowerTransformerEnd(mrid="tx_633_634_e1", terminal=tx_633_634_t1, rated_u=mv.nominal_voltage)
 tx_633_634_e2 = PowerTransformerEnd(mrid="tx_633_634_e2", terminal=tx_633_634_t2, rated_u=lv.nominal_voltage)
@@ -121,14 +121,14 @@ tx_633_634 = PowerTransformer(mrid="tx_633_634", terminals=[tx_633_634_t1, tx_63
 
 - Create the Disconnector (Switch)
 
-```bash
+```python
 sw_671_692_t1, sw_671_692_t2 = Terminal(mrid="sw_671_692_t1", phases=PhaseCode.ABCN), Terminal(mrid="sw_671_692_t2", phases=PhaseCode.ABCN)
 sw_671_692 = Disconnector(mrid="sw_671_692", terminals=[sw_671_692_t1, sw_671_692_t2], base_voltage=mv)
 ```
 
 - Create Shunt Compensators
 
-```bash
+```python
 lsc_675_t= Terminal(mrid="lsc_675_t1", phases=PhaseCode.ABCN)
 lsc_675_info = ShuntCompensatorInfo(mrid="lsc_675_info", rated_voltage=4160, rated_current=48.077, rated_reactive_power=200000)
 lsc_675 = LinearShuntCompensator(mrid="lsc_675", terminals=[lsc_675_t], asset_info=lsc_675_info)
@@ -149,7 +149,7 @@ Note that you will need specify the phases for the EnergyConsumer. EnergyConsume
 >- q_fixed: Optional[float] = None - Reactive power of the load that is a fixed quantity.
 
 
-```bash
+```python
 ec_634_t = Terminal(mrid="ec_634_t", phases=PhaseCode.ABCN)
 ec_634_pha = EnergyConsumerPhase(mrid="ec_634_pha", phase=SinglePhaseKind.A, p_fixed=160000, q_fixed=110000)
 ec_634_phb = EnergyConsumerPhase(mrid="ec_634_phb", phase=SinglePhaseKind.B, p_fixed=120000, q_fixed=90000)
@@ -206,7 +206,7 @@ These impedance's represent the electrical characteristics of the lines.
 The impedance data for lines are represented as line impedance matrices by IEEE.
 Hence, the following function is used to convert the line impedance matrices to sequence impedance and admittance parameters per unit length (supported format by the `PerLengthSequenceImpedance` class).
 
-```bash
+```python
 def plsi_from_z_per_mile(mrid: str, *impedances: Tuple[float, float]):
     r_per_metre, x_per_metre = numpy.mean(impedances, axis=0) / (METRES_PER_FOOT * FEET_PER_MILE)
     return PerLengthSequenceImpedance(mrid=mrid, r=r_per_metre, x=x_per_metre)
@@ -214,7 +214,7 @@ def plsi_from_z_per_mile(mrid: str, *impedances: Tuple[float, float]):
 
 Using the above function, convert the IEEE line impedance matrix configurations to sequence impedance and admittance parameters per unit length, as follows.
 
-```bash
+```python
 plsi_601 = plsi_from_z_per_mile("plsi_601", (0.3465, 1.0179), (0.3375, 1.0478), (0.3414, 1.0348))
 plsi_602 = plsi_from_z_per_mile("plsi_602", (0.7526, 1.1814), (0.7475, 1.1983), (0.7436, 1.2112))
 plsi_603 = plsi_from_z_per_mile("plsi_603", (1.3294, 1.3471), (1.3238, 1.3569))
@@ -226,7 +226,7 @@ plsi_607 = plsi_from_z_per_mile("plsi_607", (1.3425, 0.5124))
 
 Assign the per length sequence impedance to the lines, as follows.
 
-```bash
+```python
 l_632_645.per_length_sequence_impedance = plsi_603
 l_632_633.per_length_sequence_impedance = plsi_602
 l_645_646.per_length_sequence_impedance = plsi_603
@@ -244,7 +244,7 @@ l_692_675.per_length_sequence_impedance = plsi_606
 The next step is to define the containers to represent the high-voltage and low-voltage feeders in the network.
 These containers help organize and manage different sections of the electrical system.
 
-```bash
+```python
 hv_fdr = Feeder(mrid="hv_fdr", normal_head_terminal=br_650_t2)
 lv_fdr = LvFeeder(mrid="lv_fdr", normal_head_terminal=tx_633_634_t2)
 ```
@@ -254,7 +254,7 @@ lv_fdr = LvFeeder(mrid="lv_fdr", normal_head_terminal=tx_633_634_t2)
 In this step, we create a `NetworkService` instance and add all the created equipment and terminals to it.
 This step essentially assembles the entire network.
 
-```bash
+```python
 network = NetworkService()
 for io in [vr_650_632, vr_650_632_t1, vr_650_632_t2, vr_650_632_e1, vr_650_632_e2, l_632_645, l_632_645_t1, l_632_645_t2,
            l_632_633, l_632_633_t1, l_632_633_t2, tx_633_634, tx_633_634_t1, tx_633_634_t2, tx_633_634_e1, tx_633_634_e2, l_645_646, l_645_646_t1, l_645_646_t2,
@@ -272,7 +272,7 @@ for io in [vr_650_632, vr_650_632_t1, vr_650_632_t2, vr_650_632_e1, vr_650_632_e
 
 The final step is to connect the terminals of different equipment to form the complete electrical network. This involves establishing the physical connections between various components (as shown in the single line diagram above).
 
-```bash
+```python
 # Complete 650-632 regulator + line
 network.connect_terminals(vr_650_632_t2, l_650_632_t1)
 

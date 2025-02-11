@@ -13,7 +13,7 @@ The code is organized to demonstrate how to establish a connection, retrieve the
 
 Ensure that you have imported necessary modules from the Zepben library.
 
-```bash
+```python
 from zepben.evolve import NetworkConsumerClient, connect_with_token
 import json
 ```
@@ -33,7 +33,7 @@ Here is an example of the `config.json` file format.
 
 Now, establish the connection by using the `connect_with_token` function, which securely connects to the EWB server using an access token.
 
-```bash
+```python
 with open("config.json") as f:
     c = json.loads(f.read())
 
@@ -45,7 +45,7 @@ channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc
 
 After establishing the connection, create a `NetworkConsumerClient` using the provided channel.
 
-```bash
+```python
 client = NetworkConsumerClient(channel=channel)
 ```
 
@@ -55,7 +55,7 @@ You can fetch the network hierarchy by calling the `get_network_hierarchy` metho
 Once you have fetched the network hierarchy, you can iterate through the hierarchical structure and print information about each level (that is the geographical regions, sub-geographical regions, substations, and feeders).
 In this example, indentation is used to help represent the hierarchical relationships clearly.
 
-```bash
+```python
 network_hierarchy = await client.get_network_hierarchy()
 print("Network hierarchy:")
 for gr in network_hierarchy.result.geographical_regions.values():
