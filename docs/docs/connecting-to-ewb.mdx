@@ -39,10 +39,10 @@ The plaintext_connection uses **connect_insecure** function that communicates wi
 
 ```python
 async def plaintext_connection():
-    async with connect_insecure(host="hostname", rpc_port=1234) as insecure_channel:
-        client = NetworkConsumerClient(insecure_channel)
-        grpc_result = await client.get_network_hierarchy()
-        print(grpc_result.result)
+    insecure_channel = connect_insecure(host="hostname", rpc_port=1234)
+    client = NetworkConsumerClient(insecure_channel)
+    grpc_result = await client.get_network_hierarchy()
+    print(grpc_result.result)
 ```
 
 > INPUT:
@@ -60,10 +60,10 @@ The secure_connection uses **connect_tls** function that communicates with the g
 
 ```python
 async def secure_connection():
-    async with connect_tls(host="hostname", rpc_port=1234, ca_filename=None) as secure_channel:
-        client = NetworkConsumerClient(secure_channel)
-        grpc_result = await client.get_network_hierarchy()
-        print(grpc_result.result)
+    secure_channel = connect_tls(host="hostname", rpc_port=1234, ca_filename=None)
+    client = NetworkConsumerClient(secure_channel)
+    grpc_result = await client.get_network_hierarchy()
+    print(grpc_result.result)
 ```
 
 > INPUT:
@@ -86,10 +86,10 @@ The authentication config is fetched from https://hostname/auth or https://hostn
 
 ```python
 async def secure_connection_with_user_credentials():
-    async with connect_with_password("client ID", "username", "password", "hostname", 1234) as secure_channel:
-        client = NetworkConsumerClient(secure_channel)
-        grpc_result = await client.get_network_hierarchy()
-        print(grpc_result.result)
+    secure_channel = connect_with_password("client ID", "username", "password", "hostname", 1234)
+    client = NetworkConsumerClient(secure_channel)
+    grpc_result = await client.get_network_hierarchy()
+    print(grpc_result.result)
 ```
 
 > INPUT:
@@ -117,7 +117,8 @@ The secure_connection_with_client_credentials connects to the EWB server over TL
 The authentication config is fetched from https://hostname/auth or https://hostname/ewb/auth by default, which includes the domain of the OAuth token provider.
 
 ```python
-async with connect_with_secret("client ID", "client secret", "hostname", 1234) as secure_channel:
+async def secure_connection_with_client_credentials():
+    secure_channel = connect_with_secret("client ID", "client secret", "hostname", 1234)
     client = NetworkConsumerClient(secure_channel)
     grpc_result = await client.get_network_hierarchy()
     print(grpc_result.result)
@@ -152,7 +153,6 @@ async def connect_using_token():
     client = NetworkConsumerClient(channel)
     grpc_result = await client.get_network_hierarchy()
     print(grpc_result.result)
-
 ````
 
 > INPUT:
