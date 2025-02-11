@@ -18,7 +18,7 @@ setup(
      ],
     packages=find_namespace_packages(where="src"),
     package_dir={'': 'src'},
-    python_requires='>=3.9, <3.12',
+    python_requires='>=3.9, <=3.12',
     install_requires=[
         "zepben.eas==0.16.0",
         "zepben.evolve==0.44.1",
