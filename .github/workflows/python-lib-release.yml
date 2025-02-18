@@ -7,6 +7,5 @@ jobs:
     uses: zepben/.github/.github/workflows/python-lib-release-with-docs.yml@main
     with:
       private: false
-      licencecheck: true
       product-key: "ewb-sdk-examples-python"
     secrets: inherit
