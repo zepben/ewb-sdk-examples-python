@@ -1,4 +1,4 @@
-## [0.2.0] - UNRELEASED
+## [0.2.0] - 2025-02-19
 ### Breaking Changes
 * None.
 
