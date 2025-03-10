@@ -20,7 +20,7 @@ setup(
     package_dir={'': 'src'},
     python_requires='>=3.9, <3.13',
     install_requires=[
-        "zepben.eas==0.17.0",
+        "zepben.eas==0.17.1",
         "zepben.evolve==0.44.1",
         "numba==0.60.0",
         "geojson==2.5.0",
