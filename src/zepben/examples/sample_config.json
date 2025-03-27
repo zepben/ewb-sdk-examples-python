@@ -1,5 +1,9 @@
 {
   "host": "hostname",
   "rpc_port": 1234,
-  "access_token": "your_access_token"
+  "access_token": "your_access_token",
+  "ca_path": "./cachain.crt",
+  "eas_host": "hostname",
+  "eas_port": 443,
+  "eas_protocol": "https"
 }
