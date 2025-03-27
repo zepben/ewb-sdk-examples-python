@@ -21,7 +21,7 @@ from zepben.evolve.services.network.tracing.phases.phase_step import start_at
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
 
-with open("../config.json") as f:
+with open("./config.json") as f:
     c = json.loads(f.read())
 
 
@@ -32,10 +32,10 @@ def chunk(it, size):
 
 async def main():
     # Only process feeders in the following zones
-    zone_mrids = ["MTN"]
+    zone_mrids = ["10328500"] # COO zone
     print(f"Start time: {datetime.now()}")
 
-    rpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    rpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"], ca_filename=c["ca_path"])
     client = NetworkConsumerClient(rpc_channel)
     hierarchy = (await client.get_network_hierarchy()).throw_on_error()
     substations = hierarchy.value.substations
@@ -57,7 +57,7 @@ async def main():
         all_traced_equipment = []
         transformer_to_suspect_end = dict()
 
-        rpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+        rpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"], ca_filename=c["ca_path"])
         print(f"Processing feeders {', '.join(feeders)}")
         for feeder_mrid in feeders:
             futures.append(asyncio.ensure_future(fetch_feeder_and_trace(feeder_mrid, rpc_channel)))
@@ -70,7 +70,15 @@ async def main():
 
         print(f"Created Study for {len(feeder_mrids)} feeders")
 
-        eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
+        protocol = c.get("eas_protocol", "https")
+        eas_client = EasClient(
+            host=c["eas_host"],
+            port=c["eas_port"],
+            protocol=c.get("eas_protocol", "https"),
+            access_token=c["access_token"] if protocol == "https" else None,
+            ca_filename=c["ca_path"],
+            verify_certificate=False
+        )
 
         print(f"Uploading Study for {', '.join(feeders)} ...")
         await upload_suspect_end_of_line_study(

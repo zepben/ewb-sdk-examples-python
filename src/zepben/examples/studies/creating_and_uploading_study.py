@@ -5,6 +5,7 @@
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 import asyncio
 import json
+import os
 
 from geojson import Feature, LineString, FeatureCollection, Point
 from zepben.eas import Study, Result, GeoJsonOverlay, EasClient
@@ -18,15 +19,15 @@ from zepben.evolve import AcLineSegment, EnergyConsumer, connect_with_token, Net
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
 
-with open("../config.json") as f:
+with open("./config.json") as f:
     c = json.loads(f.read())
 
 
 async def main():
     # Fetch network model from Energy Workbench's gRPC service (see ../connecting_to_grpc_service.py for examples on different connection functions)
     print("Connecting to EWB..")
-    grpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
-    feeder_mrid = "WD24"
+    grpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"], ca_filename=c["ca_path"])
+    feeder_mrid = "PTN-014"
     grpc_client = NetworkConsumerClient(grpc_channel)
     print("Connection established..")
     await grpc_client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
@@ -73,19 +74,29 @@ async def main():
         )
     )
 
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     # Create and upload the study.
     study = Study(
         name="Example Study",
         description="Example study with two results.",
         tags=["example"],  # Tags make it easy to search for studies in a large list of them.
         results=[ec_result, lv_lines_result],
-        styles=json.load(open("style.json", "r"))  # This is the "layers" property of a Mapbox GL JS style.
+        styles=json.load(open(f"{dir_path}/style.json", "r"))  # This is the "layers" property of a Mapbox GL JS style.
         # Layers specify how features are rendered. For more information about layers, read https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/.
         # Each layer may have an entry in the legend via the metadata["zb:legend"] field.
     )
+
     print("Study created..")
     print("Connecting to EAS..")
-    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
+    protocol = c.get("eas_protocol", "https")
+    eas_client = EasClient(
+        host=c["eas_host"],
+        port=c["eas_port"],
+        protocol=c.get("eas_protocol", "https"),
+        access_token=c["access_token"] if protocol == "https" else None,
+        ca_filename=c["ca_path"],
+        verify_certificate=False
+    )
 
     print("Connection established..")
 

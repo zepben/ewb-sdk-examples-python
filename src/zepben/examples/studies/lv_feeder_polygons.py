@@ -21,11 +21,11 @@ from zepben.eas.client.study import Study, Result, GeoJsonOverlay
 
 
 with open("./config.json") as f:
-    config = json.load(f)
+    c = json.load(f)
 
 
 async def connect():
-    channel = connect_with_token(host=config["host"], rpc_port=config["rpc_port"], access_token=config["access_token"], ca_filename=config["ca_path"])
+    channel = connect_with_token(host=c["host"], rpc_port=c["rpc_port"], access_token=c["access_token"], ca_filename=c["ca_path"])
 
     feeder = "COO-023"
     print(f"Processing feeder {feeder}")
@@ -80,13 +80,13 @@ async def process_feeder(feeder_mrid: str, channel, geojson_features: list):
 
 
 async def upload_study(geojson):
-    protocol = config.get("eas_protocol", "https")
+    protocol = c.get("eas_protocol", "https")
     eas_client = EasClient(
-        host=config["eas_host"],
-        port=config["eas_port"],
-        protocol=config.get("eas_protocol", "https"),
-        access_token=config["access_token"] if protocol == "https" else None,
-        ca_filename=config["ca_path"],
+        host=c["eas_host"],
+        port=c["eas_port"],
+        protocol=c.get("eas_protocol", "https"),
+        access_token=c["access_token"] if protocol == "https" else None,
+        ca_filename=c["ca_path"],
         verify_certificate=False
     )
 

@@ -18,7 +18,7 @@ with open("config.json") as f:
 async def main():
     # See connecting_to_grpc_service.py for examples of each connect function
     print("Connecting to EWB..")
-    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"], ca_filename=c["ca_path"])
     feeder_mrid = "WD24"
     print(f"Fetching {feeder_mrid}")
     # Note you should create a new client for each Feeder you retrieve
