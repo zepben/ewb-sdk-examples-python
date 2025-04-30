@@ -7,6 +7,8 @@
 
 import asyncio
 import json
+import os
+import pandas as pd
 from dataclasses import dataclass
 
 from typing import Set
@@ -50,6 +52,10 @@ async def main():
                         for node in nodes:
                             print(f"  {node.node_id}, {node.node_type}, {node.upstream_node}, {node.upstream_node_type}")
 
+
+                nodesdf = pd.DataFrame(nodes)
+                os.makedirs("csvs", exist_ok=True)
+                nodesdf.to_csv(f"csvs/{lvf.name}-nodes.csv", index=False)
 async def get_feeder_network(channel, feeder_mrid):
     client = NetworkConsumerClient(channel)
     (await client.get_equipment_container(mrid=feeder_mrid,
@@ -83,17 +89,20 @@ async def get_downstream_customer_count(ce: PhaseStep, lv_feeder_heads: Set[Cond
 
     nodes = []
     last_node = None
-    def collect_eq_in():
-        async def add_eq(ps: PhaseStep, _):
-            nonlocal last_node
-            nodes.append(Node(ps.conducting_equipment.mrid, type(ps.conducting_equipment).__name__, last_node.mrid if last_node else "", type(last_node).__name__ if last_node else ""))
+    async def add_eq(ps: PhaseStep, _):
+        nonlocal last_node
+        nodes.append(Node(ps.conducting_equipment.mrid, type(ps.conducting_equipment).__name__, last_node.mrid if last_node else "", type(last_node).__name__ if last_node else ""))
+        if ps.conducting_equipment.num_terminals() == 1:
+            last_node = None
+        else:
             last_node = ps.conducting_equipment
-        return add_eq
+
+    
 
     async def stop_on_lv_circuit_switch(ps: PhaseStep) -> bool:
         return ps.conducting_equipment in lv_feeder_heads
     
-    trace.add_step_action(collect_eq_in())
+    trace.add_step_action(add_eq)
     trace.add_stop_condition(stop_on_lv_circuit_switch)
     await trace.run(ce, can_stop_on_start_item=False)
     return nodes

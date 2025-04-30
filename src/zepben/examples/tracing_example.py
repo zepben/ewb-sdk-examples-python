@@ -19,14 +19,14 @@ with open("config.json") as f:
 
 async def main():
     print("Connecting to Server")
-    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"], ca_filename=c["ca_path"])
 
     client = NetworkConsumerClient(channel)
     result = (await client.get_network_hierarchy()).throw_on_error().result
     print("Connection Established")
 
     for feeder in result.feeders.values():
-        if feeder.mrid != "WD24":
+        if feeder.mrid != "PTN-014":
             continue
         print()
         print(f"Fetching {feeder.mrid}")
