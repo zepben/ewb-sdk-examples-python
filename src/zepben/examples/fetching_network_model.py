@@ -19,7 +19,7 @@ async def main():
     # See connecting_to_grpc_service.py for examples of each connect function
     print("Connecting to EWB..")
     channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
-    feeder_mrid = "WD24"
+    feeder_mrid = "RW1292"
     print(f"Fetching {feeder_mrid}")
     # Note you should create a new client for each Feeder you retrieve
     # There is also a NetworkConsumerClient that is asyncio compatible, with the same API.
