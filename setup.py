@@ -24,7 +24,10 @@ setup(
         "zepben.evolve==0.45.0",
         "numba==0.60.0",
         "geojson==2.5.0",
-        "gql[requests]==3.4.1"
+        "gql[requests]==3.4.1",
+        "geopandas",
+        "pandas",
+        "shapely"
     ],
     extras_require={
         "test": test_deps,

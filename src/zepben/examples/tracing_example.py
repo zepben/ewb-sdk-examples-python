@@ -26,7 +26,7 @@ async def main():
     print("Connection Established")
 
     for feeder in result.feeders.values():
-        if feeder.mrid != "WD24":
+        if feeder.mrid != "RW1292":
             continue
         print()
         print(f"Fetching {feeder.mrid}")

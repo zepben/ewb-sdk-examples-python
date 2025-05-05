@@ -23,13 +23,13 @@ async def main():
 
     print("Network hierarchy:")
     for gr in network_hierarchy.result.geographical_regions.values():
-        print(f"- {gr.name}")
+        print(f"- GeographicalRegion mRID: {gr.mrid} name: {gr.name}")
         for sgr in gr.sub_geographical_regions:
-            print(f"  - {sgr.name}")
+            print(f"  - SubgeographicalRegion mRID: {sgr.mrid} name: {sgr.name}")
             for sub in sgr.substations:
-                print(f"    - {sub.name}")
+                print(f"    - Substation mRID: {sub.mrid} name: {sub.name}")
                 for fdr in sub.feeders:
-                    print(f"      - {fdr.name}")
+                    print(f"      - Feeder mRID: {fdr.mrid} name: {fdr.name}")
 
 
 if __name__ == "__main__":
