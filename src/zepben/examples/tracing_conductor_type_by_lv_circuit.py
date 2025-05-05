@@ -11,7 +11,7 @@ import os
 from typing import Any, List, Union
 
 from zepben.evolve import NetworkConsumerClient, PhaseStep, PhaseCode, AcLineSegment, \
-    Switch, normal_downstream_trace, FeederDirection, connect_with_token
+    Switch, normal_downstream_trace, FeederDirection, connect_with_token, PowerTransformer
 from zepben.evolve.services.network.tracing.phases.phase_step import start_at
 from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
 
@@ -27,15 +27,17 @@ async def main():
     result = (await client.get_network_hierarchy()).throw_on_error().result
     print("Connection Established")
 
-    switch_to_line_type: dict[str, tuple[list[Any], bool]] = {}
+    tx_to_line_type: dict[str, tuple[list[Any], bool]] = {}
 
     os.makedirs("csvs", exist_ok=True)
     for feeder in result.feeders.values():
+        if feeder.mrid != "J503":
+            continue
         print(f"Fetching {feeder.mrid}")
         if not (network := await get_feeder_network(channel, feeder.mrid)):  # Skip feeders that fail to pull down
             print(f"Failed to retrieve feeder {feeder.mrid}")
             continue
-        for io in network.objects(Switch):
+        for io in network.objects(PowerTransformer):
             _loop = False
 
             for t in io.terminals:
@@ -43,29 +45,24 @@ async def main():
                 if t_dir == FeederDirection.BOTH:
                     _loop = True
 
-            sw_name = io.name
-            sw_id = io.mrid
-
-            # Currently using switch with the following name as a marker for LV circuit heads
-            if "Circuit Head Switch" in sw_name:
-                switch_to_line_type[sw_id] = (
-                    await get_downstream_trace(start_at(io, PhaseCode.ABCN)),
-                    loop
-                )
-        await save_to_csv(switch_to_line_type, feeder.mrid)
+            tx_to_line_type[io.mrid] = (
+                await get_downstream_trace(start_at(io, PhaseCode.ABCN)),
+                loop
+            )
+        await save_to_csv(tx_to_line_type, feeder.mrid)
 
 
 async def save_to_csv(data: dict[str, tuple[list[Any], bool]], feeder_mrid):
     filename = f"csvs/conductor_types_{feeder_mrid}.csv"
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Feeder", "Switch", "Line", "Line Type", "Length", "Loop"])
+        writer.writerow(["Feeder", "Transformer", "Line", "Line Type", "Length", "Loop"])
 
-        for switch, (values, loop) in data.items():
+        for transformer, (values, loop) in data.items():
             for i in range(0, len(values), 3):
                 line_type = values[i + 1] if i + 1 < len(values) else ""
                 length = values[i + 2] if i + 2 < len(values) else ""
-                switch_data = [feeder_mrid, switch, values[i], line_type, length, loop]
+                switch_data = [feeder_mrid, transformer, values[i], line_type, length, loop]
                 writer.writerow(switch_data)
 
     print(f"Data saved to {filename}")
