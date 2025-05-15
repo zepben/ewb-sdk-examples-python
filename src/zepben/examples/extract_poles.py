@@ -12,7 +12,7 @@ import json
 
 from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
 
-from zepben.evolve import NetworkConsumerClient, connect_with_token, Pole
+from zepben.evolve import NetworkConsumerClient, connect_with_token, Pole, ConductingEquipment
 
 with open("config-local.json") as f:
     c = json.loads(f.read())
@@ -49,6 +49,10 @@ async def process_nodes(feeder_mrid: str, channel):
         for psr in pole.power_system_resources:
             print(f"Pole: {pole.mrid}, Equipment: {psr}")
 
+    # Or reverse:
+    for ce in network_service.objects(ConductingEquipment):
+        for asset in ce.assets:
+            print(f"Pole: {asset.mrid}, Equipment: {ce}")
 
 if __name__ == "__main__":
     asyncio.run(connect())
