@@ -42,8 +42,8 @@ async def main(hv_conductor_mrid: str, feeder_mrid: str):
             network_state_operators=state_operators,
             action_step_type=NetworkTraceActionType.ALL_STEPS
         ).add_condition(state_operators.stop_at_open())
-        .add_queue_condition(Traversal.queue_condition(queue_condition))
-        .add_step_action(Traversal.step_action(step_action))
+        .add_queue_condition(queue_condition)
+        .add_step_action(step_action)
         .add_start_item(hv_acls)
     ).run()
 

@@ -46,8 +46,8 @@ async def main(mrids: Tuple[str, str], io_type: Type[ProtectedSwitch], feeder_mr
             network_state_operators=state_operators,
             action_step_type=NetworkTraceActionType.ALL_STEPS
         ).add_condition(state_operators.upstream())
-        .add_stop_condition(Traversal.stop_condition(stop_condition))
-        .add_step_action(Traversal.step_action(step_action))
+        .add_stop_condition(stop_condition)
+        .add_step_action(step_action)
     )
 
     queue = iter(nodes)
