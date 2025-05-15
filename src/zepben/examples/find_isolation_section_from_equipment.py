@@ -1,0 +1,54 @@
+#  Copyright 2025 Zeppelin Bend Pty Ltd
+#
+#  This Source Code Form is subject to the terms of the Mozilla Public
+#  License, v. 2.0. If a copy of the MPL was not distributed with this
+#  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+"""
+Example trace showing method to traverse outwards from any given `IdentifiableObject` to the next `Switch` object, and
+  build a list of all contained equipment (isolate-able section)
+"""
+
+import asyncio
+
+from zepben.evolve import NetworkStateOperators, NetworkTraceActionType, Traversal, NetworkTraceStep, StepContext, \
+    NetworkConsumerClient, connect_tls, ConductingEquipment, AcLineSegment
+from zepben.evolve import PowerTransformer, UsagePoint, Tracing, Switch
+from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
+
+
+async def main(hv_conductor_mrid: str, feeder_mrid: str):
+    channel = connect_tls(host='ewb.local', rpc_port=50051, ca_filename='ca.crt')
+    client = NetworkConsumerClient(channel)
+    await client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
+    network = client.service
+
+    hv_acls = network.get(hv_conductor_mrid, AcLineSegment)
+
+    found_equip = set()
+
+    def queue_condition(step: NetworkTraceStep, context: StepContext, _, __):
+        """Queue the next step unless it's a `Switch`"""
+        return not isinstance(step.path.to_equipment, Switch)
+
+    def step_action(step: NetworkTraceStep, context: StepContext):
+        """Add to our list of equipment, and equipment stepped on during this trace"""
+        found_equip.add(step.path.to_equipment.mrid)
+
+    state_operators = NetworkStateOperators.NORMAL
+
+    await (
+        Tracing.network_trace(
+            network_state_operators=state_operators,
+            action_step_type=NetworkTraceActionType.ALL_STEPS
+        ).add_condition(state_operators.stop_at_open())
+        .add_queue_condition(Traversal.queue_condition(queue_condition))
+        .add_step_action(Traversal.step_action(step_action))
+        .add_start_item(hv_acls)
+    ).run()
+
+    print(found_equip)  # prints a list of all mRid's for all equipment in the isolation area.
+
+
+if __name__ == "__main__":
+    asyncio.run(main(hv_conductor_mrid='50434998', feeder_mrid='RW1292'))
