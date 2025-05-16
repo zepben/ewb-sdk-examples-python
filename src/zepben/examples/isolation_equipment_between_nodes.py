@@ -9,16 +9,20 @@ Example trace showing method to traverse between any 2 given `IdentifiableObject
 """
 
 import asyncio
+import json
 from typing import Tuple, Type
 
-from zepben.evolve import NetworkStateOperators, NetworkTraceActionType, Traversal, NetworkTraceStep, StepContext, \
-    NetworkConsumerClient, connect_tls, ProtectedSwitch, Recloser, LoadBreakSwitch
+from zepben.evolve import NetworkStateOperators, NetworkTraceActionType, NetworkTraceStep, StepContext, \
+    NetworkConsumerClient, ProtectedSwitch, Recloser, LoadBreakSwitch, connect_with_token
 from zepben.evolve import Tracing
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
+with open("config.json") as f:
+    c = json.loads(f.read())
+
 
 async def main(mrids: Tuple[str, str], io_type: Type[ProtectedSwitch], feeder_mrid):
-    channel = connect_tls(host='ewb.local', rpc_port=50051, ca_filename='ca.crt')
+    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
     client = NetworkConsumerClient(channel)
     await client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
     network = client.service
@@ -55,7 +59,7 @@ async def main(mrids: Tuple[str, str], io_type: Type[ProtectedSwitch], feeder_mr
         await trace.run(start=next(queue), can_stop_on_start_item=False)
 
     all(map(print, found_switch))  # print the list of switches
-    print(bool(found_switch))      # print whether we found what we were looking for
+    print(bool(found_switch))  # print whether we found what we were looking for
 
 
 if __name__ == "__main__":

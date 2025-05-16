@@ -10,11 +10,15 @@ Example trace showing methods to traverse upstream of a given `IdentifiedObject`
 """
 
 import asyncio
+import json
 
-from zepben.evolve import NetworkStateOperators, NetworkTraceActionType, Traversal, NetworkTraceStep, StepContext, \
-    NetworkConsumerClient, connect_tls, ConductingEquipment
+from zepben.evolve import NetworkStateOperators, NetworkTraceActionType, NetworkTraceStep, StepContext, \
+    NetworkConsumerClient, ConductingEquipment, connect_with_token
 from zepben.evolve import PowerTransformer, UsagePoint, Tracing, Switch
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
+
+with open("config.json") as f:
+    c = json.loads(f.read())
 
 
 def _trace(start_item, results, stop_condition):
@@ -37,16 +41,18 @@ def _trace(start_item, results, stop_condition):
     )
 
 
-async def main(usage_point_mrid: str, feeder_mrid: str):
-    channel = connect_tls(host='ewb.local', rpc_port=50051, ca_filename='ca.crt')
+async def main(mrid: str, feeder_mrid: str):
+    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
     client = NetworkConsumerClient(channel)
     await client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
     network = client.service
 
-    usage_point = network.get(usage_point_mrid, UsagePoint)
-
-    # get the `ConductingEquipment` from the `UsagePoint`
-    start_item = next(filter(lambda ce: isinstance(ce, ConductingEquipment), usage_point.equipment))
+    try:
+        usage_point = network.get(mrid, UsagePoint)
+        # get the `ConductingEquipment` from the `UsagePoint`
+        start_item = next(filter(lambda ce: isinstance(ce, ConductingEquipment), usage_point.equipment))
+    except TypeError:
+        start_item = network.get(mrid, ConductingEquipment)
 
     results = []
 
@@ -55,6 +61,7 @@ async def main(usage_point_mrid: str, feeder_mrid: str):
         return isinstance(step.path.to_equipment, PowerTransformer)
 
     # Get Circuit Breaker from which any given customer is supplied from using a basic upstream trace
+    # Uncomment stop condition below to use
     def circuit_breaker_stop_condition(step: NetworkTraceStep, context: StepContext):
         return isinstance(step.path.to_equipment, Switch)
 
@@ -62,11 +69,12 @@ async def main(usage_point_mrid: str, feeder_mrid: str):
         start_item=start_item,
         results=results,
         stop_condition=dsub_stop_condition,
-        #stop_condition=circuit_breaker_stop_condition,
+        # stop_condition=circuit_breaker_stop_condition,
     ).run()
 
     print(results)
 
 
 if __name__ == "__main__":
-    asyncio.run(main(usage_point_mrid='4310990779', feeder_mrid='RW1292'))
+    # EnergyConsumer: 50763684
+    asyncio.run(main(mrid='4310990779', feeder_mrid='RW1292'))

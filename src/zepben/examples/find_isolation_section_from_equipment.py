@@ -10,20 +10,24 @@ Example trace showing method to traverse outwards from any given `IdentifiableOb
 """
 
 import asyncio
+import json
 
-from zepben.evolve import NetworkStateOperators, NetworkTraceActionType, Traversal, NetworkTraceStep, StepContext, \
-    NetworkConsumerClient, connect_tls, ConductingEquipment, AcLineSegment
-from zepben.evolve import PowerTransformer, UsagePoint, Tracing, Switch
+from zepben.evolve import NetworkStateOperators, NetworkTraceActionType, NetworkTraceStep, StepContext, \
+    NetworkConsumerClient, AcLineSegment, connect_with_token
+from zepben.evolve import Tracing, Switch
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
+with open("config.json") as f:
+    c = json.loads(f.read())
 
-async def main(hv_conductor_mrid: str, feeder_mrid: str):
-    channel = connect_tls(host='ewb.local', rpc_port=50051, ca_filename='ca.crt')
+
+async def main(conductor_mrid: str, feeder_mrid: str):
+    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
     client = NetworkConsumerClient(channel)
     await client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
     network = client.service
 
-    hv_acls = network.get(hv_conductor_mrid, AcLineSegment)
+    hv_acls = network.get(conductor_mrid, AcLineSegment)
 
     found_equip = set()
 
@@ -47,8 +51,8 @@ async def main(hv_conductor_mrid: str, feeder_mrid: str):
         .add_start_item(hv_acls)
     ).run()
 
-    print(found_equip)  # prints a list of all mRid's for all equipment in the isolation area.
+    print(found_equip)  # prints a list of all mRID's for all equipment in the isolation area.
 
 
 if __name__ == "__main__":
-    asyncio.run(main(hv_conductor_mrid='50434998', feeder_mrid='RW1292'))
+    asyncio.run(main(conductor_mrid='50434998', feeder_mrid='RW1292'))
