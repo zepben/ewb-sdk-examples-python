@@ -8,7 +8,7 @@ import logging
 import pandapower as pp
 
 from pp_creators.basic_creator import BasicPandaPowerNetworkCreator
-from zepben.evolve import set_direction, NetworkService, Terminal, EnergySource
+from zepben.evolve import NetworkService, Terminal, EnergySource, Tracing
 
 from zepben.examples.ieee_13_node_test_feeder import network
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 async def main():
     add_energy_source(network, network["br_650_t1"])
-    await set_direction().run(network)
+    await Tracing.set_direction().run(network)
     bbn_creator = BasicPandaPowerNetworkCreator(
         logger=logger,
         ec_load_provider=lambda ec: (5000, 0)  # Model each energy consumer with a 5kW nonreactive load

@@ -8,9 +8,8 @@
 import asyncio
 import json
 
-from zepben.evolve import NetworkConsumerClient, PhaseStep, PhaseCode, AcLineSegment, normal_downstream_trace, connect_with_token, EnergyConsumer, \
-    PowerTransformer, normal_upstream_trace
-from zepben.evolve.services.network.tracing.phases.phase_step import start_at
+from zepben.evolve import NetworkConsumerClient, PhaseCode, AcLineSegment, connect_with_token, EnergyConsumer, \
+    PowerTransformer, ConductingEquipment, Tracing, NetworkStateOperators, NetworkTraceStep
 from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
 
 with open("config.json") as f:
@@ -36,13 +35,13 @@ async def main():
         print("Downstream Trace Example..")
         # Get the count of customers per transformer
         for io in network.objects(PowerTransformer):
-            customers = await get_downstream_customer_count(start_at(io, PhaseCode.ABCN))
+            customers = await get_downstream_customer_count(io, PhaseCode.ABCN)
             print(f"Transformer {io.mrid} has {customers} Energy Consumer(s)")
 
         print()
         print("Upstream Trace Example..")
         for ec in network.objects(EnergyConsumer):
-            upstream_length = await get_upstream_length(start_at(ec, PhaseCode.ABCN))
+            upstream_length = await get_upstream_length(ec, PhaseCode.ABCN)
             print(f"Energy Consumer {ec.mrid} --> Upstream Length: {upstream_length}")
 
 
@@ -53,36 +52,39 @@ async def get_feeder_network(channel, feeder_mrid):
     return client.service
 
 
-async def get_downstream_customer_count(ce: PhaseStep) -> int:
-    trace = normal_downstream_trace()
+async def get_downstream_customer_count(ce: ConductingEquipment, phase_code: PhaseCode) -> int:
+    state_operators = NetworkStateOperators.NORMAL
+    trace = Tracing.network_trace().add_condition(state_operators.downstream())
     customer_count = 0
 
     def collect_eq_in():
-        async def add_eq(ps, _):
+        async def add_eq(ps: NetworkTraceStep, _):
             nonlocal customer_count
-            if isinstance(ps.conducting_equipment, EnergyConsumer):
+            if isinstance(ps.path.to_equipment, EnergyConsumer):
                 customer_count += 1
         return add_eq
 
     trace.add_step_action(collect_eq_in())
-    await trace.run(ce)
+    await trace.run(start=ce, phases=phase_code)
     return customer_count
 
 
-async def get_upstream_length(ce: PhaseStep) -> int:
-    trace = normal_upstream_trace()
+async def get_upstream_length(ce: ConductingEquipment, phases: PhaseCode) -> int:
+    state_operators = NetworkStateOperators.NORMAL
+    trace = Tracing.network_trace().add_condition(state_operators.upstream())
     upstream_length = 0
 
     def collect_eq_in():
-        async def add_eq(ps, _):
+        async def add_eq(ps: NetworkTraceStep, _):
             nonlocal upstream_length
-            if isinstance(ps.conducting_equipment, AcLineSegment):
-                if ps.conducting_equipment.length is not None:
-                    upstream_length = upstream_length + ps.conducting_equipment.length
+            equip = ps.path.to_equipment
+            if isinstance(equip, AcLineSegment):
+                if equip.length is not None:
+                    upstream_length += equip.length
         return add_eq
 
     trace.add_step_action(collect_eq_in())
-    await trace.run(ce)
+    await trace.run(start=ce, phases=phases)
     return upstream_length
 
 if __name__ == "__main__":

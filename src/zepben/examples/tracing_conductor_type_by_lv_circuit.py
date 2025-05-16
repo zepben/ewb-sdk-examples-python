@@ -37,12 +37,12 @@ async def main():
             print(f"Failed to retrieve feeder {feeder.mrid}")
             continue
         for io in network.objects(Switch):
-            loop = False
+            _loop = False
 
             for t in io.terminals:
                 t_dir = t.normal_feeder_direction
                 if t_dir == FeederDirection.BOTH:
-                    loop = True
+                    _loop = True
 
             sw_name = io.name
             sw_id = io.mrid
@@ -81,24 +81,26 @@ async def get_feeder_network(channel, feeder_mrid):
     return client.service
 
 
-async def get_downstream_trace(ce: PhaseStep) -> list[Any]:
-    trace = normal_downstream_trace()
+async def get_downstream_trace(ce: ConductingEquipment, phase_code: PhaseCode) -> list[Any]:
+    state_operators = NetworkStateOperators.NORMAL
+    trace = Tracing.network_trace().add_condition(state_operators.downstream())
     l_type: [str, str, float] = []
 
     def collect_eq_in():
-        async def add_eq(ps, _):
-            if isinstance(ps.conducting_equipment, AcLineSegment):
-                l_type.append(ps.conducting_equipment.mrid)
-                l_type.append(ps.conducting_equipment.asset_info.name)
-                if ps.conducting_equipment.length is not None:
-                    l_type.append(ps.conducting_equipment.length)
+        async def add_eq(ps: NetworkTraceStep, _):
+            equip = ps.path.to_equipment
+            if isinstance(equip, AcLineSegment):
+                l_type.append(equip.mrid)
+                l_type.append(equip.asset_info.name)
+                if equip.length is not None:
+                    l_type.append(equip.length)
                 else:
                     l_type.append(0)
 
         return add_eq
 
     trace.add_step_action(collect_eq_in())
-    await trace.run(ce)
+    await trace.run(start=ce, phases=phase_code)
     return l_type
 
 

@@ -8,15 +8,10 @@
 # The Evolve SDK contains several factory functions for traversals that cover common use cases.
 import asyncio
 
-from zepben.evolve import Switch, connected_equipment_trace, ConductingEquipmentStep, connected_equipment_breadth_trace, \
-    normal_connected_equipment_trace, current_connected_equipment_trace, connectivity_trace, ConnectivityResult, connected_equipment, \
-    connectivity_breadth_trace, SinglePhaseKind, normal_connectivity_trace, current_connectivity_trace, phase_trace, PhaseCode, PhaseStep, normal_phase_trace, \
-    current_phase_trace, assign_equipment_to_feeders, Feeder, LvFeeder, assign_equipment_to_lv_feeders, set_direction, Terminal, \
-    normal_limited_connected_equipment_trace, AcLineSegment, current_limited_connected_equipment_trace, FeederDirection, remove_direction, \
-    normal_downstream_trace, current_downstream_trace, TreeNode, Breaker
-
-from zepben.evolve.services.network.tracing.phases import phase_step
-from zepben.evolve.services.network.tracing.tracing import normal_upstream_trace, current_upstream_trace, normal_downstream_tree, current_downstream_tree
+from zepben.evolve import Switch, ConnectivityResult, connected_equipment, SinglePhaseKind, PhaseCode, \
+    Feeder, LvFeeder, Terminal, AcLineSegment, FeederDirection, Breaker, Tracing, NetworkStateOperators, NetworkTraceStep, StepContext
+from zepben.evolve.services.network.tracing.networktrace.actions.equipment_tree_builder import EquipmentTreeBuilder
+from zepben.evolve.services.network.tracing.networktrace.actions.tree_node import TreeNode
 
 # For the purposes of this example, we will use the IEEE 13 node feeder.
 from zepben.examples.ieee_13_node_test_feeder import network
@@ -25,6 +20,9 @@ feeder_head = network.get("br_650", Breaker)
 switch = network.get("sw_671_692", Switch)
 hv_feeder = network.get("hv_fdr", Feeder)
 lv_feeder = network.get("lv_fdr", LvFeeder)
+
+NORMAL = NetworkStateOperators.NORMAL
+CURRENT = NetworkStateOperators.CURRENT
 
 
 def reset_switch():
@@ -46,17 +44,18 @@ async def equipment_traces():
     print_heading("EQUIPMENT TRACING")
 
     # noinspection PyArgumentList
-    start_item = ConductingEquipmentStep(conducting_equipment=feeder_head)
+    start_item = feeder_head
     visited = set()
 
-    async def print_step(ces: ConductingEquipmentStep, _):
-        visited.add(ces.conducting_equipment)
-        print(f"\tDepth {ces.step:02d}: {ces.conducting_equipment}")
+    async def print_step(ces: NetworkTraceStep, ctx: StepContext):
+        visited.add(ces.path.to_equipment)
+        print(f"\tDepth {ctx.step_number:02d}: {ces.path.to_equipment}")
 
     # The connected equipment trace iterates through all connected equipment depth-first, and even through open switches.
     # Equipment will be revisited if a shorter path from the starting equipment is found.
     print("Connected Equipment Trace:")
-    await connected_equipment_trace().add_step_action(print_step).run(start_item)
+    await Tracing.network_trace(network_state_operators=NORMAL).add_step_action(print_step).run(start_item)
+    await Tracing.network_trace(network_state_operators=CURRENT).add_step_action(print_step).run(start_item)
     print(f"Number of equipment visited: {len(visited)}")
     print()
     visited.clear()
@@ -225,7 +224,7 @@ async def phase_traces():
     # set_direction() must be run on a network before running directed traces.
     # Note that set_direction() does not trace through switches with at least one open phase,
     # meaning that terminals beyond such a switch are left with a feeder direction of NONE.
-    await set_direction().run(network)
+    await Tracing.set_direction().run(network)
     print(f"Feeder direction set for each terminal.")
     print()
 
@@ -253,7 +252,7 @@ async def phase_traces():
     print()
     visited.clear()
 
-    remove_direction().run(network)
+    Tracing.clear_direction().run(network)
     print(f"Feeder direction removed for each terminal.")
     print()
 
@@ -269,8 +268,8 @@ async def assigning_equipment_to_feeders():
     print(f"LV feeders powered by HV feeder: {[lvf.mrid for lvf in hv_feeder.normal_energized_lv_feeders]}")
     print(f"HV feeders powering LV feeder: {[hvf.mrid for hvf in lv_feeder.normal_energizing_feeders]}")
     print()
-    await assign_equipment_to_feeders().run(network)
-    await assign_equipment_to_lv_feeders().run(network)
+    await Tracing.assign_equipment_to_feeders().run(network)
+    await Tracing.assign_equipment_to_lv_feeders().run(network)
     print("Equipment assigned to feeders.")
     print()
     print(f"Equipment in HV feeder: {[eq.mrid for eq in hv_feeder.equipment]}")
@@ -281,7 +280,7 @@ async def assigning_equipment_to_feeders():
 
 
 async def set_and_remove_feeder_direction():
-    # Use set_direction().run(network) to evaluate the feeder direction of each terminal.
+    # Use Tracing.set_direction().run(network) to evaluate the feeder direction of each terminal.
     print_heading("SETTING FEEDER DIRECTION")
     switch.set_normally_open(True, phase=SinglePhaseKind.A)
     print(f"Switch set to normally open on phase A. Switch is between feeder head and energy consumer 675.")
@@ -292,7 +291,8 @@ async def set_and_remove_feeder_direction():
     print(f"Normal feeder direction of energy consumer 675 terminal: {consumer_terminal.normal_feeder_direction}")
     print(f"Current feeder direction of energy consumer 675 terminal: {consumer_terminal.current_feeder_direction}")
     print()
-    await set_direction().run(network)
+    await Tracing.set_direction().run(network, network_state_operators=NetworkStateOperators.NORMAL)
+    await Tracing.set_direction().run(network, network_state_operators=NetworkStateOperators.CURRENT)
     print("Normal and current feeder direction set.")
     print()
     print(f"Normal feeder direction of HV feeder head terminal: {hv_feeder.normal_head_terminal.normal_feeder_direction}")
@@ -301,8 +301,8 @@ async def set_and_remove_feeder_direction():
     print(f"Current feeder direction of energy consumer 675 terminal: {consumer_terminal.current_feeder_direction}")
     print()
 
-    # Use remove_direction().run(network) to remove feeder directions.
-    # While set_direction().run(network) must be awaited, remove_direction().run(network) does not, because it is not asynchronous.
+    # Use Tracing.clear_direction().run(network) to remove feeder directions.
+    # While Tracing.set_direction().run(network) must be awaited, remove_direction().run(network) does not, because it is not asynchronous.
     print_heading("REMOVING FEEDER DIRECTION")
 
     consumer_terminal = network.get("ec_675_t", Terminal)
@@ -311,7 +311,8 @@ async def set_and_remove_feeder_direction():
     print(f"Normal feeder direction of energy consumer 675 terminal: {consumer_terminal.normal_feeder_direction}")
     print(f"Current feeder direction of energy consumer 675 terminal: {consumer_terminal.current_feeder_direction}")
     print()
-    remove_direction().run(network)
+    Tracing.clear_direction().run(network, network_state_operators=NetworkStateOperators.NORMAL)
+    Tracing.clear_direction().run(network, network_state_operators=NetworkStateOperators.CURRENT)
     print("Normal and current feeder direction removed.")
     print()
     print(f"Normal feeder direction of HV feeder head terminal: {hv_feeder.normal_head_terminal.normal_feeder_direction}")
@@ -340,7 +341,7 @@ async def trees():
                 yield f"{stem_char} {line}"
 
     def print_tree(root_node: TreeNode):
-        print(root_node.conducting_equipment)
+        print(root_node.identified_object)
         for line in desc_lines(root_node):
             print(line)
 
@@ -348,21 +349,25 @@ async def trees():
     print("Switch set to currently open on phase C.")
     print()
 
-    await set_direction().run(network)
+    await Tracing.set_direction().run(network)
     print("Feeder direction set.")
     print()
 
     print("Normal Downstream Tree:")
-    ndt = await normal_downstream_tree().run(feeder_head)
-    print_tree(ndt)
+    equip_tree_builder = EquipmentTreeBuilder()
+    await Tracing.network_trace().add_step_action(equip_tree_builder).run(feeder_head)
+    print_tree(next(equip_tree_builder.roots))
     print()
 
     print("Current Downstream Tree:")
-    cdt = await current_downstream_tree().run(feeder_head)
-    print_tree(cdt)
+    cur_equip_tree_builder = EquipmentTreeBuilder()
+    await Tracing.network_trace(
+        network_state_operators=NetworkStateOperators.CURRENT
+    ).add_step_action(cur_equip_tree_builder).run(feeder_head)
+    print_tree(next(cur_equip_tree_builder.roots))
     print()
 
-    remove_direction().run(network)
+    Tracing.clear_direction().run(network)
     print(f"Feeder direction removed for each terminal.")
     print()
 
