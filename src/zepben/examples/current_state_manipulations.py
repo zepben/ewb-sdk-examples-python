@@ -8,46 +8,34 @@ import asyncio
 import sys
 from typing import List, Set
 
-from zepben.evolve import Feeder, PowerTransformer, Switch, assign_equipment_to_feeders, set_phases, NetworkConsumerClient, \
-    connect_with_password, BusbarSection, tracing, ConductingEquipment, ConductingEquipmentStep, Terminal, Breaker, EquipmentContainer
+from zepben.evolve import (
+    Feeder, PowerTransformer, Switch, Tracing, NetworkConsumerClient, connect_with_password, Terminal,
+    BusbarSection, ConductingEquipment, Breaker, EquipmentContainer, StepContext, NetworkTraceStep
+)
+
+from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers, IncludedEnergizingContainers
 
 """
 Primary question to answer/example for:
-1. How to access the CIM model? Show examples of how the static/design and dynamic/current states of the network model is typically accessed by software
- developers?
+1. How to access the CIM model? Show examples of how the static/design and dynamic/current states
+   of the network model is typically accessed by software developers?
     a. Can Zepben model be updated with dynamic ADMS state information
-    b. if we have current state of network (dynamically updated from ADMS), can we query the model to find all current connected HV feeders in a voltage bus?
-     (VVC Example)
-    c. How fast can we retrieve a model (dynamic sate) from CIM for near real time applications? (VVC Example)
+    b. if we have current state of network (dynamically updated from ADMS), can we query the model
+       to find all current connected HV feeders in a voltage bus? (VVC Example)
+    c. How fast can we retrieve a model (dynamic sate) from CIM for near real time applications? 
+       (VVC Example)
 2. Show how the static and dynamic states of the network model is used by applications.
 """
 
 
 async def run_simple(client: NetworkConsumerClient):
-    print()
-    print()
-    print("######################")
-    print("# FETCH ZONE FEEDERS #")
-    print("######################")
-    print()
-    print()
-    await fetch_zone_feeders(client)
-    print()
-    print()
-    print("##################")
-    print("# SPUR ISOLATION #")
-    print("##################")
-    print()
-    await isolate_spur_current(client)
-    print()
-    print()
-    print("##################")
-    print("# ZONE BUS TRACE #")
-    print("##################")
-    print()
-    await zone_bus_trace(client)
-    print()
-    print()
+    for heading, function in (
+            ('FETCH ZONE FEEDERS', fetch_zone_feeders),
+            ("SPUR ISOLATION", isolate_spur_current),
+            ("ZONE BUS TRACE", zone_bus_trace)
+    ):
+        print(f"\n\n######################\n# {heading} #\n######################\n\n")
+        await function(client)
 
 
 async def fetch_zone_feeders(client: NetworkConsumerClient):
@@ -57,7 +45,12 @@ async def fetch_zone_feeders(client: NetworkConsumerClient):
     substation = hierarchy.substations["BAS"]
     for feeder in substation.feeders:
         print(f"   {feeder.mrid}...")
-        await client.get_equipment_container(feeder.mrid, Feeder, include_energizing_containers=True, include_energized_containers=True)
+        await client.get_equipment_container(
+            feeder.mrid,
+            Feeder,
+            include_energizing_containers=IncludedEnergizingContainers.INCLUDE_ENERGIZED_FEEDERS,
+            include_energized_containers=IncludedEnergizedContainers.INCLUDE_ENERGIZING_FEEDERS
+        )
     print("CPM feeders fetched.")
 
 
@@ -83,29 +76,29 @@ async def isolate_spur_current(client: NetworkConsumerClient):
 
 
 def log_spur(desc: str, switch: Switch, tx: PowerTransformer):
-    print("==========================")
-    print(desc)
-    print(
-        f"   {str(switch)}: is_normally_open={switch.is_normally_open()}, "
-        f"is_open={switch.is_open()}, "
-        f"normal_feeders={[it.mrid for it in switch.normal_feeders]}, "
-        f"current_feeders={[it.mrid for it in switch.current_feeders]}"
+    print(f"==========================\n{desc}"
+          f"\n   {str(switch)}: is_normally_open={switch.is_normally_open()}, "
+          f"is_open={switch.is_open()}, "
+          f"normal_feeders={[it.mrid for it in switch.normal_feeders]}, "
+          f"current_feeders={[it.mrid for it in switch.current_feeders]}"
+          f"\n   {str(tx)}: nominal_phases={[it.phases.name for it in tx.terminals]}, "
+          f"normal_phases={[it.normal_phases.as_phase_code().name for it in tx.terminals]}, "
+          f"current_phases={[it.current_phases.as_phase_code().name for it in tx.terminals]}, "
+          f"normal_feeders={[it.mrid for it in tx.normal_feeders]}, "
+          f"current_feeders={[it.mrid for it in tx.current_feeders]}"
+          "\n=========================="
     )
-    print(
-        f"   {str(tx)}: nominal_phases={[it.phases.name for it in tx.terminals]}, "
-        f"normal_phases={[it.normal_phases.as_phase_code().name for it in tx.terminals]}, "
-        f"current_phases={[it.current_phases.as_phase_code().name for it in tx.terminals]}, "
-        f"normal_feeders={[it.mrid for it in tx.normal_feeders]}, "
-        f"current_feeders={[it.mrid for it in tx.current_feeders]}"
-    )
-    print("==========================")
 
 
 async def zone_bus_trace(client: NetworkConsumerClient):
-    feeder_head_terminals = [it.normal_head_terminal for it in client.service.objects(Feeder) if
-                             it.normal_head_terminal is not None and it.normal_head_terminal.conducting_equipment is not None]
-    feeder_heads = [it.conducting_equipment for it in feeder_head_terminals]
-    feeder_head_other_terms = [ot for it in feeder_head_terminals for ot in it.other_terminals()]
+    feeder_head_terminals = []
+    feeder_heads = []
+    feeder_head_other_terms = []
+    for feeder in client.service.objects(Feeder):
+        if (head_terminal := feeder.normal_head_terminal) and head_terminal.conducting_equipment:
+            feeder_head_terminals.append(head_terminal)
+            feeder_heads.append(head_terminal.conducting_equipment)
+            feeder_head_other_terms.extend(head_terminal.other_terminals())
 
     print(f"creating bus for {[feeder.mrid for it in feeder_heads for feeder in it.normal_feeders]}...")
     # There is no subtrans in the model we pulled down so create a zone bus for all the feeders.
@@ -134,47 +127,50 @@ async def zone_bus_trace(client: NetworkConsumerClient):
 
 
 async def log_bus(desc: str, bus: ConductingEquipment, feeder_heads: List[ConductingEquipment]):
-    print("==========================")
-    print(desc)
+    print(f"==========================\n{desc}")
 
     # we run a trace on the assumption that the real model may have more equipment between the bus and the feeder heads.
     # e.g. other minor busbars or ac line segments
-    trace = tracing.connected_equipment_trace()
     open_heads: List[ConductingEquipment] = []
     closed_heads: List[ConductingEquipment] = []
     normally_open_heads: List[ConductingEquipment] = []
     normally_closed_heads: List[ConductingEquipment] = []
 
     # stop at all feeder heads
-    async def stop_on_feeder_heads(step: ConductingEquipmentStep) -> bool:
-        return isinstance(step.conducting_equipment, Switch) and step.conducting_equipment in feeder_heads
+    def stop_on_feeder_heads(step: NetworkTraceStep, _: StepContext) -> bool:
+        return isinstance(step.path.to_equipment, Switch) and step.path.to_equipment in feeder_heads
 
     # stop at transformers to prevent tracing out of this zone into others
-    async def stop_on_transformers(step: ConductingEquipmentStep) -> bool:
-        return isinstance(step.conducting_equipment, PowerTransformer)
+    def stop_on_transformers(step: NetworkTraceStep, _: StepContext) -> bool:
+        return isinstance(step.path.to_equipment, PowerTransformer)
 
     # sort feeder heads based on state
-    async def sort_feeder_heads(step: ConductingEquipmentStep):
-        if isinstance(step.conducting_equipment, Switch):
-            if step.conducting_equipment.is_open():
-                open_heads.append(step.conducting_equipment)
+    def sort_feeder_heads(step: NetworkTraceStep, _: StepContext) -> None:
+        to_equipment = step.path.to_equipment
+        if isinstance(to_equipment, Switch):
+            if to_equipment.is_open():
+                open_heads.append(to_equipment)
             else:
-                closed_heads.append(step.conducting_equipment)
-            if step.conducting_equipment.is_normally_open():
-                normally_open_heads.append(step.conducting_equipment)
+                closed_heads.append(to_equipment)
+            if to_equipment.is_normally_open():
+                normally_open_heads.append(to_equipment)
             else:
-                normally_closed_heads.append(step.conducting_equipment)
+                normally_closed_heads.append(to_equipment)
 
-    trace.add_stop_condition(stop_on_feeder_heads)
-    trace.add_stop_condition(stop_on_transformers)
-    trace.if_stopping(sort_feeder_heads)
+    await (
+        Tracing.network_trace()
+        .add_stop_condition(stop_on_feeder_heads)
+        .add_stop_condition(stop_on_transformers)
+        .if_stopping(sort_feeder_heads)
+    ).run(start=bus)
 
-    await trace.run_from(bus)
-    print(f"   disconnected feeders: {[feeder.mrid for it in open_heads for feeder in it.normal_feeders]}")
-    print(f"   connected feeders: {[feeder.mrid for it in closed_heads for feeder in it.normal_feeders]}")
-    print(f"   normally disconnected feeders: {[feeder.mrid for it in normally_open_heads for feeder in it.normal_feeders]}")
-    print(f"   normally connected feeders: {[feeder.mrid for it in normally_closed_heads for feeder in it.normal_feeders]}")
-    print("==========================")
+    print(
+        f"   disconnected feeders: {[feeder.mrid for it in open_heads for feeder in it.normal_feeders]}"
+        f"\n   connected feeders: {[feeder.mrid for it in closed_heads for feeder in it.normal_feeders]}"
+        f"\n   normally disconnected feeders: {[feeder.mrid for it in normally_open_heads for feeder in it.normal_feeders]}"
+        f"\n   normally connected feeders: {[feeder.mrid for it in normally_closed_heads for feeder in it.normal_feeders]}"
+        "\n=========================="
+    )
 
 
 async def run_swap_feeder(client: NetworkConsumerClient):
@@ -216,12 +212,8 @@ def clear_feeders(feeders: Set[Feeder]):
     # remove the phases and feeders to show the difference in open/normal state
     for feeder in feeders:
         print(f"removing phases from {feeder.mrid}...")
-        # should use `await remove_phases().run(feeder.normal_head_terminal)`, but it is not working (or just really slow) for some reason...
-        for equip in feeder.equipment:
-            if isinstance(equip, ConductingEquipment):
-                for term in equip.terminals:
-                    term.normal_phases.phase_status = 0
-                    term.current_phases.phase_status = 0
+        Tracing.remove_phases().run(start=feeder.normal_head_terminal)
+
         print(f"phases removed, removing equipment...")
         for equip in feeder.equipment:
             equip.clear_containers()
@@ -235,9 +227,9 @@ async def recalculate_feeders(feeders: Set[Feeder]):
     # recalculate the phases and feeders with the new switch state.
     for feeder in feeders:
         print(f"assigning phases to {feeder.mrid}...")
-        await set_phases().run_with_terminal(feeder.normal_head_terminal)
+        await Tracing.set_phases().run_with_terminal(feeder.normal_head_terminal)
         print(f"phases assigned, assigning equipment...")
-        await assign_equipment_to_feeders().run_feeder(feeder)
+        await Tracing.assign_equipment_to_feeders().run_feeder(feeder)
         print(f"equipment assigned.")
 
 
@@ -256,7 +248,7 @@ async def main():
         raise TypeError("you must provided the CLIENT_ID, username, password, host and port to connect")
 
     # noinspection PyTypeChecker
-    async with connect_with_password(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]) as secure_channel:
+    async with connect_with_password(*sys.argv[1:]) as secure_channel:
         await run_simple(NetworkConsumerClient(secure_channel))
         await run_swap_feeder(NetworkConsumerClient(secure_channel))
 
