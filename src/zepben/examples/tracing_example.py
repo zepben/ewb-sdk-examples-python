@@ -8,15 +8,17 @@
 import asyncio
 import json
 
-from zepben.evolve import NetworkConsumerClient, PhaseCode, AcLineSegment, connect_with_token, EnergyConsumer, \
-    PowerTransformer, ConductingEquipment, Tracing, NetworkStateOperators, NetworkTraceStep
-from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
-
-with open("config.json") as f:
-    c = json.loads(f.read())
+from zepben.evolve import (
+    NetworkConsumerClient, PhaseCode, AcLineSegment, connect_with_token, EnergyConsumer,
+    PowerTransformer, ConductingEquipment, Tracing, NetworkTraceStep, downstream, upstream
+)
+from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
 
 async def main():
+    with open("config.json") as f:
+        c = json.loads(f.read())
+
     print("Connecting to Server")
     channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
 
@@ -27,19 +29,16 @@ async def main():
     for feeder in result.feeders.values():
         if feeder.mrid != "WD24":
             continue
-        print()
-        print(f"Fetching {feeder.mrid}")
+        print(f"\nFetching {feeder.mrid}")
         network = await get_feeder_network(channel, feeder.mrid)
 
-        print()
-        print("Downstream Trace Example..")
+        print("\nDownstream Trace Example..")
         # Get the count of customers per transformer
         for io in network.objects(PowerTransformer):
             customers = await get_downstream_customer_count(io, PhaseCode.ABCN)
             print(f"Transformer {io.mrid} has {customers} Energy Consumer(s)")
 
-        print()
-        print("Upstream Trace Example..")
+        print("\nUpstream Trace Example..")
         for ec in network.objects(EnergyConsumer):
             upstream_length = await get_upstream_length(ec, PhaseCode.ABCN)
             print(f"Energy Consumer {ec.mrid} --> Upstream Length: {upstream_length}")
@@ -47,14 +46,14 @@ async def main():
 
 async def get_feeder_network(channel, feeder_mrid):
     client = NetworkConsumerClient(channel)
-    (await client.get_equipment_container(mrid=feeder_mrid,
-                                          include_energized_containers=IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS)).throw_on_error()
+    (await client.get_equipment_container(
+        mrid=feeder_mrid,
+        include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS
+    )).throw_on_error()
     return client.service
 
 
 async def get_downstream_customer_count(ce: ConductingEquipment, phase_code: PhaseCode) -> int:
-    state_operators = NetworkStateOperators.NORMAL
-    trace = Tracing.network_trace().add_condition(state_operators.downstream())
     customer_count = 0
 
     def collect_eq_in():
@@ -64,14 +63,16 @@ async def get_downstream_customer_count(ce: ConductingEquipment, phase_code: Pha
                 customer_count += 1
         return add_eq
 
-    trace.add_step_action(collect_eq_in())
-    await trace.run(start=ce, phases=phase_code)
+    await (
+        Tracing.network_trace()
+        .add_condition(downstream())
+        .add_step_action(collect_eq_in())
+    ).run(start=ce, phases=phase_code)
+
     return customer_count
 
 
 async def get_upstream_length(ce: ConductingEquipment, phases: PhaseCode) -> int:
-    state_operators = NetworkStateOperators.NORMAL
-    trace = Tracing.network_trace().add_condition(state_operators.upstream())
     upstream_length = 0
 
     def collect_eq_in():
@@ -83,8 +84,12 @@ async def get_upstream_length(ce: ConductingEquipment, phases: PhaseCode) -> int
                     upstream_length += equip.length
         return add_eq
 
-    trace.add_step_action(collect_eq_in())
-    await trace.run(start=ce, phases=phases)
+    await (
+        Tracing.network_trace()
+        .add_condition(upstream())
+        .add_step_action(collect_eq_in())
+    ).run(start=ce, phases=phases)
+
     return upstream_length
 
 if __name__ == "__main__":

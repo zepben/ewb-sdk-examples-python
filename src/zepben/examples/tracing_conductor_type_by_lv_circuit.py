@@ -1,4 +1,4 @@
-#  Copyright 2024 Zeppelin Bend Pty Ltd
+#  Copyright 2025 Zeppelin Bend Pty Ltd
 #
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,18 +8,18 @@ import asyncio
 import csv
 import json
 import os
-from typing import Any
+from typing import Any, List, Union
 
 from zepben.evolve import NetworkConsumerClient, PhaseStep, PhaseCode, AcLineSegment, \
     Switch, normal_downstream_trace, FeederDirection, connect_with_token
 from zepben.evolve.services.network.tracing.phases.phase_step import start_at
 from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
 
-with open("config.json") as f:
-    c = json.loads(f.read())
-
 
 async def main():
+    with open("config.json") as f:
+        c = json.loads(f.read())
+
     print("Connecting to Server")
     channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
 
@@ -32,8 +32,7 @@ async def main():
     os.makedirs("csvs", exist_ok=True)
     for feeder in result.feeders.values():
         print(f"Fetching {feeder.mrid}")
-        network = await get_feeder_network(channel, feeder.mrid)
-        if not network:  # Skip feeders that fail to pull down
+        if not (network := await get_feeder_network(channel, feeder.mrid)):  # Skip feeders that fail to pull down
             print(f"Failed to retrieve feeder {feeder.mrid}")
             continue
         for io in network.objects(Switch):
@@ -74,33 +73,36 @@ async def save_to_csv(data: dict[str, tuple[list[Any], bool]], feeder_mrid):
 
 async def get_feeder_network(channel, feeder_mrid):
     client = NetworkConsumerClient(channel)
-    result = (await client.get_equipment_container(mrid=feeder_mrid, include_energized_containers=IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS))
+    result = (
+        await client.get_equipment_container(
+            mrid=feeder_mrid,
+            include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS
+        )
+    )
     if result.was_failure:
         print(f"Failed: {result.thrown}")
         return None
     return client.service
 
 
-async def get_downstream_trace(ce: ConductingEquipment, phase_code: PhaseCode) -> list[Any]:
-    state_operators = NetworkStateOperators.NORMAL
-    trace = Tracing.network_trace().add_condition(state_operators.downstream())
-    l_type: [str, str, float] = []
+async def get_downstream_trace(ce: ConductingEquipment, phase_code: PhaseCode) -> list[Union[str, float]]:
+    l_type: List[Union[str, float]] = []
 
     def collect_eq_in():
         async def add_eq(ps: NetworkTraceStep, _):
             equip = ps.path.to_equipment
             if isinstance(equip, AcLineSegment):
-                l_type.append(equip.mrid)
-                l_type.append(equip.asset_info.name)
-                if equip.length is not None:
-                    l_type.append(equip.length)
-                else:
-                    l_type.append(0)
+                nonlocal l_type
+                l_type.extend((equip.mrid, equip.asset_info.name, equip.length or 0))
 
         return add_eq
 
-    trace.add_step_action(collect_eq_in())
-    await trace.run(start=ce, phases=phase_code)
+    await (
+        Tracing.network_trace()
+        .add_condition(downstream())
+        .add_step_action(collect_eq_in())
+    ).run(start=ce, phases=phase_code)
+
     return l_type
 
 

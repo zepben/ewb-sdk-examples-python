@@ -129,3 +129,7 @@ dmypy.json
 /todo.md
 docs/node_modules
 docs/build
+
+src/zepben/examples/config.json
+
+*.crt
