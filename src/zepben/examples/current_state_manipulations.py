@@ -13,7 +13,7 @@ from zepben.evolve import (
     BusbarSection, ConductingEquipment, Breaker, EquipmentContainer, StepContext, NetworkTraceStep
 )
 
-from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers, IncludedEnergizingContainers
+from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_FEEDERS, INCLUDE_ENERGIZING_FEEDERS
 
 """
 Primary question to answer/example for:
@@ -48,8 +48,8 @@ async def fetch_zone_feeders(client: NetworkConsumerClient):
         await client.get_equipment_container(
             feeder.mrid,
             Feeder,
-            include_energizing_containers=IncludedEnergizingContainers.INCLUDE_ENERGIZED_FEEDERS,
-            include_energized_containers=IncludedEnergizedContainers.INCLUDE_ENERGIZING_FEEDERS
+            include_energizing_containers=INCLUDE_ENERGIZED_FEEDERS,
+            include_energized_containers=INCLUDE_ENERGIZING_FEEDERS
         )
     print("CPM feeders fetched.")
 
