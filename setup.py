@@ -21,7 +21,7 @@ setup(
     python_requires='>=3.7',
     install_requires=[
         "zepben.eas==0.16.0",
-        "zepben.evolve==0.44.1",
+        "zepben.evolve==0.47.1",
         "numba==0.60.0",
         "geojson==2.5.0",
         "gql[requests]",
