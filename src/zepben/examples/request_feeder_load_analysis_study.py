@@ -20,7 +20,7 @@ async def main(argv):
     # Fire off a feeder load analysis study
     feeder_load_analysis_token = await eas_client.async_run_feeder_load_analysis_report(
         FeederLoadAnalysisInput(
-            feeders=["BH11"],
+            feeders=["feeder1", "feeder2"],
             substations=None,
             subGeographicalRegions=None,
             geographicalRegions=None,
