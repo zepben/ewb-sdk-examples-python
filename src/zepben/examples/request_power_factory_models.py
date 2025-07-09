@@ -34,11 +34,8 @@ feeder_max_demand = False
 # graphQL endpoint access settings
 network_endpoint = 'https://{url}/api/network/graphql'
 api_endpoint = 'https://{url}/api/graphql'
-audience = "https://{url}/"
-issuer = "issuer_domain"
-client_id = 'client_id'
-username = 'username'
-password = 'password'
+#Generate a personal access token from the energy work bench UI and replace <Token>.
+token = 'Bearer <Token>'
 
 ### EXAMPLE QUERY ONLY ###
 # This is an example GraphQL query for the full network hierarchy. This is not used as part of this
@@ -70,10 +67,8 @@ query network {
     }
 }
 '''
-token_fetcher = get_token_fetcher(audience=audience, issuer=issuer, client_id=client_id, username=username, password=password)
-tft = token_fetcher.fetch_token()
-network_transport = RequestsHTTPTransport(url=network_endpoint, headers={'Authorization': tft})
-api_transport = RequestsHTTPTransport(url=api_endpoint, headers={'Authorization': tft})
+network_transport = RequestsHTTPTransport(url=network_endpoint, headers={'Authorization': token})
+api_transport = RequestsHTTPTransport(url=api_endpoint, headers={'Authorization': token})
 
 network_client = Client(transport=network_transport)
 api_client = Client(transport=api_transport)
@@ -261,7 +256,7 @@ def download_model(model_number):
     model_status = result['powerFactoryModelById']['state']
     match model_status:
         case 'COMPLETED':
-            model = requests.get(model_url, headers={'Authorization': tft})
+            model = requests.get(model_url, headers={'Authorization': token})
             open(os.path.join(output_dir, file_name) + ".pfd", 'wb').write(model.content)
             print(file_name + ".pfd saved at " + output_dir)
         case "CREATION":
