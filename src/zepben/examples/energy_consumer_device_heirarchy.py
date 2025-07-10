@@ -8,6 +8,7 @@ import asyncio
 import json
 import os
 from dataclasses import dataclass
+from multiprocessing import Pool
 
 import pandas as pd
 from zepben.evolve import NetworkConsumerClient, connect_with_token, Tracing, upstream, EnergyConsumer, NetworkTraceStep, StepContext, PowerTransformer, \
@@ -67,36 +68,39 @@ def _get_equipment_tree_trace(up_data):
     )
 
 
-async def main():
+async def get_feeders():
     client =  _get_client()
 
+    _feeders = (await client.get_network_hierarchy()).result.feeders
+    return _feeders
 
-    for feeder in (await client.get_network_hierarchy()).result.feeders:
-        # Get all objects under the feeder, including Substations and LV Feeders
-        feeder_objects = (
-            await client.get_equipment_container(
-                feeder,
-                include_energizing_containers = IncludedEnergizingContainers.INCLUDE_ENERGIZING_SUBSTATIONS,
-                include_energized_containers = IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS
-            )
-        ).result.objects
 
-        energy_consumers = []
+async def trace_from_ec(feeder):
+    client =  _get_client()
+    print(f'processing feeder {feeder}')
+    # Get all objects under the feeder, including Substations and LV Feeders
+    feeder_objects = (
+        await client.get_equipment_container(
+            feeder,
+            include_energizing_containers = IncludedEnergizingContainers.INCLUDE_ENERGIZING_SUBSTATIONS,
+            include_energized_containers = IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS
+        )
+    ).result.objects
 
-        for up in feeder_objects.values():
-            if isinstance(up, EnergyConsumer):
-                up_data = {'feeder': feeder, 'energy_consumer_mrid': up.mrid}
+    energy_consumers = []
 
-                # Trace upstream from EnergyConsumer.
-                await _get_equipment_tree_trace(up_data).run(up)
-                energy_consumers.append(_build_row(up_data))
+    for up in feeder_objects.values():
+        if isinstance(up, EnergyConsumer):
+            up_data = {'feeder': feeder, 'energy_consumer_mrid': up.mrid}
 
-        csv_sfx = "energy_consumers.csv"
-        print(f"Writing csvs/{feeder}_{csv_sfx}")
-        network_objects = pd.DataFrame(energy_consumers)
-        os.makedirs("csvs", exist_ok=True)
-        network_objects.to_csv(f"csvs/{feeder}_{csv_sfx}", index=False)
-        print(f"Finished processing {feeder}")
+            # Trace upstream from EnergyConsumer.
+            await _get_equipment_tree_trace(up_data).run(up)
+            energy_consumers.append(_build_row(up_data))
+
+    csv_sfx = "energy_consumers.csv"
+    network_objects = pd.DataFrame(energy_consumers)
+    os.makedirs("csvs", exist_ok=True)
+    network_objects.to_csv(f"csvs/{feeder}_{csv_sfx}", index=False)
 
 
 class NullEquipment:
@@ -111,13 +115,31 @@ def _build_row(up_data: dict[str, IdentifiedObject | str]) -> EnergyConsumerDevi
         upstream_switch_mrid = (up_data.get('upstream_switch') or NullEquipment).mrid,
         lv_circuit_name = (up_data.get('upstream_switch') or NullEquipment).name,
         upstream_switch_class = type(up_data.get('upstream_switch')).__name__,
-        distribution_power_transformer_mrid = up_data.get('distribution_power_transformer').mrid,
-        distribution_power_transformer_name = up_data.get('distribution_power_transformer').name,
+        distribution_power_transformer_mrid = (up_data.get('distribution_power_transformer') or NullEquipment).mrid,
+        distribution_power_transformer_name = (up_data.get('distribution_power_transformer') or NullEquipment).name,
         regulator_mrid = (up_data.get('regulator') or NullEquipment).mrid,
         breaker_mrid = (up_data.get('breaker') or NullEquipment).mrid,
         feeder_mrid = up_data.get('feeder'),
     )
 
 
+def process_target(feeder):
+    asyncio.run(trace_from_ec(feeder))
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Get a list of feeders before entering main compute section of script.
+    feeders = asyncio.run(get_feeders())
+
+    # Spin up a multiprocess pool of $CPU_COUNT processes to handle the workload, otherwise we saturate a single cpu core and it's slow.
+    cpus = os.cpu_count()
+    print(f'Spawning {cpus} processes')
+    pool = Pool(cpus)
+
+
+    print(f'mapping to process pool')
+    pool.map(process_target, feeders)
+
+    print('finishing remaining processes')
+    pool.close()
+    pool.join()
