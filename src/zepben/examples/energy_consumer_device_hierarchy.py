@@ -9,6 +9,7 @@ import json
 import os
 from dataclasses import dataclass
 from multiprocessing import Pool
+from typing import Union
 
 import pandas as pd
 from zepben.evolve import NetworkConsumerClient, connect_with_token, Tracing, upstream, EnergyConsumer, NetworkTraceStep, StepContext, PowerTransformer, \
@@ -17,7 +18,7 @@ from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizingContainers, Inc
 
 
 @dataclass
-class EnergyConsumerDeviceHeirarchy:
+class EnergyConsumerDeviceHierarchy:
     energy_consumer_mrid: str
     lv_circuit_name: str
     upstream_switch_mrid: str
@@ -34,7 +35,7 @@ def _get_client():
     with open('config.json') as f:
         config = json.load(f)
 
-        # Connect to server
+    # Connect to server
     channel = connect_with_token(
         host=config["host"],
         access_token=config["access_token"],
@@ -45,7 +46,6 @@ def _get_client():
 
 
 def _get_equipment_tree_trace(up_data: dict) -> NetworkTrace:
-
     def step_action(step: NetworkTraceStep, _: StepContext):
         to_equip: ConductingEquipment = step.path.to_equipment
         if isinstance(to_equip, Breaker):
@@ -68,25 +68,25 @@ def _get_equipment_tree_trace(up_data: dict) -> NetworkTrace:
 
 
 async def get_feeders():
-    client =  _get_client()
+    client = _get_client()
 
     _feeders = (await client.get_network_hierarchy()).result.feeders
     return _feeders
 
 
-async def trace_from_ec(feeder):
+async def trace_from_energy_consumers(feeder):
     """
     Fetch the equipment container from the given feeder, then trace upstream from every EnergyConsumer
     and create a CSV with the relevant information.
     """
-    client =  _get_client()
+    client = _get_client()
     print(f'processing feeder {feeder}')
     # Get all objects under the feeder, including Substations and LV Feeders
     feeder_objects = (
         await client.get_equipment_container(
             feeder,
-            include_energizing_containers = IncludedEnergizingContainers.INCLUDE_ENERGIZING_SUBSTATIONS,
-            include_energized_containers = IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS
+            include_energizing_containers=IncludedEnergizingContainers.INCLUDE_ENERGIZING_SUBSTATIONS,
+            include_energized_containers=IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS
         )
     ).result.objects
 
@@ -112,22 +112,22 @@ class NullEquipment:
     name = None
 
 
-def _build_row(up_data: dict[str, IdentifiedObject | str]) -> EnergyConsumerDeviceHeirarchy:
-    return EnergyConsumerDeviceHeirarchy(
-        energy_consumer_mrid = up_data['energy_consumer_mrid'],
-        upstream_switch_mrid = (up_data.get('upstream_switch') or NullEquipment).mrid,
-        lv_circuit_name = (up_data.get('upstream_switch') or NullEquipment).name,
-        upstream_switch_class = type(up_data.get('upstream_switch')).__name__,
-        distribution_power_transformer_mrid = (up_data.get('distribution_power_transformer') or NullEquipment).mrid,
-        distribution_power_transformer_name = (up_data.get('distribution_power_transformer') or NullEquipment).name,
-        regulator_mrid = (up_data.get('regulator') or NullEquipment).mrid,
-        breaker_mrid = (up_data.get('breaker') or NullEquipment).mrid,
-        feeder_mrid = up_data.get('feeder'),
+def _build_row(up_data: dict[str, Union[IdentifiedObject, str]]) -> EnergyConsumerDeviceHierarchy:
+    return EnergyConsumerDeviceHierarchy(
+        energy_consumer_mrid=up_data['energy_consumer_mrid'],
+        upstream_switch_mrid=(up_data.get('upstream_switch') or NullEquipment).mrid,
+        lv_circuit_name=(up_data.get('upstream_switch') or NullEquipment).name,
+        upstream_switch_class=type(up_data.get('upstream_switch')).__name__,
+        distribution_power_transformer_mrid=(up_data.get('distribution_power_transformer') or NullEquipment).mrid,
+        distribution_power_transformer_name=(up_data.get('distribution_power_transformer') or NullEquipment).name,
+        regulator_mrid=(up_data.get('regulator') or NullEquipment).mrid,
+        breaker_mrid=(up_data.get('breaker') or NullEquipment).mrid,
+        feeder_mrid=up_data.get('feeder'),
     )
 
 
 def process_target(feeder):
-    asyncio.run(trace_from_ec(feeder))
+    asyncio.run(trace_from_energy_consumers(feeder))
 
 
 if __name__ == "__main__":
