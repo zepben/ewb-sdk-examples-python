@@ -12,7 +12,7 @@ from multiprocessing import Pool
 
 import pandas as pd
 from zepben.evolve import NetworkConsumerClient, connect_with_token, Tracing, upstream, EnergyConsumer, NetworkTraceStep, StepContext, PowerTransformer, \
-                          TransformerFunctionKind, Breaker, ConductingEquipment, Fuse, IdentifiedObject
+    TransformerFunctionKind, Breaker, ConductingEquipment, Fuse, IdentifiedObject, NetworkTrace
 from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizingContainers, IncludedEnergizedContainers
 
 
@@ -44,22 +44,21 @@ def _get_client():
     return NetworkConsumerClient(channel)
 
 
-def _get_equipment_tree_trace(up_data):
+def _get_equipment_tree_trace(up_data: dict) -> NetworkTrace:
 
     def step_action(step: NetworkTraceStep, _: StepContext):
         to_equip: ConductingEquipment = step.path.to_equipment
-        match to_equip:
-            case Breaker():
-                if not up_data.get('breaker'):
-                    up_data['breaker'] = to_equip
-            case Fuse():
-                if not up_data.get('upstream_switch'):
-                    up_data['upstream_switch'] = to_equip
-            case PowerTransformer():
-                if not up_data.get('distribution_power_transformer'):
-                    up_data['distribution_power_transformer'] = to_equip
-                elif not up_data.get('regulator') and to_equip.function == TransformerFunctionKind.voltageRegulator:
-                    up_data['regulator'] = to_equip
+        if isinstance(to_equip, Breaker):
+            if not up_data.get('breaker'):
+                up_data['breaker'] = to_equip
+        elif isinstance(to_equip, Fuse):
+            if not up_data.get('upstream_switch'):
+                up_data['upstream_switch'] = to_equip
+        elif isinstance(to_equip, PowerTransformer):
+            if not up_data.get('distribution_power_transformer'):
+                up_data['distribution_power_transformer'] = to_equip
+            elif not up_data.get('regulator') and to_equip.function == TransformerFunctionKind.voltageRegulator:
+                up_data['regulator'] = to_equip
 
     return (
         Tracing.network_trace()
@@ -76,6 +75,10 @@ async def get_feeders():
 
 
 async def trace_from_ec(feeder):
+    """
+    Fetch the equipment container from the given feeder, then trace upstream from every EnergyConsumer
+    and create a CSV with the relevant information.
+    """
     client =  _get_client()
     print(f'processing feeder {feeder}')
     # Get all objects under the feeder, including Substations and LV Feeders
@@ -135,7 +138,6 @@ if __name__ == "__main__":
     cpus = os.cpu_count()
     print(f'Spawning {cpus} processes')
     pool = Pool(cpus)
-
 
     print(f'mapping to process pool')
     pool.map(process_target, feeders)
