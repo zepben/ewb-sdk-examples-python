@@ -22,16 +22,16 @@ async def main(argv):
         FeederLoadAnalysisInput(
             feeders=["feeder1", "feeder2"],
             substations=None,
-            subGeographicalRegions=None,
-            geographicalRegions=None,
-            startDate="2022-04-01",
-            endDate="2022-12-31",
-            fetchLvNetwork=True,
-            processFeederLoads=True,
-            processCoincidentLoads=True,
-            produceBasicReport=False,
-            produceConductorReport=True,
-            aggregateAtFeederLevel=False,
+            sub_geographical_regions=None,
+            geographical_regions=None,
+            start_date="2022-04-01",
+            end_date="2022-12-31",
+            fetch_lv_network=True,
+            process_feeder_loads=True,
+            process_coincident_loads=True,
+            produce_basic_report=False,
+            produce_conductor_report=True,
+            aggregate_at_feeder_level=False,
             output="Test"
         )
     )
