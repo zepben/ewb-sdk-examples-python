@@ -13,7 +13,7 @@ from typing import Union
 
 import pandas as pd
 from zepben.evolve import NetworkConsumerClient, connect_with_token, Tracing, upstream, EnergyConsumer, NetworkTraceStep, StepContext, PowerTransformer, \
-    TransformerFunctionKind, Breaker, ConductingEquipment, Fuse, IdentifiedObject, NetworkTrace
+    TransformerFunctionKind, Breaker, ConductingEquipment, Fuse, IdentifiedObject, NetworkTrace, Feeder
 from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizingContainers, IncludedEnergizedContainers
 
 
@@ -39,8 +39,8 @@ def _get_client():
     channel = connect_with_token(
         host=config["host"],
         access_token=config["access_token"],
-        rpc_port=config['port'],
-        ca_filename=config['ca_filename']
+        rpc_port=config['rpc_port'],
+        ca_filename=config['ca_path']
     )
     return NetworkConsumerClient(channel)
 
@@ -82,28 +82,24 @@ async def trace_from_energy_consumers(feeder):
     client = _get_client()
     print(f'processing feeder {feeder}')
     # Get all objects under the feeder, including Substations and LV Feeders
-    feeder_objects = (
-        await client.get_equipment_container(
-            feeder,
-            include_energizing_containers=IncludedEnergizingContainers.INCLUDE_ENERGIZING_SUBSTATIONS,
-            include_energized_containers=IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS
-        )
-    ).result.objects
+    (await client.get_equipment_container(feeder, include_energized_containers=IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS)).throw_on_error()
+    network = client.service
+    f = network.get(feeder, Feeder)
 
     energy_consumers = []
+    for lvf in f.normal_energized_lv_feeders:
+        for ce in lvf.equipment:
+            if isinstance(ce, EnergyConsumer):
+                up_data = {'feeder': feeder, 'energy_consumer_mrid': ce.mrid}
 
-    for up in feeder_objects.values():
-        if isinstance(up, EnergyConsumer):
-            up_data = {'feeder': feeder, 'energy_consumer_mrid': up.mrid}
-
-            # Trace upstream from EnergyConsumer.
-            await _get_equipment_tree_trace(up_data).run(up)
-            energy_consumers.append(_build_row(up_data))
+                # Trace upstream from EnergyConsumer.
+                await _get_equipment_tree_trace(up_data).run(ce)
+                energy_consumers.append(_build_row(up_data))
 
     csv_sfx = "energy_consumers.csv"
     network_objects = pd.DataFrame(energy_consumers)
     os.makedirs("csvs", exist_ok=True)
-    network_objects.to_csv(f"csvs/{feeder}_{csv_sfx}", index=False)
+    network_objects.to_csv(f"csvs/{f.mrid}_{csv_sfx}", index=False)
 
 
 class NullEquipment:
