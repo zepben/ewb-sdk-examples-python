@@ -3,6 +3,7 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+import json
 from datetime import datetime
 
 from zepben.eas.client.opendss import OpenDssConfig
@@ -11,6 +12,10 @@ from zepben.eas.client.work_package import GeneratorConfig, ModelConfig, LoadPla
 from zepben.eas import EasClient, TimePeriod
 from time import sleep
 import requests
+
+
+with open("config.json") as f:
+    c = json.loads(f.read())
 
 
 def wait_for_export(eas_client: EasClient, model_id: int):
@@ -53,9 +58,9 @@ def download_generated_model(eas_client: EasClient, output_file_name: str, model
 
 def test_open_dss_export(export_file_name: str):
     eas_client = EasClient(
-        "<EAS_HOSTNAME>",
+        c["host"],
         443,
-        access_token="<PERSONAL_ACCESS_TOKEN>"
+        access_token=c["access_token"]
     )
 
     # Run an opendss export
@@ -63,9 +68,9 @@ def test_open_dss_export(export_file_name: str):
 
     response = eas_client.run_opendss_export(
         OpenDssConfig(
-            scenario="Base",
-            year=2024,
-            feeder="<FEEDER_ID>",
+            scenario="base",
+            year=2025,
+            feeder="<FEEDER_MRID>",
             load_time=TimePeriod(
                 datetime.strptime("2024-04-01T00:00:00", "%Y-%m-%dT%H:%M:%S"),
                 datetime.strptime("2025-04-01T00:00:00", "%Y-%m-%dT%H:%M:%S")
@@ -77,7 +82,7 @@ def test_open_dss_export(export_file_name: str):
                         dist_transformers=True,
                         switch_meter_placement_configs=[SwitchMeterPlacementConfig(
                             meter_switch_class=SwitchClass.DISCONNECTOR,
-                            name_pattern=".*Circuit Head Switch.*"
+                            name_pattern="LV Circuit Head.*"
                         )]
                     ),
                     vmax_pu=1.2,
