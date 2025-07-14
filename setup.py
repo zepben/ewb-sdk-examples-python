@@ -4,7 +4,7 @@ test_deps = ["pytest", "pytest-cov", "pytest-asyncio"]
 setup(
     name="zepben.examples",
     description="Module containing examples for interacting with Zepben's platform",
-    version="0.3.0b7",
+    version="0.3.0b8",
     url="https://github.com/zepben/ewb-sdk-examples-python",
     author="Zeppelin Bend",
     author_email="oss@zepben.com",
