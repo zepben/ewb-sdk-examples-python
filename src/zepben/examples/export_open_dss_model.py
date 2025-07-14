@@ -58,8 +58,8 @@ def download_generated_model(eas_client: EasClient, output_file_name: str, model
 
 def test_open_dss_export(export_file_name: str):
     eas_client = EasClient(
-        c["host"],
-        443,
+        host=c["host"],
+        port=443,
         access_token=c["access_token"]
     )
 
@@ -72,16 +72,20 @@ def test_open_dss_export(export_file_name: str):
             year=2025,
             feeder="<FEEDER_MRID>",
             load_time=TimePeriod(
-                datetime.strptime("2024-04-01T00:00:00", "%Y-%m-%dT%H:%M:%S"),
-                datetime.strptime("2025-04-01T00:00:00", "%Y-%m-%dT%H:%M:%S")
+                start_time=datetime.fromisoformat("2024-04-01T00:00"),
+                end_time=datetime.fromisoformat("2025-04-01T00:00")
             ),
             generator_config=GeneratorConfig(
                 model=ModelConfig(
                     meter_placement_config=MeterPlacementConfig(
                         feeder_head=True,
                         dist_transformers=True,
+                        # Include meters for any switch that has a name that starts with 'LV Circuit Head' and is a Fuse or Disconnector
                         switch_meter_placement_configs=[SwitchMeterPlacementConfig(
                             meter_switch_class=SwitchClass.DISCONNECTOR,
+                            name_pattern="LV Circuit Head.*"
+                        ), SwitchMeterPlacementConfig(
+                            meter_switch_class=SwitchClass.FUSE,
                             name_pattern="LV Circuit Head.*"
                         )]
                     ),
