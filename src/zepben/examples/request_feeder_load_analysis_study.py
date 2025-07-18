@@ -29,8 +29,6 @@ async def main(argv):
             fetch_lv_network=True,
             process_feeder_loads=True,
             process_coincident_loads=True,
-            produce_basic_report=False,
-            produce_conductor_report=True,
             aggregate_at_feeder_level=False,
             output="Test"
         )
