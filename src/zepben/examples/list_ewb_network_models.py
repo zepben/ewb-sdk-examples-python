@@ -1,4 +1,4 @@
-#  Copyright 2024 Zeppelin Bend Pty Ltd
+#  Copyright 2025 Zeppelin Bend Pty Ltd
 #
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,8 +27,8 @@ if create_temp_files:
         new_dir.joinpath(f"{to_create}-customers.sqlite").touch()
 else:
     data_path = Path("</path/to/ewb/data/>")
-    network_list = None
-    customer_list = None
+    network_list = []
+    customer_list = []
 
 # Initialize EwbDataFilePaths with the EWB data directory
 ewb_data = EwbDataFilePaths(data_path)
@@ -41,10 +41,10 @@ for available_date in list_of_available_dates:
 
 # Find the first date for which exists a customer database before 2011-09-10
 closest_date_before = ewb_data.find_closest(DatabaseType.CUSTOMER, target_date=date(2011, 9, 10))
-print(f"\nThe last customer database before 2011-09-10: {closest_date_before.isoformat() if closest_date_before is not None else closest_date_before}")
+print(f"\nThe last customer database before 2011-09-10: {closest_date_before.isoformat() or closest_date_before}")
 
 if create_temp_files:
-    if network_list is not None and customer_list is not None:
+    if network_list and customer_list:
         for to_cleanup in network_list:
             date_dir = data_path.joinpath(to_cleanup)
             date_dir.joinpath(f"{to_cleanup}-network-model.sqlite").unlink()
@@ -58,4 +58,3 @@ if create_temp_files:
         print("\nTemporary files successfully cleaned up.")
     else:
         print("\nUnexpected issue while attempting to cleanup temporary files.")
-

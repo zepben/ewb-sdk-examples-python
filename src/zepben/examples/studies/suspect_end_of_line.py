@@ -1,4 +1,4 @@
-#  Copyright 2022 Zeppelin Bend Pty Ltd
+#  Copyright 2025 Zeppelin Bend Pty Ltd
 #
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,9 +15,8 @@ from geojson.geometry import Geometry, LineString, Point
 from zepben.eas.client.eas_client import EasClient
 from zepben.eas.client.study import Study, Result, GeoJsonOverlay
 from zepben.evolve import PowerTransformer, ConductingEquipment, EnergyConsumer, AcLineSegment, \
-    NetworkConsumerClient, normal_upstream_trace, PhaseStep, PhaseCode, PowerElectronicsConnection, Feeder, PowerSystemResource, Location, \
-    normal_downstream_trace, connect_with_token
-from zepben.evolve.services.network.tracing.phases.phase_step import start_at
+    NetworkConsumerClient, PhaseCode, PowerElectronicsConnection, Feeder, PowerSystemResource, Location, \
+    connect_with_token, NetworkTraceStep, Tracing, downstream, upstream
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
 
@@ -90,19 +89,21 @@ async def main():
 
 def collect_eq_provider(collection: Set[ConductingEquipment]):
 
-    async def collect_equipment(ps: PhaseStep, _):
-        collection.add(ps.conducting_equipment)
+    async def collect_equipment(ps: NetworkTraceStep, _):
+        collection.add(ps.path.to_equipment)
 
     return collect_equipment
 
 
 async def get_downstream_eq(ce: ConductingEquipment) -> Set[ConductingEquipment]:
-    trace = normal_downstream_trace()
-    phase_step = start_at(ce, PhaseCode.ABCN)
-
     equipment_set = set()
-    trace.add_step_action(collect_eq_provider(equipment_set))
-    await trace.run(start_item=phase_step, can_stop_on_start_item=False)
+
+    await (
+        Tracing.network_trace()
+        .add_condition(downstream())
+        .add_step_action(collect_eq_provider(equipment_set))
+    ).run(start=ce, phases=PhaseCode.ABCN, can_stop_on_start_item=False)
+
     return equipment_set
 
 
@@ -110,7 +111,13 @@ async def fetch_feeder_and_trace(feeder_mrid: str, rpc_channel):
     print(f"Fetching Feeder {feeder_mrid}")
     client = NetworkConsumerClient(rpc_channel)
 
-    result = (await client.get_equipment_container(mrid=feeder_mrid, expected_class=Feeder, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS))
+    result = (
+        await client.get_equipment_container(
+            mrid=feeder_mrid,
+            expected_class=Feeder,
+            include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS
+        )
+    )
     if result.was_failure:
         print(f"Failed: {result.thrown}")
         return {}
@@ -131,15 +138,20 @@ async def fetch_feeder_and_trace(feeder_mrid: str, rpc_channel):
     return transformer_to_suspect_end
 
 
-async def get_transformer_to_suspect_end(transformer_to_eq: Dict[str, Set[ConductingEquipment]]) -> Dict[str, Tuple[int, Set[ConductingEquipment]]]:
+async def get_transformer_to_suspect_end(
+    transformer_to_eq: Dict[str, Set[ConductingEquipment]]
+) -> Dict[str, Tuple[int, Set[ConductingEquipment]]]:
+
     transformer_to_suspect_end: Dict[str, (int, List[ConductingEquipment])] = {}
     for pt_mrid, eq_list in transformer_to_eq.items():
-        single_terminal_junctions = [eq for eq in eq_list if not isinstance(eq, (EnergyConsumer, PowerElectronicsConnection)) and len(list(eq.terminals)) == 1]
-
-        upstream_eq = set()
-        for stj in single_terminal_junctions:
-            upstream_eq_up_to_pt = await _get_upstream_eq_up_to_transformer(stj)
-            upstream_eq.update(upstream_eq_up_to_pt)
+        single_terminal_junctions = [
+            eq for eq in eq_list
+            if not isinstance(eq, (EnergyConsumer, PowerElectronicsConnection))
+               and len(list(eq.terminals)) == 1
+        ]
+        upstream_eq = set(
+            await _get_upstream_eq_up_to_transformer(stj) for stj in single_terminal_junctions
+        )
 
         transformer_to_suspect_end[pt_mrid] = (len(single_terminal_junctions), list(upstream_eq))
 
@@ -155,6 +167,7 @@ async def upload_suspect_end_of_line_study(
     tags: List[str],
     styles: List
 ) -> None:
+
     class_to_properties = {
         EnergyConsumer: {
             "name": lambda ec: ec.name,
@@ -189,17 +202,19 @@ async def upload_suspect_end_of_line_study(
 
 async def _get_upstream_eq_up_to_transformer(ce: ConductingEquipment) -> Set[ConductingEquipment]:
     eqs = set()
-    trace = normal_upstream_trace()
-    phase_step = start_at(ce, PhaseCode.ABCN)
-    trace.add_step_action(collect_eq_provider(eqs))
-    trace.add_stop_condition(_is_transformer)
 
-    await trace.run(start_item=phase_step, can_stop_on_start_item=False)
+    await (
+        Tracing.network_trace()
+        .add_condition(upstream())
+        .add_step_action(collect_eq_provider(eqs))
+        .add_stop_condition(_is_transformer)
+    ).run(start=ce, phases=PhaseCode.ABCN, can_stop_on_start_item=False)
+
     return eqs
 
 
-async def _is_transformer(ps: PhaseStep):
-    return isinstance(ps.conducting_equipment, PowerTransformer)
+async def _is_transformer(ps: NetworkTraceStep):
+    return isinstance(ps.path.to_equipment, PowerTransformer)
 
 
 def _suspect_end_count_from(pt_to_sus_end: Dict[str, Tuple[int, List[ConductingEquipment]]]):
@@ -210,7 +225,11 @@ def _suspect_end_count_from(pt_to_sus_end: Dict[str, Tuple[int, List[ConductingE
     return fun
 
 
-def to_geojson_feature_collection(psrs: List[PowerSystemResource], class_to_properties: Dict[Type, Dict[str, Callable[[Any], Any]]]) -> FeatureCollection:
+def to_geojson_feature_collection(
+    psrs: List[PowerSystemResource],
+    class_to_properties: Dict[Type, Dict[str, Callable[[Any], Any]]]
+) -> FeatureCollection:
+
     features = []
     for psr in psrs:
         properties_map = class_to_properties.get(type(psr))
@@ -221,7 +240,11 @@ def to_geojson_feature_collection(psrs: List[PowerSystemResource], class_to_prop
     return FeatureCollection(features)
 
 
-def to_geojson_feature(psr: PowerSystemResource, property_map: Dict[str, Callable[[PowerSystemResource], Any]]) -> Union[Feature, None]:
+def to_geojson_feature(
+    psr: PowerSystemResource,
+    property_map: Dict[str, Callable[[PowerSystemResource], Any]]
+) -> Union[Feature, None]:
+
     geometry = to_geojson_geometry(psr.location)
     if geometry is None:
         return None
