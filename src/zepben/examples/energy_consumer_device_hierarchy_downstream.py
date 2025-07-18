@@ -7,10 +7,12 @@
 import asyncio
 import json
 import os
+import time
 from dataclasses import dataclass
 from multiprocessing import Pool
 from typing import List, Dict
 
+from asyncio_pool import AioPool
 import pandas as pd
 from zepben.evolve import NetworkConsumerClient, connect_with_token, Tracing, EnergyConsumer, PowerTransformer, \
     TransformerFunctionKind, Breaker, Fuse, IdentifiedObject, EquipmentTreeBuilder, downstream, TreeNode, Feeder
@@ -75,16 +77,14 @@ async def trace_from_feeder(feeder: str):
     """
     client =  _get_client()
     print(f'processing feeder {feeder}')
-    # Get all objects under the feeder, including Substations and LV Feeders
-    feeder_objects = (
-        await client.get_equipment_container(
-            feeder,
-            include_energizing_containers = IncludedEnergizingContainers.INCLUDE_ENERGIZING_SUBSTATIONS,
-            include_energized_containers = IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS
-        )
-    ).result.objects
 
-    feeder = (await client.get_identified_object(feeder)).result
+    # Get all objects under the feeder, including Substations and LV Feeders
+    await client.get_equipment_container(
+        feeder,
+        include_energized_containers = IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS
+    )
+
+    feeder = client.service.get(feeder, Feeder)
 
     builder = EquipmentTreeBuilder()
 
@@ -95,27 +95,27 @@ async def trace_from_feeder(feeder: str):
     ).run(getattr(feeder, 'normal_head_terminal'))
 
     energy_consumers = []
-    for up in feeder_objects.values():
-        if isinstance(up, EnergyConsumer):
-            # iterate up tree from EC.
-            up_data = {'feeder': feeder.mrid, 'energy_consumer_mrid': up.mrid}
-            def _process(leaf):
-                process_leaf(up_data, leaf)
-                if leaf.parent:
-                    _process(leaf.parent)
-            try:
-                _process(builder.leaves[up.mrid])
-            except KeyError:
-                # If the up is not in the Equipment tree builders leaves, skip it
-                continue
+    for up in client.service.objects(EnergyConsumer):
+        # iterate up tree from EC.
+        up_data = {'feeder': feeder.mrid, 'energy_consumer_mrid': up.mrid}
+        def _process(leaf):
+            process_leaf(up_data, leaf)
+            if leaf.parent:
+                _process(leaf.parent)
+        try:
+            _process(builder.leaves[up.mrid])
+        except KeyError:
+            # If the up is not in the Equipment tree builders leaves, skip it
+            continue
 
-            row = _build_row(up_data)
-            energy_consumers.append(row)
+        row = _build_row(up_data)
+        energy_consumers.append(row)
 
     csv_sfx = "energy_consumers.csv"
     network_objects = pd.DataFrame(energy_consumers)
     os.makedirs("csvs", exist_ok=True)
     network_objects.to_csv(f"csvs/{feeder.mrid}_{csv_sfx}", index=False)
+
 
 
 class NullEquipment:
@@ -141,9 +141,19 @@ def _build_row(up_data: dict[str, IdentifiedObject | str]) -> EnergyConsumerDevi
 def process_target(feeder):
     asyncio.run(trace_from_feeder(feeder))
 
+async def async_process_targets():
+    feeders = await get_feeders()
+    pool = AioPool(2)
+
+    print('processing feeders')
+    await pool.map(trace_from_feeder, feeders)
+
 
 if __name__ == "__main__":
+    start = time.time()
     # Get a list of feeders before entering main compute section of script.
+    asyncio.run(async_process_targets())
+    """
     feeders = asyncio.run(get_feeders())
 
     # Spin up a multiprocess pool of $CPU_COUNT processes to handle the workload, otherwise we saturate a single cpu core and it's slow.
@@ -157,3 +167,5 @@ if __name__ == "__main__":
     print('finishing remaining processes')
     pool.close()
     pool.join()
+    """
+    print(f'Done in {time.time() - start} seconds')
