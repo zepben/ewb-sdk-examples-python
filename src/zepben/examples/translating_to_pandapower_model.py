@@ -1,4 +1,4 @@
-#  Copyright 2023 Zeppelin Bend Pty Ltd
+#  Copyright 2025 Zeppelin Bend Pty Ltd
 #
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,7 +8,7 @@ import logging
 import pandapower as pp
 
 from pp_creators.basic_creator import BasicPandaPowerNetworkCreator
-from zepben.evolve import set_direction, NetworkService, Terminal, EnergySource
+from zepben.evolve import NetworkService, Terminal, EnergySource, Tracing
 
 from zepben.examples.ieee_13_node_test_feeder import network
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 async def main():
     add_energy_source(network, network["br_650_t1"])
-    await set_direction().run(network)
+    await Tracing.set_direction().run(network)
     bbn_creator = BasicPandaPowerNetworkCreator(
         logger=logger,
         ec_load_provider=lambda ec: (5000, 0)  # Model each energy consumer with a 5kW nonreactive load
@@ -81,13 +81,13 @@ async def main():
     print()
 
 
-def add_energy_source(network: NetworkService, connect_to_terminal: Terminal):
+def add_energy_source(_network: NetworkService, connect_to_terminal: Terminal):
     bv = connect_to_terminal.conducting_equipment.base_voltage
     es_t = Terminal(phases=connect_to_terminal.phases)
     es = EnergySource(terminals=[es_t], base_voltage=bv)
-    network.add(es_t)
-    network.add(es)
-    network.connect_terminals(es_t, connect_to_terminal)
+    _network.add(es_t)
+    _network.add(es)
+    _network.connect_terminals(es_t, connect_to_terminal)
 
 
 if __name__ == "__main__":
