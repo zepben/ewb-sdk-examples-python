@@ -1,3 +1,23 @@
+# EWB Python SDK examples
+## [0.3.0] - UNRELEASED
+### Breaking Changes
+* Support `zepben.eas` up to 0.19.0. Previous versions will be incompatible.
+* Support `zepben.evolve` up to 0.48.0. Previous versions will be incompatible.
+
+### New Features
+* Added device tree trace example.
+* Added opendss model export example.
+
+### Enhancements
+* Updated to new tracing API (zepben.evolve 0.48.0)
+* Support for cuts and jumpers
+
+### Fixes
+* None.
+
+### Notes
+* None.
+
 ## [0.2.0] - 2025-02-19
 ### Breaking Changes
 * None.
