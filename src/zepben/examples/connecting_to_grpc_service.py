@@ -114,7 +114,7 @@ async def connect_using_token():
     from zepben.evolve import connect_with_token, NetworkConsumerClient
 
     with open("config.json") as f:
-        c = json.loads(f.read())
+        c = json.load(f)
 
     print("Connecting to EWB..")
     channel = connect_with_token(
