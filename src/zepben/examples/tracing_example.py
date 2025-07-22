@@ -27,7 +27,7 @@ async def main():
     print("Connection Established")
 
     for feeder in result.feeders.values():
-        if feeder.mrid != "RW1292":
+        if feeder.mrid != "WD24":
             continue
         print(f"\nFetching {feeder.mrid}")
         network = await get_feeder_network(channel, feeder.mrid)

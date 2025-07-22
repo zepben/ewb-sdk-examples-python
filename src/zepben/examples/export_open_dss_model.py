@@ -7,7 +7,7 @@ import json
 from datetime import datetime
 
 from zepben.eas.client.opendss import OpenDssConfig
-from zepben.eas.client.work_package import GeneratorConfig, ModelConfig, FeederScenarioAllocationStrategy, SolveConfig, RawResultsConfig, \
+from zepben.eas.client.work_package import GeneratorConfig, ModelConfig, LoadPlacement, FeederScenarioAllocationStrategy, SolveConfig, RawResultsConfig, \
     MeterPlacementConfig, SwitchMeterPlacementConfig, SwitchClass
 from zepben.eas import EasClient, TimePeriod
 from time import sleep
