@@ -21,13 +21,17 @@ from zepben.evolve import NetworkConsumerClient, connect_with_token, ConductingE
 with open("./config.json") as f:
     c = json.loads(f.read())
 
+"""
+This is a basic example that shows how to export a CSV of all the conducting equipment in a feeder.
+It will output one CSV per feeder in the network.
+"""
+
 
 async def connect():
     channel = connect_with_token(host=c["host"], rpc_port=c["rpc_port"], access_token=c["access_token"], ca_filename=c["ca_path"])
     network_client = NetworkConsumerClient(channel=channel)
 
     network_hierarchy = (await network_client.get_network_hierarchy()).throw_on_error().value
-
     print("Network hierarchy:")
     for gr in network_hierarchy.geographical_regions.values():
         print(f"- Geographical region: {gr.name}")
@@ -60,11 +64,13 @@ async def process_nodes(feeder_mrid: str, channel):
     print("Processing equipment ...")
     feeder = network_service.get(feeder_mrid, Feeder)
     network_objects = []
+    # Fetch all the high voltage conducting equipment from the Feeder
     for equip in feeder.equipment:
         if isinstance(equip, ConductingEquipment):
             no = NetworkObject(equip.mrid, type(equip).__name__, feeder_mrid, equip.base_voltage_value)
             network_objects.append(no)
 
+    # Fetch all the low voltage conducting equipment from the LvFeeders supplied by this Feeder
     for lvf in feeder.normal_energized_lv_feeders:
         head = lvf.normal_head_terminal.conducting_equipment
         for equip in lvf.equipment:
