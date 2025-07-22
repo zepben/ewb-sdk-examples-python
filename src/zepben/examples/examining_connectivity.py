@@ -26,7 +26,7 @@ def build_network() -> NetworkService:
 
     # We create the objects, and their Terminals
     _es = EnergySource(mrid="es", terminals=[
-        Terminal(mrid="es-t")
+        Terminal(mrid="es_t")
     ])
 
     _hv_line = AcLineSegment(mrid="hv_line", terminals=[

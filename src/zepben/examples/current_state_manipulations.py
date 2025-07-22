@@ -5,12 +5,13 @@
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import asyncio
+import json
 import sys
 from typing import List, Set
 
 from zepben.evolve import (
     Feeder, PowerTransformer, Switch, Tracing, NetworkConsumerClient, connect_with_password, Terminal,
-    BusbarSection, ConductingEquipment, Breaker, EquipmentContainer, StepContext, NetworkTraceStep
+    BusbarSection, ConductingEquipment, Breaker, EquipmentContainer, StepContext, NetworkTraceStep, connect_with_token
 )
 
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_FEEDERS, INCLUDE_ENERGIZING_FEEDERS
@@ -48,8 +49,8 @@ async def fetch_zone_feeders(client: NetworkConsumerClient):
         await client.get_equipment_container(
             feeder.mrid,
             Feeder,
-            include_energizing_containers=INCLUDE_ENERGIZED_FEEDERS,
-            include_energized_containers=INCLUDE_ENERGIZING_FEEDERS
+            include_energizing_containers=INCLUDE_ENERGIZING_FEEDERS,
+            include_energized_containers=INCLUDE_ENERGIZED_FEEDERS
         )
     print("CPM feeders fetched.")
 
@@ -244,11 +245,11 @@ def log_txs(desc: str, feeders: Set[Feeder]):
 
 
 async def main():
-    if len(sys.argv) != 6:
-        raise TypeError("you must provided the CLIENT_ID, username, password, host and port to connect")
 
     # noinspection PyTypeChecker
-    async with connect_with_password(*sys.argv[1:]) as secure_channel:
+    with open('config.json') as f:
+        config = json.load(f)
+    async with connect_with_token(**config) as secure_channel:
         await run_simple(NetworkConsumerClient(secure_channel))
         await run_swap_feeder(NetworkConsumerClient(secure_channel))
 

@@ -13,8 +13,6 @@ import os.path
 from dataclasses import dataclass
 import pandas as pd
 
-from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
-
 from zepben.evolve import NetworkConsumerClient, connect_with_token, PowerTransformer
 
 OUTPUT_FILE = "transformer_id_mapping.csv"
