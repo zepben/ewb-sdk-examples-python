@@ -7,16 +7,13 @@
 import asyncio
 import json
 import os
-import time
 from dataclasses import dataclass
-from multiprocessing import Pool
-from typing import List, Dict
+from typing import Dict
 
-from asyncio_pool import AioPool
 import pandas as pd
 from zepben.evolve import NetworkConsumerClient, connect_with_token, Tracing, EnergyConsumer, PowerTransformer, \
     TransformerFunctionKind, Breaker, Fuse, IdentifiedObject, EquipmentTreeBuilder, downstream, TreeNode, Feeder
-from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizingContainers, IncludedEnergizedContainers
+from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
 
 
 @dataclass
@@ -41,17 +38,16 @@ def _get_client():
     channel = connect_with_token(
         host=config["host"],
         access_token=config["access_token"],
-        rpc_port=config['port'],
-        ca_filename=config['ca_filename']
+        rpc_port=config['rpc_port'],
+        ca_filename=config['ca_path']
     )
     return NetworkConsumerClient(channel)
 
 
 async def get_feeders() -> Dict[str, Feeder]:
-    client =  _get_client()
-
-    _feeders = (await client.get_network_hierarchy()).result.feeders
+    _feeders = (await _get_client().get_network_hierarchy()).result.feeders
     return _feeders
+
 
 def process_leaf(up_data: dict, leaf: TreeNode):
     to_equip: IdentifiedObject = leaf.identified_object
@@ -69,22 +65,22 @@ def process_leaf(up_data: dict, leaf: TreeNode):
             up_data['regulator'] = to_equip
 
 
-async def trace_from_feeder(feeder: str):
+async def trace_from_feeder(feeder_mrid: str):
     """
     Fetch the equipment container from the given feeder and build an equipment tree of everything downstream of the feeder.
     Use the Equipment tree to traverse upstream of all EC's and get the equipment we are interested in.
     Finally, create a CSV with the relevant information.
     """
     client =  _get_client()
-    print(f'processing feeder {feeder}')
+    print(f'processing feeder {feeder_mrid}')
 
     # Get all objects under the feeder, including Substations and LV Feeders
     await client.get_equipment_container(
-        feeder,
+        feeder_mrid,
         include_energized_containers = IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS
     )
 
-    feeder = client.service.get(feeder, Feeder)
+    feeder = client.service.get(feeder_mrid, Feeder)
 
     builder = EquipmentTreeBuilder()
 
@@ -117,7 +113,6 @@ async def trace_from_feeder(feeder: str):
     network_objects.to_csv(f"csvs/{feeder.mrid}_{csv_sfx}", index=False)
 
 
-
 class NullEquipment:
     """empty class to simplify code below in the case of an equipment not existing in that position of the network"""
     mrid = None
@@ -138,34 +133,10 @@ def _build_row(up_data: dict[str, IdentifiedObject | str]) -> EnergyConsumerDevi
     )
 
 
-def process_target(feeder):
-    asyncio.run(trace_from_feeder(feeder))
-
-async def async_process_targets():
-    feeders = await get_feeders()
-    pool = AioPool(2)
-
-    print('processing feeders')
-    await pool.map(trace_from_feeder, feeders)
-
-
 if __name__ == "__main__":
-    start = time.time()
     # Get a list of feeders before entering main compute section of script.
-    asyncio.run(async_process_targets())
-    """
     feeders = asyncio.run(get_feeders())
 
-    # Spin up a multiprocess pool of $CPU_COUNT processes to handle the workload, otherwise we saturate a single cpu core and it's slow.
-    cpus = os.cpu_count()
-    print(f'Spawning {cpus} processes')
-    pool = Pool(cpus)
-
-    print(f'mapping to process pool')
-    pool.map(process_target, feeders)
-
-    print('finishing remaining processes')
-    pool.close()
-    pool.join()
-    """
-    print(f'Done in {time.time() - start} seconds')
+    print('processing feeders')
+    for _feeder in feeders:
+        asyncio.run(trace_from_feeder(_feeder))
