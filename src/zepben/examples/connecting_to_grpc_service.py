@@ -117,11 +117,8 @@ async def connect_using_token():
         c = json.load(f)
 
     print("Connecting to EWB..")
-    channel = connect_with_token(
-        host=c["host"],
-        access_token=c["access_token"],
-        rpc_port=c["rpc_port"]
-    )
+    channel = connect_with_token(**c)
+
     client = NetworkConsumerClient(channel)
     print("Connection established..")
     print("Printing network hierarchy..")

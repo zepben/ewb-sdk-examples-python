@@ -34,7 +34,7 @@ async def main():
     zone_mrids = ["MTN"]
     print(f"Start time: {datetime.now()}")
 
-    rpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    rpc_channel = connect_with_token(**c)
     client = NetworkConsumerClient(rpc_channel)
     hierarchy = (await client.get_network_hierarchy()).throw_on_error()
     substations = hierarchy.value.substations

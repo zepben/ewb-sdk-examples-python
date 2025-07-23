@@ -1,6 +1,6 @@
 {
   "host": "hostname",
-  "rpc_port": 1234,
   "access_token": "your_access_token",
-  "ca_filename": "path_to_ca.crt",
+  "port": 443,
+  "eas_protocol": "https"
 }

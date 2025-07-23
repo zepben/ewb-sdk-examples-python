@@ -25,7 +25,7 @@ with open("../config.json") as f:
 async def main():
     # Fetch network model from Energy Workbench's gRPC service (see ../connecting_to_grpc_service.py for examples on different connection functions)
     print("Connecting to EWB..")
-    grpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    grpc_channel = connect_with_token(**c)
     feeder_mrid = "WD24"
     grpc_client = NetworkConsumerClient(grpc_channel)
     print("Connection established..")

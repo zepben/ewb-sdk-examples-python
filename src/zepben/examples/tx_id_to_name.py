@@ -23,7 +23,7 @@ with open("./config.json") as f:
 
 
 async def connect():
-    channel = connect_with_token(host=c["host"], rpc_port=c["rpc_port"], access_token=c["access_token"], ca_filename=c["ca_path"])
+    channel = connect_with_token(**c)
     network_client = NetworkConsumerClient(channel=channel)
 
     if os.path.exists(OUTPUT_FILE):

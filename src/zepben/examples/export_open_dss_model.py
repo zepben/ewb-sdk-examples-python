@@ -14,7 +14,7 @@ from time import sleep
 import requests
 
 
-with open("config.json") as f:
+with open("eas_config.json") as f:
     c = json.loads(f.read())
 
 
@@ -57,11 +57,7 @@ def download_generated_model(eas_client: EasClient, output_file_name: str, model
 
 
 def test_open_dss_export(export_file_name: str):
-    eas_client = EasClient(
-        host=c["host"],
-        port=443,
-        access_token=c["access_token"]
-    )
+    eas_client = EasClient(**c)
 
     # Run an opendss export
     print("Sending OpenDss model export request to EAS")

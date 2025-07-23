@@ -45,7 +45,7 @@ def _trace(start_item, results, stop_condition):
 
 
 async def main(mrid: str, feeder_mrid: str):
-    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    channel = connect_with_token(**c)
     client = NetworkConsumerClient(channel)
     await client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
     network = client.service

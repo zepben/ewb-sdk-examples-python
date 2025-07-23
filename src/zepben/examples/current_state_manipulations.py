@@ -6,11 +6,10 @@
 
 import asyncio
 import json
-import sys
 from typing import List, Set
 
 from zepben.evolve import (
-    Feeder, PowerTransformer, Switch, Tracing, NetworkConsumerClient, connect_with_password, Terminal,
+    Feeder, PowerTransformer, Switch, Tracing, NetworkConsumerClient, Terminal,
     BusbarSection, ConductingEquipment, Breaker, EquipmentContainer, StepContext, NetworkTraceStep, connect_with_token
 )
 

@@ -28,7 +28,7 @@ It will output one CSV per feeder in the network.
 
 
 async def connect():
-    channel = connect_with_token(host=c["host"], rpc_port=c["rpc_port"], access_token=c["access_token"], ca_filename=c["ca_path"])
+    channel = connect_with_token(**c)
     network_client = NetworkConsumerClient(channel=channel)
 
     network_hierarchy = (await network_client.get_network_hierarchy()).throw_on_error().value
