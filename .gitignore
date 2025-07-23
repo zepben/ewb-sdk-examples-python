@@ -133,3 +133,5 @@ docs/build
 src/zepben/examples/config.json
 
 *.crt
+
+src/zepben/examples/csvs/
