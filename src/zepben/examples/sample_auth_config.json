@@ -1,0 +1,11 @@
+{
+  "eas_server": {
+    "host": "<URL>",
+    "port": 1234,
+    "protocol": "https",
+    "client_id": "<EAS Client ID>",
+    "access_token": "<Access Token>",
+    "verify_certificate": false,
+    "ca_filename": null
+  }
+}
