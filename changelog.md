@@ -1,5 +1,21 @@
 # EWB Python SDK examples
-## [0.3.0] - UNRELEASED
+## [0.4.0] - UNRELEASED
+### Breaking Changes
+* None.
+
+### New Features
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* None.
+
+### Notes
+* None.
+
+## [0.3.0] - 2025-08-19
 ### Breaking Changes
 * Support `zepben.eas` up to 0.19.0. Previous versions will be incompatible.
 * Support `zepben.evolve` up to 0.48.0. Previous versions will be incompatible.
