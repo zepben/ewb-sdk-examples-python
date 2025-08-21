@@ -3,15 +3,22 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+import sys
 import json
+import requests
+
+from time import sleep
 from datetime import datetime
 
-from zepben.eas.client.opendss import OpenDssConfig
-from zepben.eas.client.work_package import GeneratorConfig, ModelConfig, FeederScenarioAllocationStrategy, SolveConfig, RawResultsConfig, \
-    MeterPlacementConfig, SwitchMeterPlacementConfig, SwitchClass
-from zepben.eas import EasClient, TimePeriod
-from time import sleep
-import requests
+try:
+    from zepben.eas.client.opendss import OpenDssConfig
+    from zepben.eas.client.work_package import GeneratorConfig, ModelConfig, FeederScenarioAllocationStrategy, SolveConfig, RawResultsConfig, \
+        MeterPlacementConfig, SwitchMeterPlacementConfig, SwitchClass
+    from zepben.eas import EasClient, TimePeriod
+except ImportError:
+    print('To install dependencies for this script please install this repository with opendss support enabled: ie `pip install ".[open_dss]"`')
+    sys.exit(1)
 
 
 with open("config.json") as f:

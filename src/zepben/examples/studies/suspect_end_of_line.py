@@ -4,16 +4,22 @@
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-import asyncio
+import sys
 import json
-from datetime import datetime
+import asyncio
 from itertools import islice
+from datetime import datetime
 from typing import List, Dict, Tuple, Callable, Any, Union, Type, Set
 
-from geojson import FeatureCollection, Feature
-from geojson.geometry import Geometry, LineString, Point
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import Study, Result, GeoJsonOverlay
+try:
+    from geojson import FeatureCollection, Feature
+    from geojson.geometry import Geometry, LineString, Point
+    from zepben.eas.client.eas_client import EasClient
+    from zepben.eas.client.study import Study, Result, GeoJsonOverlay
+except ImportError:
+    print('You need to install dependencies to use this example, ie: `pip install ".[studies]"`')
+    sys.exit(1)
+
 from zepben.evolve import PowerTransformer, ConductingEquipment, EnergyConsumer, AcLineSegment, \
     NetworkConsumerClient, PhaseCode, PowerElectronicsConnection, Feeder, PowerSystemResource, Location, \
     connect_with_token, NetworkTraceStep, Tracing, downstream, upstream

@@ -1,21 +1,28 @@
-#  Copyright 2023 Zeppelin Bend Pty Ltd
+#  Copyright 2025 Zeppelin Bend Pty Ltd
 #
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
-import asyncio
+import sys
 import json
+import asyncio
 
-from geojson import Feature, LineString, FeatureCollection, Point
-from zepben.eas import Study, Result, GeoJsonOverlay, EasClient
+try:
+    from geojson import Feature, LineString, FeatureCollection, Point
+    from zepben.eas import Study, Result, GeoJsonOverlay, EasClient
+except ImportError:
+    print('You need to install dependencies to use this example, ie: `pip install ".[studies]"`')
+    sys.exit(1)
+
 from zepben.evolve import AcLineSegment, EnergyConsumer, connect_with_token, NetworkConsumerClient
+from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
+
 # A study is a geographical visualisation of data that is drawn on top of the network.
 # This data is typically the result of a load flow simulation.
 # Each study may contain multiple results: different visualisations that the user may switch between.
 # For example, the first result may display per-unit voltage data, while the second result highlights overloaded equipment.
 # Two results are created in this example study: one makes a heatmap of energy consumers and the other highlights LV lines and displays their length.
 # Both Evolve App Server and Energy Workbench must be running for this example.
-from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
 
 with open("../config.json") as f:

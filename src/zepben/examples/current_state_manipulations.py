@@ -4,14 +4,14 @@
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-import asyncio
 import json
-import sys
+import asyncio
+
 from typing import List, Set
 
 from zepben.evolve import (
-    Feeder, PowerTransformer, Switch, Tracing, NetworkConsumerClient, connect_with_password, Terminal,
-    BusbarSection, ConductingEquipment, Breaker, EquipmentContainer, StepContext, NetworkTraceStep, connect_with_token
+    Feeder, PowerTransformer, Switch, Tracing, NetworkConsumerClient, Terminal, BusbarSection, ConductingEquipment, Breaker, EquipmentContainer, StepContext,
+    NetworkTraceStep, connect_with_token
 )
 
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_FEEDERS, INCLUDE_ENERGIZING_FEEDERS

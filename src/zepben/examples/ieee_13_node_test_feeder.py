@@ -3,16 +3,23 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+__all__ = ["network"]
+
+import sys
 from typing import Tuple
 
-import numpy
+try:
+    import numpy
+except ImportError:
+    print('This example requires numpy ie: `pip install ".[numpy]"`')
+    sys.exit(1)
+
 from zepben.evolve import (
     AcLineSegment, Disconnector, PowerTransformer, TransformerFunctionKind, NetworkService, Terminal,
     PowerTransformerEnd, EnergyConsumer, PerLengthSequenceImpedance, PhaseCode, EnergyConsumerPhase,
     SinglePhaseKind, LinearShuntCompensator, ShuntCompensatorInfo, Feeder, LvFeeder, BaseVoltage, Breaker
 )
-
-__all__ = ["network"]
 
 FEET_PER_MILE = 5280
 METRES_PER_FOOT = 0.3048

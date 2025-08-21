@@ -7,11 +7,18 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
-import asyncio
+
+import sys
 import json
+import asyncio
 import os.path
 from dataclasses import dataclass
-import pandas as pd
+
+try:
+    import pandas as pd
+except ImportError:
+    print('You need to install pandas to use this example, ie: pip install ".[dataframes]"')
+    sys.exit(1)
 
 from zepben.evolve import NetworkConsumerClient, connect_with_token, PowerTransformer
 

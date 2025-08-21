@@ -5,11 +5,18 @@
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import os
+import sys
+import requests
+
 from typing import List, Generator
 
-import requests
-from gql import gql, Client
-from gql.transport.requests import RequestsHTTPTransport
+try:
+    from gql import gql, Client
+    from gql.transport.requests import RequestsHTTPTransport
+except ImportError:
+    print('You need to install the power factory requirements ie: `pip install `".[power_factory]")')
+    sys.exit(1)
+
 from zepben.auth import get_token_fetcher
 
 # This example utilises the EWB GraphQL APIs to fetch the network hierarchy from the server and

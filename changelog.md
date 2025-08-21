@@ -7,7 +7,7 @@
 * None.
 
 ### Enhancements
-* None.
+* Missing dependencies will now flag what dependencies to install.
 
 ### Fixes
 * None.

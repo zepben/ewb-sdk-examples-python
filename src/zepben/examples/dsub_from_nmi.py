@@ -9,12 +9,11 @@ Example trace showing methods to traverse upstream of a given `IdentifiedObject`
 occurrence of another specified `IdentifiedObject`
 """
 
-import asyncio
 import json
+import asyncio
 
 from zepben.evolve import (
-    NetworkStateOperators, NetworkTraceActionType, NetworkTraceStep, StepContext,
-    NetworkConsumerClient, ConductingEquipment, connect_with_token
+    NetworkStateOperators, NetworkTraceActionType, NetworkTraceStep, StepContext, NetworkConsumerClient, ConductingEquipment, connect_with_token
 )
 from zepben.evolve import PowerTransformer, UsagePoint, Tracing, Switch
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS

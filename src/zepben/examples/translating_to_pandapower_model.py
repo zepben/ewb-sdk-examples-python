@@ -3,11 +3,17 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+import sys
 import asyncio
 import logging
-import pandapower as pp
+try:
+    import pandapower as pp
+    from pp_creators.basic_creator import BasicPandaPowerNetworkCreator
+except ImportError:
+    print('you need to install the panda power requirements, ie: pip install ".[panda_power]"')
+    sys.exit(1)
 
-from pp_creators.basic_creator import BasicPandaPowerNetworkCreator
 from zepben.evolve import NetworkService, Terminal, EnergySource, Tracing
 
 from zepben.examples.ieee_13_node_test_feeder import network
