@@ -12,9 +12,9 @@ from multiprocessing import Pool
 from typing import Union
 
 import pandas as pd
-from zepben.evolve import NetworkConsumerClient, connect_with_token, Tracing, upstream, EnergyConsumer, NetworkTraceStep, StepContext, PowerTransformer, \
+from zepben.ewb import NetworkConsumerClient, connect_with_token, Tracing, upstream, EnergyConsumer, NetworkTraceStep, StepContext, PowerTransformer, \
     TransformerFunctionKind, Breaker, ConductingEquipment, Fuse, IdentifiedObject, NetworkTrace, Feeder
-from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizingContainers, IncludedEnergizedContainers
+from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
 
 
 @dataclass

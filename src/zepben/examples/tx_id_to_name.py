@@ -13,7 +13,7 @@ import os.path
 from dataclasses import dataclass
 import pandas as pd
 
-from zepben.evolve import NetworkConsumerClient, connect_with_token, PowerTransformer
+from zepben.ewb import NetworkConsumerClient, connect_with_token, PowerTransformer
 
 OUTPUT_FILE = "transformer_id_mapping.csv"
 HEADER = True
