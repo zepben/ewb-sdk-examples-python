@@ -12,12 +12,11 @@ Example trace showing method to traverse outwards from any given `IdentifiableOb
 import asyncio
 import json
 
-from zepben.evolve import (
+from zepben.ewb import (
     NetworkStateOperators, NetworkTraceActionType, NetworkTraceStep, StepContext,
-    NetworkConsumerClient, AcLineSegment, connect_with_token, stop_at_open
+    NetworkConsumerClient, AcLineSegment, connect_with_token, stop_at_open, IncludedEnergizedContainers
 )
-from zepben.evolve import Tracing, Switch
-from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
+from zepben.ewb import Tracing, Switch
 
 
 async def main(conductor_mrid: str, feeder_mrid: str):
@@ -31,7 +30,7 @@ async def main(conductor_mrid: str, feeder_mrid: str):
     )
     client = NetworkConsumerClient(channel)
     await client.get_equipment_container(
-        feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS
+        feeder_mrid, include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS
     )
     network = client.service
 

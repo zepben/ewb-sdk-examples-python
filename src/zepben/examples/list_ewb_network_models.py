@@ -5,7 +5,7 @@
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 import tempfile
 
-from zepben.evolve import EwbDataFilePaths, DatabaseType
+from zepben.ewb import EwbDataFilePaths, DatabaseType
 from pathlib import Path
 from datetime import date
 

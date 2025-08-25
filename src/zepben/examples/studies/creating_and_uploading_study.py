@@ -8,14 +8,13 @@ import json
 
 from geojson import Feature, LineString, FeatureCollection, Point
 from zepben.eas import Study, Result, GeoJsonOverlay, EasClient
-from zepben.evolve import AcLineSegment, EnergyConsumer, connect_with_token, NetworkConsumerClient
+from zepben.ewb import AcLineSegment, EnergyConsumer, connect_with_token, NetworkConsumerClient, IncludedEnergizedContainers
 # A study is a geographical visualisation of data that is drawn on top of the network.
 # This data is typically the result of a load flow simulation.
 # Each study may contain multiple results: different visualisations that the user may switch between.
 # For example, the first result may display per-unit voltage data, while the second result highlights overloaded equipment.
 # Two results are created in this example study: one makes a heatmap of energy consumers and the other highlights LV lines and displays their length.
 # Both Evolve App Server and Energy Workbench must be running for this example.
-from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
 
 with open("../config.json") as f:
@@ -29,7 +28,7 @@ async def main():
     feeder_mrid = "WD24"
     grpc_client = NetworkConsumerClient(grpc_channel)
     print("Connection established..")
-    await grpc_client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
+    await grpc_client.get_equipment_container(feeder_mrid, include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS)
     network = grpc_client.service
 
     print("Creating study..")

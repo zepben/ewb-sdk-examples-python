@@ -10,7 +10,7 @@ async def plaintext_connection():
     Connects to an RPC server without TLS or authentication.
     This method should only be used in development and for demos.
     """
-    from zepben.evolve import connect_insecure, NetworkConsumerClient
+    from zepben.ewb import connect_insecure, NetworkConsumerClient
     async with connect_insecure("hostname", 1234) as insecure_channel:
         client = NetworkConsumerClient(insecure_channel)
         grpc_result = await client.get_network_hierarchy()
@@ -22,7 +22,7 @@ async def secure_connection():
     Connects to an RPC server over TLS.
     No user/client credentials are used.
     """
-    from zepben.evolve import connect_tls, NetworkConsumerClient
+    from zepben.ewb import connect_tls, NetworkConsumerClient
     async with connect_tls("hostname", 1234) as secure_channel:
         client = NetworkConsumerClient(secure_channel)
         grpc_result = await client.get_network_hierarchy()
@@ -35,7 +35,7 @@ async def secure_connection_with_user_credentials():
     fetched from https://hostname/auth or https://hostname/ewb/auth by default, which includes
     the domain of the OAuth token provider.
     """
-    from zepben.evolve import connect_with_password, NetworkConsumerClient
+    from zepben.ewb import connect_with_password, NetworkConsumerClient
     async with connect_with_password(
         "client ID",
         "username",
@@ -70,7 +70,7 @@ async def secure_connection_with_client_credentials():
     fetched from https://hostname/auth or https://hostname/ewb/auth by default, which includes the
     domain of the OAuth token provider.
     """
-    from zepben.evolve import connect_with_secret, NetworkConsumerClient
+    from zepben.ewb import connect_with_secret, NetworkConsumerClient
     async with connect_with_secret(
         "client ID",
         "client secret",
@@ -102,7 +102,7 @@ def connect_sync():
     You may use `SyncNetworkConsumerClient` if you prefer not to use asyncio.
     The API calls are the same between `SyncNetworkConsumerClient` and `NetworkConsumerClient`.
     """
-    from zepben.evolve import connect_insecure, SyncNetworkConsumerClient
+    from zepben.ewb import connect_insecure, SyncNetworkConsumerClient
     channel = connect_insecure("hostname", 1234)
     client = SyncNetworkConsumerClient(channel)
     grpc_result = client.get_network_hierarchy()
@@ -111,7 +111,7 @@ def connect_sync():
 
 async def connect_using_token():
     import json
-    from zepben.evolve import connect_with_token, NetworkConsumerClient
+    from zepben.ewb import connect_with_token, NetworkConsumerClient
 
     with open("config.json") as f:
         c = json.load(f)

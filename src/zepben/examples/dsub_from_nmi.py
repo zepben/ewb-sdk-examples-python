@@ -12,12 +12,11 @@ occurrence of another specified `IdentifiedObject`
 import asyncio
 import json
 
-from zepben.evolve import (
+from zepben.ewb import (
     NetworkStateOperators, NetworkTraceActionType, NetworkTraceStep, StepContext,
     NetworkConsumerClient, ConductingEquipment, connect_with_token
 )
-from zepben.evolve import PowerTransformer, UsagePoint, Tracing, Switch
-from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
+from zepben.ewb import PowerTransformer, UsagePoint, Tracing, Switch, IncludedEnergizedContainers
 
 
 with open("config.json") as f:
@@ -47,7 +46,7 @@ def _trace(start_item, results, stop_condition):
 async def main(mrid: str, feeder_mrid: str):
     channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
     client = NetworkConsumerClient(channel)
-    await client.get_equipment_container(feeder_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)
+    await client.get_equipment_container(feeder_mrid, include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS)
     network = client.service
 
     try:

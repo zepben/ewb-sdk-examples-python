@@ -8,7 +8,7 @@ import logging
 import pandapower as pp
 
 from pp_creators.basic_creator import BasicPandaPowerNetworkCreator
-from zepben.evolve import NetworkService, Terminal, EnergySource, Tracing
+from zepben.ewb import NetworkService, Terminal, EnergySource, Tracing
 
 from zepben.examples.ieee_13_node_test_feeder import network
 

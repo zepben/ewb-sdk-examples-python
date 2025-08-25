@@ -7,11 +7,9 @@ import asyncio
 import json
 from collections import defaultdict
 
-from zepben.evolve import (
-    Conductor, PowerTransformer, ConductingEquipment, EnergyConsumer, Switch, connect_with_token, NetworkConsumerClient
-)
-from zepben.protobuf.nc.nc_requests_pb2 import (
-    INCLUDE_ENERGIZED_LV_FEEDERS, INCLUDE_ENERGIZED_FEEDERS, INCLUDE_ENERGIZING_SUBSTATIONS, INCLUDE_ENERGIZING_FEEDERS
+from zepben.ewb import (
+    Conductor, PowerTransformer, ConductingEquipment, EnergyConsumer, Switch, connect_with_token,
+    NetworkConsumerClient, IncludedEnergizedContainers, IncludedEnergizingContainers
 )
 
 
@@ -31,7 +29,7 @@ async def main():
     # Fetch feeder and all its LvFeeders
     await client.get_equipment_container(
         feeder_mrid,
-        include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS
+        include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS
     )
 
     print(f"\nTotal Number of objects: {client.service.len_of()}")
@@ -66,13 +64,13 @@ async def main():
     # Fetch substation equipment and include equipment from HV/MV feeders powered by it
     await client.get_equipment_container(
         "substation ID",
-        include_energized_containers=INCLUDE_ENERGIZED_FEEDERS
+        include_energized_containers=IncludedEnergizedContainers.FEEDERS
     )
 
     # Same as above, but also fetch equipment from LV feeders powered by the HV/MV feeders
     await client.get_equipment_container(
         "substation ID",
-        include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS
+        include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS
     )
 
     # Fetch feeder equipment without fetching any additional equipment from powering/powered containers
@@ -82,20 +80,20 @@ async def main():
     # and the equipment from the LV feeders it powers
     await client.get_equipment_container(
         "feeder ID",
-        include_energizing_containers=INCLUDE_ENERGIZING_SUBSTATIONS,
-        include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS
+        include_energizing_containers=IncludedEnergizingContainers.SUBSTATIONS,
+        include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS
     )
 
     # Fetch LV feeder equipment and include equipment from HV/MV feeders powering it
     await client.get_equipment_container(
         "LV feeder ID",
-        include_energizing_containers=INCLUDE_ENERGIZING_FEEDERS
+        include_energizing_containers=IncludedEnergizingContainers.FEEDERS
     )
 
     # Same as above, but also fetch equipment from the substations powering the HV/MV feeders
     await client.get_equipment_container(
         "LV feeder ID",
-        include_energizing_containers=INCLUDE_ENERGIZING_SUBSTATIONS
+        include_energizing_containers=IncludedEnergizingContainers.SUBSTATIONS
     )
 
 

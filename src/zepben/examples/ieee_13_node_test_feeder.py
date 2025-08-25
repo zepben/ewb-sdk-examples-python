@@ -6,7 +6,7 @@
 from typing import Tuple
 
 import numpy
-from zepben.evolve import (
+from zepben.ewb import (
     AcLineSegment, Disconnector, PowerTransformer, TransformerFunctionKind, NetworkService, Terminal,
     PowerTransformerEnd, EnergyConsumer, PerLengthSequenceImpedance, PhaseCode, EnergyConsumerPhase,
     SinglePhaseKind, LinearShuntCompensator, ShuntCompensatorInfo, Feeder, LvFeeder, BaseVoltage, Breaker

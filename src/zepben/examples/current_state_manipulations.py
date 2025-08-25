@@ -6,15 +6,13 @@
 
 import asyncio
 import json
-import sys
 from typing import List, Set
 
-from zepben.evolve import (
-    Feeder, PowerTransformer, Switch, Tracing, NetworkConsumerClient, connect_with_password, Terminal,
-    BusbarSection, ConductingEquipment, Breaker, EquipmentContainer, StepContext, NetworkTraceStep, connect_with_token
+from zepben.ewb import (
+    Feeder, PowerTransformer, Switch, Tracing, NetworkConsumerClient, Terminal, BusbarSection,
+    ConductingEquipment, Breaker, EquipmentContainer, StepContext, NetworkTraceStep, connect_with_token,
+    IncludedEnergizedContainers, IncludedEnergizingContainers
 )
-
-from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_FEEDERS, INCLUDE_ENERGIZING_FEEDERS
 
 """
 Primary question to answer/example for:
@@ -49,8 +47,8 @@ async def fetch_zone_feeders(client: NetworkConsumerClient):
         await client.get_equipment_container(
             feeder.mrid,
             Feeder,
-            include_energizing_containers=INCLUDE_ENERGIZING_FEEDERS,
-            include_energized_containers=INCLUDE_ENERGIZED_FEEDERS
+            include_energizing_containers=IncludedEnergizingContainers.FEEDERS,
+            include_energized_containers=IncludedEnergizedContainers.FEEDERS
         )
     print("CPM feeders fetched.")
 

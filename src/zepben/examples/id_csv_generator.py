@@ -14,9 +14,7 @@ from dataclasses import dataclass
 from typing import Optional
 import pandas as pd
 
-from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
-
-from zepben.evolve import NetworkConsumerClient, connect_with_token, ConductingEquipment, Feeder, connect_tls
+from zepben.ewb import NetworkConsumerClient, connect_with_token, ConductingEquipment, Feeder, IncludedEnergizedContainers
 
 with open("./config.json") as f:
     c = json.loads(f.read())
@@ -58,8 +56,10 @@ async def process_nodes(feeder_mrid: str, channel):
     print("Fetching from server ...")
     network_client = NetworkConsumerClient(channel=channel)
     network_service = network_client.service
-    (await network_client.get_equipment_container(feeder_mrid,
-                                                  include_energized_containers=IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS)).throw_on_error()
+    (await network_client.get_equipment_container(
+        feeder_mrid,
+        include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS)
+     ).throw_on_error()
 
     print("Processing equipment ...")
     feeder = network_service.get(feeder_mrid, Feeder)

@@ -6,7 +6,7 @@
 import asyncio
 import json
 
-from zepben.evolve import connect_with_token, NetworkConsumerClient
+from zepben.ewb import connect_with_token, NetworkConsumerClient
 
 with open("config.json") as f:
     c = json.loads(f.read())

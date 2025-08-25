@@ -14,10 +14,9 @@ from geojson import FeatureCollection, Feature
 from geojson.geometry import Geometry, LineString, Point
 from zepben.eas.client.eas_client import EasClient
 from zepben.eas.client.study import Study, Result, GeoJsonOverlay
-from zepben.evolve import PowerTransformer, ConductingEquipment, EnergyConsumer, AcLineSegment, \
+from zepben.ewb import PowerTransformer, ConductingEquipment, EnergyConsumer, AcLineSegment, \
     NetworkConsumerClient, PhaseCode, PowerElectronicsConnection, Feeder, PowerSystemResource, Location, \
-    connect_with_token, NetworkTraceStep, Tracing, downstream, upstream
-from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
+    connect_with_token, NetworkTraceStep, Tracing, downstream, upstream, IncludedEnergizedContainers
 
 
 with open("../config.json") as f:
@@ -115,7 +114,7 @@ async def fetch_feeder_and_trace(feeder_mrid: str, rpc_channel):
         await client.get_equipment_container(
             mrid=feeder_mrid,
             expected_class=Feeder,
-            include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS
+            include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS
         )
     )
     if result.was_failure:
