@@ -13,13 +13,13 @@ Add the following items to your setup.py:
 ```
     install_requires=[
         "zepben.auth==<VERSION>",
-        "zepben.evolve==<VERSION>"
+        "zepben.ewb==<VERSION>"
     ],
 ```
 
 The latest versions can be found on the Python package index:
 
-* [zepben.evolve](https://pypi.org/project/zepben.evolve/)
+* [zepben.ewb](https://pypi.org/project/zepben.ewb/)
 * [zepben.auth](https://pypi.org/project/zepben.auth/)
 
 > [!NOTE]  
