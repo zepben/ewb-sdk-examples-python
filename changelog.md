@@ -64,4 +64,4 @@
 
 ### Notes
 * Support `zepben.eas` up to 0.19.0.
-* Support `zepben.evolve` up to 0.45.0.
+* Support `zepben.evolve` up to 0.48.0.
