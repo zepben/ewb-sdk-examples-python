@@ -13,11 +13,11 @@ import asyncio
 import json
 from typing import Tuple, Type
 
-from zepben.evolve import (
+from zepben.ewb import (
     NetworkStateOperators, NetworkTraceActionType, NetworkTraceStep, StepContext, Tracing,
-    NetworkConsumerClient, ProtectedSwitch, Recloser, LoadBreakSwitch, connect_with_token
+    NetworkConsumerClient, ProtectedSwitch, Recloser, LoadBreakSwitch, connect_with_token,
+    IncludedEnergizedContainers
 )
-from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
 
 async def main(mrids: Tuple[str, str], io_type: Type[ProtectedSwitch], feeder_mrid):
@@ -32,7 +32,7 @@ async def main(mrids: Tuple[str, str], io_type: Type[ProtectedSwitch], feeder_mr
     client = NetworkConsumerClient(channel)
     await client.get_equipment_container(
         feeder_mrid,
-        include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS
+        include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS
     )
     network = client.service
 

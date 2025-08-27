@@ -11,9 +11,9 @@ from dataclasses import dataclass
 from typing import Dict
 
 import pandas as pd
-from zepben.evolve import NetworkConsumerClient, connect_with_token, Tracing, EnergyConsumer, PowerTransformer, \
-    TransformerFunctionKind, Breaker, Fuse, IdentifiedObject, EquipmentTreeBuilder, downstream, TreeNode, Feeder
-from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
+from zepben.ewb import NetworkConsumerClient, connect_with_token, Tracing, EnergyConsumer, PowerTransformer, \
+    TransformerFunctionKind, Breaker, Fuse, IdentifiedObject, EquipmentTreeBuilder, downstream, TreeNode, \
+    Feeder, IncludedEnergizedContainers
 
 
 @dataclass

@@ -10,9 +10,8 @@ import json
 import os
 from typing import List, Union, Tuple, Optional, Dict
 
-from zepben.evolve import NetworkConsumerClient, PhaseCode, AcLineSegment, \
-    FeederDirection, connect_with_token, Tracing, downstream, NetworkTraceStep, ConductingEquipment, PowerTransformer
-from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
+from zepben.ewb import NetworkConsumerClient, PhaseCode, AcLineSegment, FeederDirection, connect_with_token, \
+    Tracing, downstream, NetworkTraceStep, ConductingEquipment, PowerTransformer, IncludedEnergizedContainers
 
 LineInfo = Tuple[str, str, Optional[Union[int, float]]]
 
@@ -70,7 +69,7 @@ async def get_feeder_network(channel, feeder_mrid):
     result = (
         await client.get_equipment_container(
             mrid=feeder_mrid,
-            include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS
+            include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS
         )
     )
     if result.was_failure:
