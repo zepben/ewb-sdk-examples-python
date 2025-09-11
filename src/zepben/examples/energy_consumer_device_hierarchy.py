@@ -11,11 +11,9 @@ import pandas as pd
 
 from typing import Dict, Callable, List
 from dataclasses import dataclass
-
-from zepben.evolve import connect_with_token, NetworkConsumerClient, Feeder, Tracing, downstream, StepActionWithContextValue, \
+from zepben.ewb import connect_with_token, NetworkConsumerClient, Feeder, Tracing, downstream, StepActionWithContextValue, \
     NetworkTraceStep, EnergyConsumer, StepContext, IdentifiedObject, Breaker, Fuse, PowerTransformer, TransformerFunctionKind, TreeNode, EquipmentTreeBuilder, \
-    ConductingEquipment, NetworkTrace, upstream
-from zepben.protobuf.nc.nc_requests_pb2 import IncludedEnergizedContainers
+    ConductingEquipment, NetworkTrace, upstream, IncludedEnergizedContainers
 
 
 @dataclass
@@ -50,7 +48,7 @@ async def get_feeder_equipmet(client: NetworkConsumerClient, feeder_mrid: str) -
     """Get all objects under the feeder, including LV Feeders"""
     (await client.get_equipment_container(
         feeder_mrid,
-        include_energized_containers=IncludedEnergizedContainers.INCLUDE_ENERGIZED_LV_FEEDERS
+        include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS
     )).throw_on_error()
 
 
