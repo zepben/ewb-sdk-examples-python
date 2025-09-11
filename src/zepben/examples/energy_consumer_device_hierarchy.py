@@ -257,7 +257,7 @@ def process_feeders_concurrently():
     feeders = list(asyncio.run(get_feeders()))
 
     from tqdm.contrib.concurrent import process_map
-    process_map(multi_proc, feeders ,max_workers=int(os.cpu_count() / 2))
+    process_map(multi_proc, feeders, max_workers=int(os.cpu_count() / 2))
 
 
 if __name__ == "__main__":
