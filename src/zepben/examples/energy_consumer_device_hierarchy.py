@@ -39,12 +39,12 @@ def _get_client():
     return NetworkConsumerClient(channel)
 
 
-async def get_feeders(_client = None) -> Dict[str, Feeder]:
+async def get_feeders(_client=None) -> Dict[str, Feeder]:
     _feeders = (await (_client or _get_client()).get_network_hierarchy()).result.feeders
     return _feeders
 
 
-async def get_feeder_equipmet(client: NetworkConsumerClient, feeder_mrid: str) -> None:
+async def get_feeder_equipment(client: NetworkConsumerClient, feeder_mrid: str) -> None:
     """Get all objects under the feeder, including LV Feeders"""
     (await client.get_equipment_container(
         feeder_mrid,
@@ -59,7 +59,7 @@ async def trace_from_energy_consumers(feeder_mrid: str, client=None):
     Trace upstream from every EnergyConsumer.
     """
     client = client or _get_client()
-    await get_feeder_equipmet(client, feeder_mrid)
+    await get_feeder_equipment(client, feeder_mrid)
 
     def _get_equipment_tree_trace(up_data: dict) -> NetworkTrace:
         def step_action(step: NetworkTraceStep, _: StepContext):
@@ -104,6 +104,7 @@ async def trace_from_feeder_downstream(feeder_mrid: str, client=None):
     Build an equipment tree of everything downstream of the feeder.
     Use the Equipment tree to recurse through parent equipment of all EC's and get the equipment we are interested in.
     """
+
     def process_leaf(up_data: dict, leaf: TreeNode):
         to_equip: IdentifiedObject = leaf.identified_object
 
@@ -119,8 +120,8 @@ async def trace_from_feeder_downstream(feeder_mrid: str, client=None):
             elif not up_data.get('regulator') and to_equip.function == TransformerFunctionKind.voltageRegulator:
                 up_data['regulator'] = to_equip
 
-    client =  client or _get_client()
-    await get_feeder_equipmet(client, feeder_mrid)
+    client = client or _get_client()
+    await get_feeder_equipment(client, feeder_mrid)
 
     builder = EquipmentTreeBuilder()
 
@@ -135,10 +136,12 @@ async def trace_from_feeder_downstream(feeder_mrid: str, client=None):
 
     for leaf in (l for l in builder.leaves if isinstance((ec := l.identified_object), EnergyConsumer)):
         ec_data = {'feeder': feeder.mrid, 'energy_consumer_mrid': ec.mrid}
+
         def _process(_leaf):
             process_leaf(ec_data, _leaf)
             if _leaf.parent:
                 _process(_leaf.parent)
+
         _process(leaf)
 
         row = _build_row(ec_data)
@@ -154,7 +157,7 @@ async def trace_from_feeder_context(feeder_mrid: str, client=None):
     """
     client = client or _get_client()
     # Get all objects under the feeder, including Substations and LV Feeders
-    await get_feeder_equipmet(client, feeder_mrid)
+    await get_feeder_equipment(client, feeder_mrid)
 
     energy_consumers = []
 
@@ -210,15 +213,15 @@ class NullEquipment:
 
 def _build_row(up_data: dict[str, IdentifiedObject | str]) -> EnergyConsumerDeviceHierarchy:
     return EnergyConsumerDeviceHierarchy(
-        energy_consumer_mrid = up_data['energy_consumer_mrid'],
-        upstream_switch_mrid = (up_data.get('upstream_switch') or NullEquipment).mrid,
-        lv_circuit_name = (up_data.get('upstream_switch') or NullEquipment).name,
-        upstream_switch_class = type(up_data.get('upstream_switch')).__name__,
-        distribution_power_transformer_mrid = (up_data.get('distribution_power_transformer') or NullEquipment).mrid,
-        distribution_power_transformer_name = (up_data.get('distribution_power_transformer') or NullEquipment).name,
-        regulator_mrid = (up_data.get('regulator') or NullEquipment).mrid,
-        breaker_mrid = (up_data.get('breaker') or NullEquipment).mrid,
-        feeder_mrid = up_data.get('feeder'),
+        energy_consumer_mrid=up_data['energy_consumer_mrid'],
+        upstream_switch_mrid=(up_data.get('upstream_switch') or NullEquipment).mrid,
+        lv_circuit_name=(up_data.get('upstream_switch') or NullEquipment).name,
+        upstream_switch_class=type(up_data.get('upstream_switch')).__name__,
+        distribution_power_transformer_mrid=(up_data.get('distribution_power_transformer') or NullEquipment).mrid,
+        distribution_power_transformer_name=(up_data.get('distribution_power_transformer') or NullEquipment).name,
+        regulator_mrid=(up_data.get('regulator') or NullEquipment).mrid,
+        breaker_mrid=(up_data.get('breaker') or NullEquipment).mrid,
+        feeder_mrid=up_data.get('feeder'),
     )
 
 
@@ -236,22 +239,23 @@ def process_feeders_sequentially():
         """
         from tqdm import tqdm
         client = _get_client()
-        feeders = list(await get_feeders(client))
+        feeders = ["<FEEDER_ID>"]
+        # feeders = list(await get_feeders(client)) # Uncomment to process all feeders
         for _feeder in tqdm(feeders):
             await trace_type(_feeder, client)
 
     # Uncomment to run other trace functions
     asyncio.run(main_async(trace_from_feeder_context))
-    #asyncio.run(main_async(trace_from_feeder_downstream))
-    #asyncio.run(main_async(trace_from_energy_consumers))
+    # asyncio.run(main_async(trace_from_feeder_downstream))
+    # asyncio.run(main_async(trace_from_energy_consumers))
 
 
 def process_feeders_concurrently():
     def multi_proc(_feeder):
         # Uncomment to run other trace functions
         asyncio.run(trace_from_feeder_context(_feeder))
-        #asyncio.run(trace_from_feeder_downstream(_feeder))
-        #asyncio.run(trace_from_energy_consumers(_feeder))
+        # asyncio.run(trace_from_feeder_downstream(_feeder))
+        # asyncio.run(trace_from_energy_consumers(_feeder))
 
     # Get a list of feeders before entering main compute section of script.
     feeders = list(asyncio.run(get_feeders()))
@@ -262,3 +266,4 @@ def process_feeders_concurrently():
 
 if __name__ == "__main__":
     process_feeders_sequentially()
+    # process_feeders_concurrently()  # Uncomment and comment sequentially above to multi-process, note this is resource intensive and may cause issues.
