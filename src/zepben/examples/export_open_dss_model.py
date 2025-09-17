@@ -9,7 +9,7 @@ from datetime import datetime
 from zepben.eas.client.opendss import OpenDssConfig
 from zepben.eas.client.work_package import GeneratorConfig, ModelConfig, FeederScenarioAllocationStrategy, SolveConfig, RawResultsConfig, \
     MeterPlacementConfig, SwitchMeterPlacementConfig, SwitchClass
-from zepben.eas import EasClient, TimePeriod
+from zepben.eas import EasClient, TimePeriod, FixedTime
 from time import sleep
 import requests
 
@@ -59,7 +59,7 @@ def download_generated_model(eas_client: EasClient, output_file_name: str, model
 def test_open_dss_export(export_file_name: str):
     eas_client = EasClient(
         host=c["host"],
-        port=443,
+        port=c["rpc_port"],
         access_token=c["access_token"]
     )
 
@@ -75,6 +75,10 @@ def test_open_dss_export(export_file_name: str):
                 start_time=datetime.fromisoformat("2024-04-01T00:00"),
                 end_time=datetime.fromisoformat("2025-04-01T00:00")
             ),
+            # For fixed time export example, pass load_time a FixedTime object
+            #load_time=FixedTime(
+            #    time=datetime.fromisoformat("2024-04-01T00:00")
+            #),
             generator_config=GeneratorConfig(
                 model=ModelConfig(
                     meter_placement_config=MeterPlacementConfig(
