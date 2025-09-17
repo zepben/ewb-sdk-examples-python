@@ -2,6 +2,7 @@
 
 | Version        | Released            |
 |----------------|---------------------|
+|[0.5.0](#050)| `17 September 2025` |
 |[0.2.0](#v020)| `18 February 2025` |
 | [0.1.0](#v010) | `N/A``              |
 
@@ -36,3 +37,35 @@ Initial release of examples
 ### Notes
 * Support `zepben.eas` up to 0.16.0.
 * Support `zepben.evolve` up to 0.44.0.\n\n---\n
+### Breaking Changes
+* None
+
+### New Features
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* None.
+
+### Notes
+* None.
+
+### Breaking Changes
+* Support `zepben.eas` up to 0.19.0. Previous versions will be incompatible.
+* Support `zepben.evolve` up to 0.48.0. Previous versions will be incompatible.
+
+### New Features
+* Added device tree trace example.
+* Added opendss model export example.
+
+### Enhancements
+* Updated to new tracing API (zepben.evolve 0.48.0)
+* Support for cuts and jumpers
+
+### Fixes
+* None.
+
+### Notes
+* None.\n\n---\n
