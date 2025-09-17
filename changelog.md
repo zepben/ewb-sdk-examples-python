@@ -1,5 +1,21 @@
 # EWB Python SDK examples
-## [0.4.0] - UNRELEASED
+## [0.5.0] - UNRELEASED
+### Breaking Changes
+* None
+
+### New Features
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* None.
+
+### Notes
+* None.
+
+## [0.4.0] - 2025-09-17 
 ### Breaking Changes
 * Update `zepben.evolve` to latest version, renamed too `zepben.ewb` 1.0.0b7. Previous versions will be incompatible.
 
