@@ -10,7 +10,8 @@ import json
 
 from zepben.evolve import (
     NetworkConsumerClient, PhaseCode, AcLineSegment, connect_with_token, EnergyConsumer,
-    PowerTransformer, ConductingEquipment, Tracing, NetworkTraceStep, downstream, upstream
+    PowerTransformer, ConductingEquipment, Tracing, NetworkTraceStep, downstream, upstream,
+    UsagePoint
 )
 from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
@@ -34,6 +35,13 @@ async def main():
 
         print("\nDownstream Trace Example..")
         # Get the count of customers per transformer
+        fuse = network.get("114881231")
+        customers = await get_downstream_customer_count(fuse, PhaseCode.ABCN)
+        print(f"Fuse {fuse.mrid} has {customers} Energy Consumer(s)")
+
+        tx= network.get("94646671")
+        customers = await get_downstream_customer_count(tx, PhaseCode.ABCN)
+        print(f"TX {tx.mrid} has {customers} Energy Consumer(s)")
         for io in network.objects(PowerTransformer):
             customers = await get_downstream_customer_count(io, PhaseCode.ABCN)
             print(f"Transformer {io.mrid} has {customers} Energy Consumer(s)")
@@ -55,12 +63,16 @@ async def get_feeder_network(channel, feeder_mrid):
 
 async def get_downstream_customer_count(ce: ConductingEquipment, phase_code: PhaseCode) -> int:
     customer_count = 0
-
+    up_count = 0
     def collect_eq_in():
         async def add_eq(ps: NetworkTraceStep, _):
-            nonlocal customer_count
+            nonlocal customer_count, up_count
             if isinstance(ps.path.to_equipment, EnergyConsumer):
                 customer_count += 1
+                ups = [up for up in ps.path.to_equipment.usage_points]
+                if ups:
+                    print(f"{ps.path.to_equipment}: {ups}")
+                    up_count += len(ups)
         return add_eq
 
     await (
@@ -69,6 +81,7 @@ async def get_downstream_customer_count(ce: ConductingEquipment, phase_code: Pha
         .add_step_action(collect_eq_in())
     ).run(start=ce, phases=phase_code)
 
+    print(f"Up count for {ce.mrid}: {up_count}")
     return customer_count
 
 

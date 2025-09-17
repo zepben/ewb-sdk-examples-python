@@ -11,12 +11,13 @@ import asyncio
 import json
 import os.path
 from dataclasses import dataclass
+from typing import Optional
+
 import pandas as pd
 
 from zepben.evolve import NetworkConsumerClient, connect_with_token, PowerTransformer
 
-OUTPUT_FILE = "transformer_id_mapping.csv"
-HEADER = True
+from zepben.protobuf.nc.nc_requests_pb2 import INCLUDE_ENERGIZED_LV_FEEDERS
 
 with open("./config.json") as f:
     c = json.loads(f.read())
@@ -26,13 +27,8 @@ async def connect():
     channel = connect_with_token(host=c["host"], rpc_port=c["rpc_port"], access_token=c["access_token"], ca_filename=c["ca_path"])
     network_client = NetworkConsumerClient(channel=channel)
 
-    if os.path.exists(OUTPUT_FILE):
-        print(f"Output file {OUTPUT_FILE} already exists, please delete it if you would like to regenerate.")
-        return
-
     network_hierarchy = (await network_client.get_network_hierarchy()).throw_on_error().value
 
-    print("Network hierarchy:")
     for gr in network_hierarchy.geographical_regions.values():
         print(f"- Geographical region: {gr.name}")
         for sgr in gr.sub_geographical_regions:
@@ -43,7 +39,6 @@ async def connect():
                 for fdr in sub.feeders:
                     print(f"      - Processing Feeder: {fdr.name}")
                     await process_nodes(fdr.mrid, channel)
-                return  # Only process the first zone...
 
 
 @dataclass
@@ -52,28 +47,47 @@ class NetworkObject(object):
     dist_tx_name: str
     container: str
     container_mrid: str
+    high_step: Optional[float]
+    low_step: Optional[float]
+    neutral_step: Optional[float]
+    step: Optional[float]
+    normal_step: Optional[float]
+    step_voltage_increment: Optional[float]
 
 
 async def process_nodes(container_mrid: str, channel):
-    global HEADER
     print("Fetching from server ...")
     network_client = NetworkConsumerClient(channel=channel)
     network_service = network_client.service
-    (await network_client.get_equipment_container(container_mrid)).throw_on_error()
+    (await network_client.get_equipment_container(container_mrid, include_energized_containers=INCLUDE_ENERGIZED_LV_FEEDERS)).throw_on_error()
     container = network_service.get(container_mrid)
     container_name = container.name
 
     print("Processing equipment ...")
     network_objects = []
     for equip in network_service.objects(PowerTransformer):
-        no = NetworkObject(equip.mrid, equip.name, container_name, container_mrid)
+        primary_end = equip.get_end_by_num(1)
+        tap_changer = primary_end.ratio_tap_changer
+        high_step = None
+        neutral_step = None
+        low_step = None
+        step = None
+        normal_step = None
+        step_voltage_increment = None
+        if tap_changer:
+            high_step = tap_changer.high_step
+            neutral_step = tap_changer.neutral_step
+            low_step = tap_changer.low_step
+            step = tap_changer.step
+            normal_step = tap_changer.normal_step
+            step_voltage_increment = tap_changer.step_voltage_increment
+
+        no = NetworkObject(equip.mrid, equip.name, container_name, container_mrid, high_step, low_step, neutral_step, step, normal_step, step_voltage_increment)
         network_objects.append(no)
 
     network_objects = pd.DataFrame(network_objects)
-    network_objects.to_csv(OUTPUT_FILE, index=False, mode='a', header=HEADER)
+    network_objects.to_csv(f"csvs/{container_mrid}_transformer_tap_details.csv", index=False, mode='a', header=True)
     print(f"Finished processing {container_mrid}")
-    if HEADER:
-        HEADER = False
 
 
 if __name__ == "__main__":
