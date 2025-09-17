@@ -15,7 +15,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "zepben.examples"
 description = "Module containing examples for interacting with Zepben's platform"
-version = "0.5.0"
+version = "0.6.0b1"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "MPL-2.0"
 requires-python = '>=3.10,<3.13'
