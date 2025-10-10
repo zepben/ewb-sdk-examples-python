@@ -36,7 +36,7 @@
 * Update `zepben.evolve` to latest version, renamed too `zepben.ewb` 1.0.0b7. Previous versions will be incompatible.
 
 ### New Features
-* None.
+* Added new example for forecast feeder load analysis study.
 
 ### Enhancements
 * None.
