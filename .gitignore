@@ -130,7 +130,7 @@ dmypy.json
 docs/node_modules
 docs/build
 
-src/zepben/examples/config.json
+src/zepben/examples/config*.json
 
 *.crt
 
