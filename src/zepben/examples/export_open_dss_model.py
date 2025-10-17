@@ -26,20 +26,29 @@ def wait_for_export(eas_client: EasClient, model_id: int):
     print(f"Waiting for model generation ({wait_limit_seconds} seconds) ", end='')
     # Retrieve the model information for the model we just requested
     model = eas_client.get_opendss_model(model_id)
-    while model["state"] != "COMPLETED":
-        model = eas_client.get_opendss_model(model_id)
-        print(".", end='')
-        sleep(step_seconds)
-        total += step_seconds
-        if total > wait_limit_seconds:
-            raise TimeoutError("Timed out waiting for model export to complete.")
+    while model["state"] == "CREATION":
+        try:
+            model = eas_client.get_opendss_model(model_id)
+            print(".", end='')
+            sleep(step_seconds)
+            total += step_seconds
+            if total > wait_limit_seconds:
+                raise TimeoutError("Timed out waiting for model export to complete.")
+        except Exception as e:
+            if isinstance(e, TimeoutError):
+                raise e
+            else:
+                print(f"Failed retrieving model export status: {e}")
+                print(f"Retrying in {step_seconds} secondds...")
+                sleep(step_seconds)
 
 
 def download_generated_model(eas_client: EasClient, output_file_name: str, model_id: int):
-    url = eas_client.get_opendss_model_download_url(model_id)
-    if url == f'Model with id {model_id} is still being created':
-        print(url)
-        print("Download failed.")
+    try:
+        url = eas_client.get_opendss_model_download_url(model_id)
+    except Exception as e:
+        print()
+        print(f"Download failed, model failed to generate: {e}")
         return
 
     print(f"\nURL (30 second expiry): {url}", )
@@ -52,11 +61,11 @@ def download_generated_model(eas_client: EasClient, output_file_name: str, model
             file.write(requests.get(url).content)
         print("Download complete.")
     except Exception as error:
-        print("Download failed.")
         print(error)
+        print("Download failed. Model may have failed to generate.")
 
 
-def test_open_dss_export(export_file_name: str):
+def open_dss_export(export_file_name: str):
     eas_client = EasClient(
         host=c["host"],
         port=c["rpc_port"],
@@ -93,8 +102,8 @@ def test_open_dss_export(export_file_name: str):
                             name_pattern="LV Circuit Head.*"
                         )]
                     ),
-                    vmax_pu=1.2,
-                    vmin_pu=0.8,
+                    load_vmax_pu=1.2,
+                    load_vmin_pu=0.8,
                     p_factor_base_exports=-1,
                     p_factor_base_imports=1,
                     p_factor_forecast_pv=0.98,
@@ -135,4 +144,4 @@ def test_open_dss_export(export_file_name: str):
 
 
 if __name__ == "__main__":
-    test_open_dss_export("test_export-model")
+    open_dss_export(f"test_export_model_{datetime.now()}")

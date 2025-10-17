@@ -10,7 +10,7 @@
 * None.
 
 ### Fixes
-* None.
+* Clean up error handling for opendss model export, so we don't wait for timeout when a model failed to generate.
 
 ### Notes
 * None.
