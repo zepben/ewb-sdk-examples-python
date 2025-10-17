@@ -2,6 +2,7 @@
 
 | Version        | Released            |
 |----------------|---------------------|
+|[0.6.0](#060)| `17 October 2025` |
 |[0.5.0](#050)| `17 September 2025` |
 |[0.2.0](#v020)| `18 February 2025` |
 | [0.1.0](#v010) | `N/A``              |
@@ -66,6 +67,20 @@ Initial release of examples
 
 ### Fixes
 * None.
+
+### Notes
+* None.\n\n---\n
+### Breaking Changes
+* None.
+
+### New Features
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* Clean up error handling for opendss model export, so we don't wait for timeout when a model failed to generate.
 
 ### Notes
 * None.\n\n---\n
