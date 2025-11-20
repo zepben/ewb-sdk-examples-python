@@ -120,14 +120,14 @@ Output:
 
 You can use the `objects` method to iterate over all objects that inherit a specified type.
 In this example, we will query the objects from the network based on their types. From the above example, the network consists of a Breaker and an AcLineSegment.
-Let us query the object based on the type Switch. Since a Breaker is the only object in the network model that inherits from the `Switch` class, the following must print "Switch: Breaker{b_456}".
+Let us query the object based on the type Switch. Since a Breaker is the only object in the network model that inherits from the `Switch` class, the following must print "Switch: Breaker\{b_456\}".
 
 ```python
 for switch in network.objects(Switch):
     print(f"Switch: {switch}")
 ```
 
-However, since both the Breaker and the AcLineSegment inherit from `ConductingEquipment`, the following must print "Conducting equipment: AcLineSegment{acls_123}" and "Conducting equipment: Breaker{b_456}".
+However, since both the Breaker and the AcLineSegment inherit from `ConductingEquipment`, the following must print "Conducting equipment: AcLineSegment\{acls_123\}" and "Conducting equipment: Breaker\{b_456\}".
 
 ```python
 for conducting_equipment in network.objects(ConductingEquipment):
