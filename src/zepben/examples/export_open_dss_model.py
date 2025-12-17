@@ -144,4 +144,4 @@ def open_dss_export(export_file_name: str):
 
 
 if __name__ == "__main__":
-    open_dss_export(f"test_export_model_{datetime.now()}")
+    open_dss_export(f"test_export_model_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
