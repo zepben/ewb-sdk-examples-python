@@ -27,7 +27,7 @@ dependencies = [
     "zepben.ewb==1.1.0b14",
     "numba==0.60.0",
     "geojson==2.5.0",
-    "gql[requests]==3.4.1",
+    "gql[requests]==3.5.3",
     "geopandas",
     "pandas",
     "shapely",
