@@ -24,7 +24,7 @@ authors = [
 ]
 dependencies = [
     "zepben.eas==0.26.0",
-    "zepben.ewb==1.0.3",
+    "zepben.ewb==1.1.0b14",
     "numba==0.60.0",
     "geojson==2.5.0",
     "gql[requests]==3.4.1",

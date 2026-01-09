@@ -101,8 +101,8 @@ async def zone_bus_trace(client: NetworkConsumerClient):
 
     print(f"creating bus for {[feeder.mrid for it in feeder_heads for feeder in it.normal_feeders]}...")
     # There is no subtrans in the model we pulled down so create a zone bus for all the feeders.
-    bus = BusbarSection()
-    bus_terminal = Terminal()
+    bus = BusbarSection(mrid="zone-bus")
+    bus_terminal = Terminal(mrid="zone-bus-t1")
     bus.add_terminal(bus_terminal)
 
     for it in feeder_head_other_terms:
