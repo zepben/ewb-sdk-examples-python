@@ -10,23 +10,23 @@ if __name__ == '__main__':
 
     # A network hierarchy describes the high-level hierarchy of the network.
 
-    fdr1 = Feeder(name="Sydney feeder 1")
-    fdr2 = Feeder(name="Sydney feeder 2")
-    fdr3 = Feeder(name="Sydney feeder 3")
-    fdr4 = Feeder(name="Newcastle feeder 1")
-    fdr5 = Feeder(name="Newcastle feeder 2")
-    fdr6 = Feeder(name="Newcastle feeder 3")
+    fdr1 = Feeder(mrid="sf1", name="Sydney feeder 1")
+    fdr2 = Feeder(mrid="sf2", name="Sydney feeder 2")
+    fdr3 = Feeder(mrid="sf3", name="Sydney feeder 3")
+    fdr4 = Feeder(mrid="nf1", name="Newcastle feeder 1")
+    fdr5 = Feeder(mrid="nf2", name="Newcastle feeder 2")
+    fdr6 = Feeder(mrid="nf3", name="Newcastle feeder 3")
 
-    sub1 = Substation(name="Sydney substation 1")
-    sub2 = Substation(name="Sydney substation 2", normal_energized_feeders=[fdr1, fdr2, fdr3])
-    sub3 = Substation(name="Newcastle substation", normal_energized_feeders=[fdr4, fdr5, fdr6])
+    sub1 = Substation(mrid="ss1", name="Sydney substation 1")
+    sub2 = Substation(mrid="ss2", name="Sydney substation 2", normal_energized_feeders=[fdr1, fdr2, fdr3])
+    sub3 = Substation(mrid="ns1", name="Newcastle substation", normal_energized_feeders=[fdr4, fdr5, fdr6])
 
-    circuit_sydney = Circuit(end_substations=[sub1, sub2])
-    loop_sydney = Loop(circuits=[circuit_sydney], substations=[sub1], energizing_substations=[sub2])
-    sgr_sydney = SubGeographicalRegion(name="Sydney", substations=[sub1, sub2])
-    sgr_newcastle = SubGeographicalRegion(name="Newcastle", substations=[sub3])
+    circuit_sydney = Circuit(mrid="sc1", end_substations=[sub1, sub2])
+    loop_sydney = Loop(mrid="sl1", circuits=[circuit_sydney], substations=[sub1], energizing_substations=[sub2])
+    sgr_sydney = SubGeographicalRegion(mrid="ssgr", name="Sydney", substations=[sub1, sub2])
+    sgr_newcastle = SubGeographicalRegion(mrid="nsgr", name="Newcastle", substations=[sub3])
 
-    gr_nsw = GeographicalRegion(name="New South Wales", sub_geographical_regions=[sgr_sydney, sgr_newcastle])
+    gr_nsw = GeographicalRegion(mrid="nsw", name="New South Wales", sub_geographical_regions=[sgr_sydney, sgr_newcastle])
 
     network_hierarchy = NetworkHierarchy(
         geographical_regions={gr_nsw.mrid: gr_nsw},

@@ -83,8 +83,8 @@ async def main():
 
 def add_energy_source(_network: NetworkService, connect_to_terminal: Terminal):
     bv = connect_to_terminal.conducting_equipment.base_voltage
-    es_t = Terminal(phases=connect_to_terminal.phases)
-    es = EnergySource(terminals=[es_t], base_voltage=bv)
+    es_t = Terminal(mrid=f"{connect_to_terminal.mrid}-es-t1", phases=connect_to_terminal.phases)
+    es = EnergySource(mrid=f"{connect_to_terminal.mrid}-es", terminals=[es_t], base_voltage=bv)
     _network.add(es_t)
     _network.add(es)
     _network.connect_terminals(es_t, connect_to_terminal)

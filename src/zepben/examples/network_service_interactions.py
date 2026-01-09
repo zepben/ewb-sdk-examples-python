@@ -111,8 +111,8 @@ print("\n#########\n# NAMES #\n#########\n")
 # Apart from identified objects, a `NetworkService` also supports names. Each identified object has
 # exactly one mRID, but can have any number of names. Each name has a name type. In this example,
 # we add two names of type "NMI" to the network model.
-meter1 = Meter()
-meter2 = Meter()
+meter1 = Meter(mrid="meter1")
+meter2 = Meter(mrid="meter2")
 
 name_type = NameType(name="NMI", description="National Meter Identifier")
 name_type.get_or_add_name("987654321", line)

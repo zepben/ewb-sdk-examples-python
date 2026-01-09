@@ -1,7 +1,7 @@
 # EWB Python SDK examples
 ## [0.7.0] - UNRELEASED
 ### Breaking Changes
-* None.
+* Updated `zepben.ewb` now requires `mrid` when constructing any `IdentifiedObject`.
 
 ### New Features
 * None.
