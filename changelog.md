@@ -7,7 +7,7 @@
 * None.
 
 ### Enhancements
-* Add pip-system-certs to dependency package.
+* Added a small F.A.Q section that can be populated in the future from user feed backs.
 
 ### Fixes
 * Fixed small issue in get_lvfeeder in request_power_factory_models.
