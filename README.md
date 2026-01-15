@@ -104,3 +104,13 @@ which will then be available via the UI for visualisation.
 
 * [Translating a CIM network model into a pandapower model](src/zepben/examples/translating_to_pandapower_model.py)
 * [Requesting a PowerFactory model through the SDK](src/zepben/examples/request_power_factory_models.py)
+
+#### F.A.Q
+
+* What do I do about permission issues when I use token from the web UI to use in the example code?
+    Please double-check the role of the generated token has the right to perform desired operations.
+    See https://zepben.github.io/evolve/docs/evolve-app-server/2.8.0/permissions/ for the list of permissions and their access.
+
+* What do I do when I run into CA or SSL issue while attempt to request/download power factory model?
+    CA used in this request will be OS basd, thus it is highly likely the user is missing a package that points the script to it.
+    Try running the command "pip install pip-system-certs" 

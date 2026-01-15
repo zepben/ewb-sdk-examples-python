@@ -31,8 +31,7 @@ dependencies = [
     "geopandas",
     "pandas",
     "shapely",
-    "tqdm",
-    "pip-system-certs"
+    "tqdm"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
