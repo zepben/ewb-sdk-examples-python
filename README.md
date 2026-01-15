@@ -112,5 +112,5 @@ which will then be available via the UI for visualisation.
     See https://zepben.github.io/evolve/docs/evolve-app-server/2.8.0/permissions/ for the list of permissions and their access.
 
 * What do I do when I run into CA or SSL issue while attempt to request/download power factory model?
-    CA used in this request will be OS basd, thus it is highly likely the user is missing a package that points the script to it.
+    CA used in this request will be OS based, thus it is highly likely the user is missing a package that points the script to it.
     Try running the command "pip install pip-system-certs" 
