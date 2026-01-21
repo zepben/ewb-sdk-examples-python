@@ -69,8 +69,7 @@ def open_dss_export(export_file_name: str):
     eas_client = EasClient(
         host=c["host"],
         port=c["rpc_port"],
-        access_token=c["access_token"],
-        verify_certificate=False
+        access_token=c["access_token"]
     )
 
     # Run an opendss export
@@ -80,7 +79,7 @@ def open_dss_export(export_file_name: str):
         OpenDssConfig(
             scenario="base",
             year=2025,
-            feeder="27200",
+            feeder="<FEEDER_MRID>",
             load_time=TimePeriod(
                 start_time=datetime.fromisoformat("2024-04-01T00:00"),
                 end_time=datetime.fromisoformat("2025-04-01T00:00")
@@ -103,20 +102,7 @@ def open_dss_export(export_file_name: str):
                             name_pattern="LV Circuit Head.*"
                         )]
                     ),
-                    default_load_watts= [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                                         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                                         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-    default_gen_watts= [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                        1.0, 1.0, 1.0, 1.0],
-    default_load_var= [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                       1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                       1.0, 1.0, 1.0, 1.0],
-    default_gen_var= [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                      1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                      1.0, 1.0, 1.0, 1.0],
-
-    load_vmax_pu=1.2,
+                    load_vmax_pu=1.2,
                     load_vmin_pu=0.8,
                     p_factor_base_exports=-1,
                     p_factor_base_imports=1,
@@ -134,13 +120,7 @@ def open_dss_export(export_file_name: str):
                     closed_loop_v_reg_set_point=0.9825,
                     seed=123,
                 ),
-                solve=SolveConfig(
-                    step_size_minutes=30.0,
-                    norm_vmin_pu=0.291,
-                    norm_vmax_pu=1.30541,
-                    emerg_vmin_pu=20.81,
-                    emerg_vmax_pu=21.11,
-                ),
+                solve=SolveConfig(step_size_minutes=30.0),
                 raw_results=RawResultsConfig(True, True, True, True, True)
             ),
             model_name=export_file_name,
