@@ -23,13 +23,13 @@ def wait_for_export(eas_client: EasClient, model_id: int):
     wait_limit_seconds = 3000
     step_seconds = 2
     total = 0
-    print(f"Waiting for model generation ({wait_limit_seconds} seconds) ", end='')
+    print(f"Waiting for model generation ({wait_limit_seconds} seconds) ", end='', flush=True)
     # Retrieve the model information for the model we just requested
     model = eas_client.get_opendss_model(model_id)
     while model["state"] == "CREATION":
         try:
             model = eas_client.get_opendss_model(model_id)
-            print(".", end='')
+            print(".", end='', flush=True)
             sleep(step_seconds)
             total += step_seconds
             if total > wait_limit_seconds:
