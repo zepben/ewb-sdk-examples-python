@@ -23,13 +23,13 @@ def wait_for_export(eas_client: EasClient, model_id: int):
     wait_limit_seconds = 3000
     step_seconds = 2
     total = 0
-    print(f"Waiting for model generation ({wait_limit_seconds} seconds) ", end='')
+    print(f"Waiting for model generation ({wait_limit_seconds} seconds) ", end='', flush=True)
     # Retrieve the model information for the model we just requested
     model = eas_client.get_opendss_model(model_id)
     while model["state"] == "CREATION":
         try:
             model = eas_client.get_opendss_model(model_id)
-            print(".", end='')
+            print(".", end='', flush=True)
             sleep(step_seconds)
             total += step_seconds
             if total > wait_limit_seconds:
@@ -69,7 +69,8 @@ def open_dss_export(export_file_name: str):
     eas_client = EasClient(
         host=c["host"],
         port=c["rpc_port"],
-        access_token=c["access_token"]
+        access_token=c["access_token"],
+        verify_certificate=False
     )
 
     # Run an opendss export
@@ -79,7 +80,7 @@ def open_dss_export(export_file_name: str):
         OpenDssConfig(
             scenario="base",
             year=2025,
-            feeder="<FEEDER_MRID>",
+            feeder="27200",
             load_time=TimePeriod(
                 start_time=datetime.fromisoformat("2024-04-01T00:00"),
                 end_time=datetime.fromisoformat("2025-04-01T00:00")
@@ -102,7 +103,20 @@ def open_dss_export(export_file_name: str):
                             name_pattern="LV Circuit Head.*"
                         )]
                     ),
-                    load_vmax_pu=1.2,
+                    default_load_watts= [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                                         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                                         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+    default_gen_watts= [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                        1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                        1.0, 1.0, 1.0, 1.0],
+    default_load_var= [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                       1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                       1.0, 1.0, 1.0, 1.0],
+    default_gen_var= [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                      1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                      1.0, 1.0, 1.0, 1.0],
+
+    load_vmax_pu=1.2,
                     load_vmin_pu=0.8,
                     p_factor_base_exports=-1,
                     p_factor_base_imports=1,
@@ -120,7 +134,13 @@ def open_dss_export(export_file_name: str):
                     closed_loop_v_reg_set_point=0.9825,
                     seed=123,
                 ),
-                solve=SolveConfig(step_size_minutes=30.0),
+                solve=SolveConfig(
+                    step_size_minutes=30.0,
+                    norm_vmin_pu=0.291,
+                    norm_vmax_pu=1.30541,
+                    emerg_vmin_pu=20.81,
+                    emerg_vmax_pu=21.11,
+                ),
                 raw_results=RawResultsConfig(True, True, True, True, True)
             ),
             model_name=export_file_name,
