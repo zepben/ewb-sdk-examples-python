@@ -1,0 +1,63 @@
+[
+  {
+    "id": "dq-zero-length-lines",
+    "name": "Zero-length line segments",
+    "type": "line",
+    "paint": {
+      "line-color": "rgb(210,2,29)",
+      "line-width": 2
+    }
+  },
+  {
+    "id": "dq-missing-impedance-lines",
+    "name": "Lines missing impedance",
+    "type": "line",
+    "paint": {
+      "line-color": "rgb(244,109,67)",
+      "line-width": 2
+    }
+  },
+  {
+    "id": "dq-missing-rating-transformer",
+    "name": "Transformers missing rating",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 8,
+      "circle-color": "rgb(94,79,162)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    }
+  },
+  {
+    "id": "dq-missing-impedance-transformer",
+    "name": "Transformers missing impedance",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 8,
+      "circle-color": "rgb(253,174,97)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    }
+  },
+  {
+    "id": "dq-missing-normal-state-switch",
+    "name": "Switches missing normal state",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-color": "rgb(44,123,182)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    }
+  },
+  {
+    "id": "dq-no-anomalies",
+    "name": "No anomalies detected",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 1,
+      "circle-opacity": 0,
+      "circle-stroke-opacity": 0
+    }
+  }
+]

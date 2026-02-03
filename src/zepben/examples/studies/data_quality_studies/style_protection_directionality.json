@@ -1,0 +1,32 @@
+[
+  {
+    "id": "dq-loop-no-switch",
+    "name": "Loops without switches",
+    "type": "line",
+    "paint": {
+      "line-color": "rgb(210,2,29)",
+      "line-width": 2
+    }
+  },
+  {
+    "id": "dq-switch-terminal-issue",
+    "name": "Switch terminal anomalies",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 7,
+      "circle-color": "rgb(244,109,67)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    }
+  },
+  {
+    "id": "dq-no-anomalies",
+    "name": "No anomalies detected",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 1,
+      "circle-opacity": 0,
+      "circle-stroke-opacity": 0
+    }
+  }
+]

@@ -1,0 +1,45 @@
+[
+  {
+    "id": "dq-unserved-ec",
+    "name": "Unserved EnergyConsumers",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-color": "rgb(210,2,29)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    }
+  },
+  {
+    "id": "dq-missing-lv-feeder-ec",
+    "name": "EnergyConsumers missing LV feeder",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-color": "rgb(244,109,67)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    }
+  },
+  {
+    "id": "dq-no-load-transformer",
+    "name": "Transformers with no downstream consumers",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 9,
+      "circle-color": "rgb(44,123,182)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    }
+  },
+  {
+    "id": "dq-no-anomalies",
+    "name": "No anomalies detected",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 1,
+      "circle-opacity": 0,
+      "circle-stroke-opacity": 0
+    }
+  }
+]
