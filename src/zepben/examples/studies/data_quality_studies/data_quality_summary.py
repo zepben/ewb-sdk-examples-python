@@ -7,6 +7,7 @@
 import asyncio
 import json
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
@@ -27,6 +28,8 @@ import phase_conductor_issues as pc
 import protection_directionality_anomalies as pd
 import spatial_location_anomalies as sl
 from dq_utils import chunk, get_zone_mrids, load_config
+
+BATCH_SIZE = 4
 
 
 async def main():
@@ -60,41 +63,32 @@ async def main():
     ec_to_distance: Dict[str, float] = {}
     very_long_lines: Set = set()
 
-    for feeders in chunk(feeder_mrids, 3):
+    for feeders in chunk(feeder_mrids, BATCH_SIZE):
         rpc_channel = _connect_rpc(config)
-        for feeder_mrid in feeders:
-            network = await _fetch_feeder_network(feeder_mrid, rpc_channel)
-            if network is None:
+        tasks = [
+            asyncio.create_task(_process_feeder(feeder_mrid, rpc_channel))
+            for feeder_mrid in feeders
+        ]
+        for result in await asyncio.gather(*tasks):
+            if result is None:
                 continue
-
-            feeder_open, feeder_disconnected = await cg.analyze_network(network, feeder_mrid)
-            open_ended_lines.update(feeder_open)
-            disconnected_lines.update(feeder_disconnected)
-
-            feeder_unserved, feeder_missing_lv, feeder_no_load = await cm.analyze_network(network, feeder_mrid)
-            unserved_ecs.update(feeder_unserved)
-            missing_lv_feeder_ecs.update(feeder_missing_lv)
-            no_load_transformers.update(feeder_no_load)
-
-            mismatch_features, missing_lines = await pc.analyze_network(network)
-            phase_mismatch_features.extend(mismatch_features)
-            missing_phase_lines.update(missing_lines)
-
-            z_lines, i_lines, t_missing, t_imp_missing, s_missing = await aa.analyze_network(network)
-            zero_length_lines.update(z_lines)
-            missing_impedance_lines.update(i_lines)
-            missing_rating_transformers.update(t_missing)
-            missing_impedance_transformers.update(t_imp_missing)
-            missing_normal_state_switches.update(s_missing)
-
-            loop_segments, switch_issues = await pd.analyze_network(network)
-            loop_lines.update(loop_segments)
-            switch_terminal_issues.update(switch_issues)
-
-            feeder_ecs, feeder_distances, feeder_lines = await sl.analyze_network(network)
-            long_service_ecs.update(feeder_ecs)
-            ec_to_distance.update(feeder_distances)
-            very_long_lines.update(feeder_lines)
+            open_ended_lines.update(result["open_ended_lines"])
+            disconnected_lines.update(result["disconnected_lines"])
+            unserved_ecs.update(result["unserved_ecs"])
+            missing_lv_feeder_ecs.update(result["missing_lv_feeder_ecs"])
+            no_load_transformers.update(result["no_load_transformers"])
+            phase_mismatch_features.extend(result["phase_mismatch_features"])
+            missing_phase_lines.update(result["missing_phase_lines"])
+            zero_length_lines.update(result["zero_length_lines"])
+            missing_impedance_lines.update(result["missing_impedance_lines"])
+            missing_rating_transformers.update(result["missing_rating_transformers"])
+            missing_impedance_transformers.update(result["missing_impedance_transformers"])
+            missing_normal_state_switches.update(result["missing_normal_state_switches"])
+            loop_lines.update(result["loop_lines"])
+            switch_terminal_issues.update(result["switch_terminal_issues"])
+            long_service_ecs.update(result["long_service_ecs"])
+            ec_to_distance.update(result["ec_to_distance"])
+            very_long_lines.update(result["very_long_lines"])
 
     results, detected_tests, used_style_ids = _build_results(
         open_ended_lines,
@@ -163,6 +157,7 @@ def _collect_feeder_mrids(substations: Dict, zone_mrids: List[str]) -> List[str]
 
 async def _fetch_feeder_network(feeder_mrid: str, rpc_channel):
     print(f"Fetching Feeder {feeder_mrid}")
+    start = time.perf_counter()
     client = NetworkConsumerClient(rpc_channel)
     result = await client.get_equipment_container(
         mrid=feeder_mrid,
@@ -172,8 +167,71 @@ async def _fetch_feeder_network(feeder_mrid: str, rpc_channel):
     if result.was_failure:
         print(f"Failed: {result.thrown}")
         return None
-    print(f"Finished fetching Feeder {feeder_mrid}")
+    elapsed = time.perf_counter() - start
+    print(f"Finished fetching Feeder {feeder_mrid} ({elapsed:.2f}s)")
     return client.service
+
+
+async def _process_feeder(feeder_mrid: str, rpc_channel):
+    feeder_start = time.perf_counter()
+    network = await _fetch_feeder_network(feeder_mrid, rpc_channel)
+    if network is None:
+        return None
+
+    async def timed(label: str, coro):
+        start = time.perf_counter()
+        result = await coro
+        elapsed = time.perf_counter() - start
+        print(f"[{feeder_mrid}] {label}: {elapsed:.2f}s")
+        return result
+
+    feeder_open, feeder_disconnected = await timed(
+        "connectivity_gaps",
+        cg.analyze_network(network, feeder_mrid),
+    )
+    feeder_unserved, feeder_missing_lv, feeder_no_load = await timed(
+        "consumer_mapping",
+        cm.analyze_network(network, feeder_mrid),
+    )
+    mismatch_features, missing_lines = await timed(
+        "phase_conductor",
+        pc.analyze_network(network),
+    )
+    z_lines, i_lines, t_missing, t_imp_missing, s_missing = await timed(
+        "asset_attributes",
+        aa.analyze_network(network),
+    )
+    loop_segments, switch_issues = await timed(
+        "protection_directionality",
+        pd.analyze_network(network),
+    )
+    feeder_ecs, feeder_distances, feeder_lines = await timed(
+        "spatial_location",
+        sl.analyze_network(network),
+    )
+
+    total = time.perf_counter() - feeder_start
+    print(f"[{feeder_mrid}] total: {total:.2f}s")
+
+    return {
+        "open_ended_lines": feeder_open,
+        "disconnected_lines": feeder_disconnected,
+        "unserved_ecs": feeder_unserved,
+        "missing_lv_feeder_ecs": feeder_missing_lv,
+        "no_load_transformers": feeder_no_load,
+        "phase_mismatch_features": mismatch_features,
+        "missing_phase_lines": missing_lines,
+        "zero_length_lines": z_lines,
+        "missing_impedance_lines": i_lines,
+        "missing_rating_transformers": t_missing,
+        "missing_impedance_transformers": t_imp_missing,
+        "missing_normal_state_switches": s_missing,
+        "loop_lines": loop_segments,
+        "switch_terminal_issues": switch_issues,
+        "long_service_ecs": feeder_ecs,
+        "ec_to_distance": feeder_distances,
+        "very_long_lines": feeder_lines,
+    }
 
 
 def _build_results(

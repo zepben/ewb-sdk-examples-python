@@ -1,0 +1,118 @@
+[
+  {
+    "id": "max-demand-utilisation",
+    "name": "Max Demand Utilisation (Import)",
+    "type": "circle",
+    "minzoom": 12,
+    "paint": {
+      "circle-radius": 16,
+      "circle-color": [
+        "case",
+        ["any",
+          ["==", ["get", "transformer_rating_va"], 0],
+          ["==", ["get", "has_max_profile"], false]
+        ],
+        "rgb(160,160,160)",
+        ["step", ["get", "max_import_util_percent"],
+          "rgb(0,180,40)",   30,
+          "rgb(171,221,164)", 60,
+          "rgb(253,174,97)", 80,
+          "rgb(244,109,67)", 90,
+          "rgb(210,2,29)"
+        ]
+      ],
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Max Demand Utilisation (Import)"
+      }
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
+    "id": "max-demand-label",
+    "name": "Max Demand Utilisation Label",
+    "type": "symbol",
+    "minzoom": 12,
+    "layout": {
+      "text-field": [
+        "case",
+        ["any",
+          ["==", ["get", "transformer_rating_va"], 0],
+          ["==", ["get", "has_max_profile"], false]
+        ],
+        "",
+        ["concat", ["round", ["get", "max_import_util_percent"]], "%"]
+      ],
+      "text-font": ["Arial Unicode MS Regular"],
+      "text-size": 12
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 2,
+      "text-halo-width": 2,
+      "text-halo-color": "white"
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
+    "id": "min-demand-utilisation",
+    "name": "Min Demand Utilisation (Export)",
+    "type": "circle",
+    "minzoom": 12,
+    "paint": {
+      "circle-radius": 16,
+      "circle-color": [
+        "case",
+        ["any",
+          ["==", ["get", "transformer_rating_va"], 0],
+          ["==", ["get", "has_min_profile"], false]
+        ],
+        "rgb(160,160,160)",
+        ["step", ["get", "min_export_util_percent"],
+          "rgb(0,180,40)",   30,
+          "rgb(171,221,164)", 60,
+          "rgb(253,174,97)", 80,
+          "rgb(244,109,67)", 90,
+          "rgb(210,2,29)"
+        ]
+      ],
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Min Demand Utilisation (Export)"
+      }
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
+    "id": "min-demand-label",
+    "name": "Min Demand Utilisation Label",
+    "type": "symbol",
+    "minzoom": 12,
+    "layout": {
+      "text-field": [
+        "case",
+        ["any",
+          ["==", ["get", "transformer_rating_va"], 0],
+          ["==", ["get", "has_min_profile"], false]
+        ],
+        "",
+        ["concat", ["round", ["get", "min_export_util_percent"]], "%"]
+      ],
+      "text-font": ["Arial Unicode MS Regular"],
+      "text-size": 12
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 2,
+      "text-halo-width": 2,
+      "text-halo-color": "white"
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  }
+]
