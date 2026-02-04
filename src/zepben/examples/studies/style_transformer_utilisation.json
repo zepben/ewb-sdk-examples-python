@@ -5,7 +5,7 @@
     "type": "circle",
     "minzoom": 12,
     "paint": {
-      "circle-radius": 16,
+      "circle-radius": 18,
       "circle-color": [
         "case",
         ["any",
@@ -32,6 +32,90 @@
     "filter" : ["==", ["get", "type"], "pt"]
   },
   {
+    "id": "max-demand-season-shape",
+    "name": "Max Demand Season Shape",
+    "type": "symbol",
+    "minzoom": 12,
+    "layout": {
+      "text-field": [
+        "case",
+        ["any",
+          ["==", ["get", "transformer_rating_va"], 0],
+          ["==", ["get", "has_max_profile"], false]
+        ],
+        "",
+        ["match", ["get", "max_demand_season"],
+          "Summer", "▲",
+          "Autumn", "◆",
+          "Winter", "■",
+          "Spring", "●",
+          ""
+        ]
+      ],
+      "text-font": ["Arial Unicode MS Regular"],
+      "text-size": [
+        "match", ["get", "max_demand_season"],
+        "Winter", 76.5,
+        102
+      ],
+      "text-offset": [0, 0],
+      "text-allow-overlap": true,
+      "text-ignore-placement": true
+    },
+    "paint": {
+      "text-color": [
+        "case",
+        ["any",
+          ["==", ["get", "transformer_rating_va"], 0],
+          ["==", ["get", "has_max_profile"], false]
+        ],
+        "rgb(160,160,160)",
+        ["step", ["get", "max_import_util_percent"],
+          "rgb(0,180,40)",   30,
+          "rgb(171,221,164)", 60,
+          "rgb(253,174,97)", 80,
+          "rgb(244,109,67)", 90,
+          "rgb(210,2,29)"
+        ]
+      ],
+      "text-halo-color": "white",
+      "text-halo-width": 1.5,
+      "text-halo-blur": 1
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Max Demand Season",
+        "states": [
+          {
+            "label": "▲ Summer",
+            "properties": {
+              "max_demand_season": "Summer"
+            }
+          },
+          {
+            "label": "◆ Autumn",
+            "properties": {
+              "max_demand_season": "Autumn"
+            }
+          },
+          {
+            "label": "■ Winter",
+            "properties": {
+              "max_demand_season": "Winter"
+            }
+          },
+          {
+            "label": "● Spring",
+            "properties": {
+              "max_demand_season": "Spring"
+            }
+          }
+        ]
+      }
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
     "id": "max-demand-label",
     "name": "Max Demand Utilisation Label",
     "type": "symbol",
@@ -47,7 +131,10 @@
         ["concat", ["round", ["get", "max_import_util_percent"]], "%"]
       ],
       "text-font": ["Arial Unicode MS Regular"],
-      "text-size": 12
+      "text-size": 12,
+      "text-offset": [0, 0],
+      "text-allow-overlap": true,
+      "text-ignore-placement": true
     },
     "paint": {
       "text-color": "black",
@@ -63,7 +150,7 @@
     "type": "circle",
     "minzoom": 12,
     "paint": {
-      "circle-radius": 16,
+      "circle-radius": 18,
       "circle-color": [
         "case",
         ["any",
@@ -90,6 +177,90 @@
     "filter" : ["==", ["get", "type"], "pt"]
   },
   {
+    "id": "min-demand-season-shape",
+    "name": "Min Demand Season Shape",
+    "type": "symbol",
+    "minzoom": 12,
+    "layout": {
+      "text-field": [
+        "case",
+        ["any",
+          ["==", ["get", "transformer_rating_va"], 0],
+          ["==", ["get", "has_min_profile"], false]
+        ],
+        "",
+        ["match", ["get", "min_demand_season"],
+          "Summer", "▲",
+          "Autumn", "◆",
+          "Winter", "■",
+          "Spring", "●",
+          ""
+        ]
+      ],
+      "text-font": ["Arial Unicode MS Regular"],
+      "text-size": [
+        "match", ["get", "min_demand_season"],
+        "Winter", 76.5,
+        102
+      ],
+      "text-offset": [0, 0],
+      "text-allow-overlap": true,
+      "text-ignore-placement": true
+    },
+    "paint": {
+      "text-color": [
+        "case",
+        ["any",
+          ["==", ["get", "transformer_rating_va"], 0],
+          ["==", ["get", "has_min_profile"], false]
+        ],
+        "rgb(160,160,160)",
+        ["step", ["get", "min_export_util_percent"],
+          "rgb(0,180,40)",   30,
+          "rgb(171,221,164)", 60,
+          "rgb(253,174,97)", 80,
+          "rgb(244,109,67)", 90,
+          "rgb(210,2,29)"
+        ]
+      ],
+      "text-halo-color": "white",
+      "text-halo-width": 1.5,
+      "text-halo-blur": 1
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Min Demand Season",
+        "states": [
+          {
+            "label": "▲ Summer",
+            "properties": {
+              "min_demand_season": "Summer"
+            }
+          },
+          {
+            "label": "◆ Autumn",
+            "properties": {
+              "min_demand_season": "Autumn"
+            }
+          },
+          {
+            "label": "■ Winter",
+            "properties": {
+              "min_demand_season": "Winter"
+            }
+          },
+          {
+            "label": "● Spring",
+            "properties": {
+              "min_demand_season": "Spring"
+            }
+          }
+        ]
+      }
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
     "id": "min-demand-label",
     "name": "Min Demand Utilisation Label",
     "type": "symbol",
@@ -105,7 +276,10 @@
         ["concat", ["round", ["get", "min_export_util_percent"]], "%"]
       ],
       "text-font": ["Arial Unicode MS Regular"],
-      "text-size": 12
+      "text-size": 12,
+      "text-offset": [0, 0],
+      "text-allow-overlap": true,
+      "text-ignore-placement": true
     },
     "paint": {
       "text-color": "black",

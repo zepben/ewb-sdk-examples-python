@@ -280,7 +280,9 @@ def _util_percent(value_kw: Optional[float], rating_va: float) -> Optional[float
 
 
 async def main():
-    zone_mrids, feeder_mrids, mode, config_path, max_workers, debug_cfg = _parse_args(sys.argv[1:])
+    zone_mrids, feeder_mrids, mode, config_path, max_workers, debug_cfg, seasonal_shapes_flag = _parse_args(
+        sys.argv[1:]
+    )
     with open(config_path) as f:
         c = json.loads(f.read())
     print(f"Start time: {datetime.now()}")
@@ -348,6 +350,7 @@ async def main():
     timeout_seconds = c.get("timeout_seconds", 10)
     verify = c.get("ca_filename") or True
     season_hemisphere = c.get("season_hemisphere", "southern")
+    seasonal_shapes = bool(c.get("seasonal_shapes", False)) or seasonal_shapes_flag
 
     load_config = LoadApiConfig(
         base_url=base_url,
@@ -479,13 +482,19 @@ async def main():
                 print(f"[debug] Sample feature properties: {sample_props}")
 
     results = []
+    max_styles = ["max-demand-utilisation", "max-demand-label"]
+    min_styles = ["min-demand-utilisation", "min-demand-label"]
+    if seasonal_shapes:
+        max_styles = ["max-demand-season-shape", "max-demand-label"]
+        min_styles = ["min-demand-season-shape", "min-demand-label"]
+
     if max_feature_collection.features:
         results.append(
             Result(
                 name="Max Demand Utilisation (Import)",
                 geo_json_overlay=GeoJsonOverlay(
                     data=max_feature_collection,
-                    styles=["max-demand-utilisation", "max-demand-label"],
+                    styles=max_styles,
                 ),
             )
         )
@@ -495,7 +504,7 @@ async def main():
                 name="Min Demand Utilisation (Export)",
                 geo_json_overlay=GeoJsonOverlay(
                     data=min_feature_collection,
-                    styles=["min-demand-utilisation", "min-demand-label"],
+                    styles=min_styles,
                 ),
             )
         )
@@ -739,7 +748,7 @@ def to_geojson_geometry(location: Location) -> Union[Geometry, None]:
         return None
 
 
-def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, int, DebugConfig]:
+def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, int, DebugConfig, bool]:
     parser = argparse.ArgumentParser(
         description="Generate a transformer utilisation study for one or more zones or feeders.",
     )
@@ -788,6 +797,11 @@ def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, int, D
         help="Log raw max/min API payloads for the first N transformers.",
     )
     parser.add_argument(
+        "--seasonal-shapes",
+        action="store_true",
+        help="Use season shapes (Summer/Autumn/Winter/Spring) for icons.",
+    )
+    parser.add_argument(
         "ids",
         nargs="*",
         help="Zone codes or feeder MRIDs (positional values override --zones/--feeders).",
@@ -814,14 +828,14 @@ def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, int, D
         feeder_mrids = _split_values(args.ids) or _split_values(args.feeders)
         if not feeder_mrids:
             raise ValueError("At least one feeder MRID is required.")
-        return [], feeder_mrids, args.mode, args.config, max_workers, debug_cfg
+        return [], feeder_mrids, args.mode, args.config, max_workers, debug_cfg, bool(args.seasonal_shapes)
 
     zone_mrids = _split_values(args.ids) or _split_values(args.zones)
 
     if not zone_mrids:
         raise ValueError("At least one zone code is required.")
 
-    return zone_mrids, [], args.mode, args.config, max_workers, debug_cfg
+    return zone_mrids, [], args.mode, args.config, max_workers, debug_cfg, bool(args.seasonal_shapes)
 
 
 if __name__ == "__main__":
