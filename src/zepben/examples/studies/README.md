@@ -30,6 +30,12 @@ Data quality scripts live in `data_quality_studies/`. See the dedicated README f
 
 - `src/zepben/examples/studies/data_quality_studies/README.md`
 
+## Analytics demo studies
+
+Mock zone-substation analytics demo scripts live in `analytics_demo_examples/`:
+
+- `src/zepben/examples/studies/analytics_demo_examples/README.md`
+
 ## Troubleshooting
 
 - **Timeouts**: Large zones can take several minutes. Use a longer shell timeout or reduce concurrency if available.

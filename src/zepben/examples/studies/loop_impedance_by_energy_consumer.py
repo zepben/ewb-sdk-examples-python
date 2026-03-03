@@ -6,7 +6,6 @@
 
 import asyncio
 import json
-import math
 from datetime import datetime
 from itertools import islice
 from typing import List, Dict, Tuple, Callable, Any, Union, Type, Set
@@ -72,7 +71,8 @@ async def main():
 
     all_ecs: List[EnergyConsumer] = []
     all_lines: List[AcLineSegment] = []
-    ec_to_loop_z: Dict[str, float] = {}
+    ec_to_loop_z_phase_phase: Dict[str, float] = {}
+    ec_to_loop_z_phase_earth: Dict[str, float] = {}
     line_to_z_per_km: Dict[str, float] = {}
 
     # Process feeders in batches of 3, using asyncio, for performance
@@ -96,10 +96,11 @@ async def main():
             result = await future
             if result is None:
                 continue
-            ecs, lines, ec_impedance, line_impedance = result
+            ecs, lines, ec_impedance_phase_phase, ec_impedance_phase_earth, line_impedance = result
             all_ecs.extend(ecs)
             all_lines.extend(lines)
-            ec_to_loop_z.update(ec_impedance)
+            ec_to_loop_z_phase_phase.update(ec_impedance_phase_phase)
+            ec_to_loop_z_phase_earth.update(ec_impedance_phase_earth)
             line_to_z_per_km.update(line_impedance)
 
     print(f"Creating study for {len(all_ecs)} energy consumers")
@@ -110,10 +111,14 @@ async def main():
         eas_client,
         all_ecs,
         all_lines,
-        ec_to_loop_z,
+        ec_to_loop_z_phase_phase,
+        ec_to_loop_z_phase_earth,
         line_to_z_per_km,
         name=f"Loop impedance (normal) ({', '.join(zone_mrids)})",
-        description="Loop impedance at EnergyConsumers on normal network path; AC line segments colored by impedance.",
+        description=(
+            "Loop impedance approximations at EnergyConsumers on the normal upstream network path to transformer; "
+            "AC line segments are colored by positive-sequence impedance."
+        ),
         tags=["loop_impedance", "-".join(zone_mrids)],
         styles=json.load(open("style_loop_impedance.json", "r")),
     )
@@ -126,7 +131,7 @@ async def main():
 async def fetch_feeder_loop_impedance(
     feeder_mrid: str,
     rpc_channel,
-) -> Union[Tuple[List[EnergyConsumer], List[AcLineSegment], Dict[str, float], Dict[str, float]], None]:
+) -> Union[Tuple[List[EnergyConsumer], List[AcLineSegment], Dict[str, float], Dict[str, float], Dict[str, float]], None]:
     print(f"Fetching Feeder {feeder_mrid}")
     client = NetworkConsumerClient(rpc_channel)
 
@@ -155,25 +160,68 @@ async def fetch_feeder_loop_impedance(
         for line in lines
     }
 
-    ec_to_loop_z = {}
+    ec_to_loop_z_phase_phase: Dict[str, float] = {}
+    ec_to_loop_z_phase_earth: Dict[str, float] = {}
     for ec in ecs:
         path_lines = await get_upstream_lines_to_transformer(ec)
-        loop_z = 2.0 * sum(_line_impedance_per_m(line) * (line.length or 0.0) for line in path_lines)
-        ec_to_loop_z[ec.mrid] = loop_z
+        z1_path, z2_path, z0_path = _path_sequence_impedance(path_lines)
+        ec_to_loop_z_phase_phase[ec.mrid] = abs(2.0 * z1_path)
+        ec_to_loop_z_phase_earth[ec.mrid] = abs(z1_path + z2_path + z0_path)
 
-    return ecs, lines, ec_to_loop_z, line_to_z_per_km
+    return ecs, lines, ec_to_loop_z_phase_phase, ec_to_loop_z_phase_earth, line_to_z_per_km
 
 
 def _line_impedance_per_m(line: AcLineSegment) -> float:
+    z1 = _line_z1_per_m(line)
+    return abs(z1)
+
+
+def _line_z1_per_m(line: AcLineSegment) -> complex:
     plsi = line.per_length_sequence_impedance
     if plsi is None:
-        return 0.0
+        return 0j
     r = plsi.r or 0.0
     x = plsi.x or 0.0
-    return math.hypot(r, x)
+    return complex(r, x)
+
+
+def _line_z2_per_m(line: AcLineSegment) -> complex:
+    plsi = line.per_length_sequence_impedance
+    if plsi is None:
+        return 0j
+    r2 = getattr(plsi, "r2", None)
+    x2 = getattr(plsi, "x2", None)
+    if r2 is None:
+        r2 = plsi.r
+    if x2 is None:
+        x2 = plsi.x
+    return complex(r2 or 0.0, x2 or 0.0)
+
+
+def _line_z0_per_m(line: AcLineSegment) -> complex:
+    plsi = line.per_length_sequence_impedance
+    if plsi is None:
+        return 0j
+    r0 = getattr(plsi, "r0", 0.0)
+    x0 = getattr(plsi, "x0", 0.0)
+    return complex(r0 or 0.0, x0 or 0.0)
+
+
+def _path_sequence_impedance(path_lines: Set[AcLineSegment]) -> Tuple[complex, complex, complex]:
+    z1_total = 0j
+    z2_total = 0j
+    z0_total = 0j
+    for line in path_lines:
+        # EWB AcLineSegment.length is in metres.
+        length_m = line.length or 0.0
+        z1_total += _line_z1_per_m(line) * length_m
+        z2_total += _line_z2_per_m(line) * length_m
+        z0_total += _line_z0_per_m(line) * length_m
+    return z1_total, z2_total, z0_total
 
 
 def _line_impedance_per_km(line: AcLineSegment) -> float:
+    # Convert per-metre magnitude to per-km for line styling/legend display.
     return _line_impedance_per_m(line) * 1000.0
 
 
@@ -213,7 +261,8 @@ async def upload_loop_impedance_study(
     eas_client: EasClient,
     ecs: List[EnergyConsumer],
     lines: List[AcLineSegment],
-    ec_to_loop_z: Dict[str, float],
+    ec_to_loop_z_phase_phase: Dict[str, float],
+    ec_to_loop_z_phase_earth: Dict[str, float],
     line_to_z_per_km: Dict[str, float],
     name: str,
     description: str,
@@ -224,8 +273,6 @@ async def upload_loop_impedance_study(
     class_to_properties = {
         EnergyConsumer: {
             "name": lambda ec: ec.name,
-            "loop_z_ohm": _loop_z_from(ec_to_loop_z),
-            "loop_z_label": _loop_z_label_from(ec_to_loop_z),
             "type": lambda x: "ec",
         },
         AcLineSegment: {
@@ -234,7 +281,8 @@ async def upload_loop_impedance_study(
             "type": lambda x: "line",
         },
     }
-    feature_collection = to_geojson_feature_collection(ecs + lines, class_to_properties)
+    phase_phase_feature_collection = _to_loop_feature_collection(ecs, lines, class_to_properties, ec_to_loop_z_phase_phase)
+    phase_earth_feature_collection = _to_loop_feature_collection(ecs, lines, class_to_properties, ec_to_loop_z_phase_earth)
     response = await eas_client.async_upload_study(
         Study(
             name=name,
@@ -242,9 +290,16 @@ async def upload_loop_impedance_study(
             tags=tags,
             results=[
                 Result(
-                    name=name,
+                    name="Phase-to-Phase Loop Approximation",
                     geo_json_overlay=GeoJsonOverlay(
-                        data=feature_collection,
+                        data=phase_phase_feature_collection,
+                        styles=[s['id'] for s in styles]
+                    )
+                ),
+                Result(
+                    name="Phase-to-Earth Loop Approximation",
+                    geo_json_overlay=GeoJsonOverlay(
+                        data=phase_earth_feature_collection,
                         styles=[s['id'] for s in styles]
                     )
                 )
@@ -292,6 +347,23 @@ def to_geojson_feature_collection(
                 features.append(feature)
 
     return FeatureCollection(features)
+
+
+def _to_loop_feature_collection(
+    ecs: List[EnergyConsumer],
+    lines: List[AcLineSegment],
+    class_to_properties: Dict[Type, Dict[str, Callable[[Any], Any]]],
+    ec_to_loop_z: Dict[str, float],
+) -> FeatureCollection:
+    properties = {
+        **class_to_properties,
+        EnergyConsumer: {
+            **class_to_properties[EnergyConsumer],
+            "loop_z_ohm": _loop_z_from(ec_to_loop_z),
+            "loop_z_label": _loop_z_label_from(ec_to_loop_z),
+        },
+    }
+    return to_geojson_feature_collection(ecs + lines, properties)
 
 
 def to_geojson_feature(
