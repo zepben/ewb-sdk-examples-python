@@ -102,9 +102,9 @@ ec_geojson = []
 Now, we will create a `Result` object named "Energy Consumers" with a GeoJSON overlay. The GeoJSON overlay includes the collected GeoJSON features in a `FeatureCollection` and a style named "ec-heatmap".
 
 ```python
-ec_result = Result(
+ec_result = StudyResultInput(
         name="Energy Consumers",
-        geo_json_overlay=GeoJsonOverlay(
+        geoJsonOverlay=GeoJsonOverlayInput(
             data=FeatureCollection(ec_geojson),
             styles=["ec-heatmap"]  # Select which Mapbox layers to show for this result
         )
@@ -154,9 +154,9 @@ lv_lines_geojson = []
 Now, we will create a `Result` object named "LV Lines" with a GeoJSON overlay. The GeoJSON overlay includes the collected GeoJSON features in a FeatureCollection.
 
 ```python
-lv_lines_result = Result(
+lv_lines_result = StudyResultInput(
         name="LV Lines",
-        geo_json_overlay=GeoJsonOverlay(
+        geoJsonOverlay=GeoJsonOverlayInput(
             data=FeatureCollection(lv_lines_geojson),
             styles=["lv-lines", "lv-lengths"]  # Select which Mapbox layers to show for this result
         )
@@ -231,7 +231,7 @@ Once you have created the Results for the studies, the next step is to create an
 A data class (`Study`) represents an Evolve App Server study. The user need to provide information such as name, descriptions, tags, results, and styles to successfully create a study.
 
 ```python
-study = Study(
+study = StudyInput(
         name="Example Study",
         description="Example study with two results.",
         tags=["example"],
@@ -253,8 +253,8 @@ Note: Each layer may have an entry in the legend via the metadata["zb:legend"] f
 The final step after creating the study is to upload it on the EAS and close the EAS client, as follows.
 
 ```python
-await eas_client.async_upload_study(study)
-await eas_client.aclose()
+await eas_client.upload_study(study)
+await eas_client.close()
 ```
 
 ## Output (Studies)

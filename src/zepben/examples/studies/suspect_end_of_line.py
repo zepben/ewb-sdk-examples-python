@@ -12,7 +12,7 @@ from typing import List, Dict, Tuple, Callable, Any, Union, Type, Set
 
 from geojson import FeatureCollection, Feature
 from geojson.geometry import Geometry, LineString, Point
-from zepben.eas import EasClient, Study, Result, GeoJsonOverlay
+from zepben.eas import EasClient, StudyInput, StudyResultInput, GeoJsonOverlayInput, Mutation
 from zepben.ewb import PowerTransformer, ConductingEquipment, EnergyConsumer, AcLineSegment, \
     NetworkConsumerClient, PhaseCode, PowerElectronicsConnection, Feeder, PowerSystemResource, Location, \
     connect_with_token, NetworkTraceStep, Tracing, downstream, upstream, IncludedEnergizedContainers
@@ -79,7 +79,7 @@ async def main():
             tags=["suspect_end_of_line", "-".join(zone_mrids)],
             styles=json.load(open("style_eol.json", "r"))
         )
-        await eas_client.aclose()
+        await eas_client.close()
         print(f"Uploaded Study")
 
     print(f"Finish time: {datetime.now()}")
@@ -178,23 +178,27 @@ async def upload_suspect_end_of_line_study(
         AcLineSegment: {"name": lambda ec: ec.name},
     }
     feature_collection = to_geojson_feature_collection(pts, class_to_properties)
-    response = await eas_client.async_upload_study(
-        Study(
-            name=name,
-            description=description,
-            tags=tags,
-            results=[
-                Result(
-                    name=name,
-                    geo_json_overlay=GeoJsonOverlay(
-                        data=feature_collection,
-                        styles=[s['id'] for s in styles]
+
+    response = await eas_client.mutation(Mutation.add_studies(
+        [
+            StudyInput(
+                name=name,
+                description=description,
+                tags=tags,
+                results=[
+                    StudyResultInput(
+                        name=name,
+                        geoJsonOverlay=GeoJsonOverlayInput(
+                            data=feature_collection,
+                            styles=[s['id'] for s in styles]
+                        )
                     )
-                )
-            ],
-            styles=styles
-        )
-    )
+                ],
+                styles=styles
+            )
+        ]
+    ))
+
     print(f"Study response: {response}")
 
 

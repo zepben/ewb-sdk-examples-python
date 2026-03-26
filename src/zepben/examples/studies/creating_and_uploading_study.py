@@ -7,7 +7,7 @@ import asyncio
 import json
 
 from geojson import Feature, LineString, FeatureCollection, Point
-from zepben.eas import Study, Result, GeoJsonOverlay, EasClient
+from zepben.eas import StudyInput, StudyResultInput, GeoJsonOverlayInput, EasClient, Mutation
 from zepben.ewb import AcLineSegment, EnergyConsumer, connect_with_token, NetworkConsumerClient, IncludedEnergizedContainers
 # A study is a geographical visualisation of data that is drawn on top of the network.
 # This data is typically the result of a load flow simulation.
@@ -24,7 +24,12 @@ with open("../config.json") as f:
 async def main():
     # Fetch network model from Energy Workbench's gRPC service (see ../connecting_to_grpc_service.py for examples on different connection functions)
     print("Connecting to EWB..")
-    grpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    grpc_channel = connect_with_token(
+        host=c["host"],
+        access_token=c["access_token"],
+        rpc_port=c["rpc_port"]
+    )
+
     feeder_mrid = "WD24"
     grpc_client = NetworkConsumerClient(grpc_channel)
     print("Connection established..")
@@ -43,9 +48,9 @@ async def main():
             )
             ec_geojson.append(ec_feature)
 
-    ec_result = Result(
+    ec_result = StudyResultInput(
         name="Energy Consumers",
-        geo_json_overlay=GeoJsonOverlay(
+        geoJsonOverlay=GeoJsonOverlayInput(
             data=FeatureCollection(ec_geojson),
             styles=["ec-heatmap"]  # Select which Mapbox layers to show for this result
         )
@@ -64,16 +69,16 @@ async def main():
             )
             lv_lines_geojson.append(line_feature)
 
-    lv_lines_result = Result(
+    lv_lines_result = StudyResultInput(
         name="LV Lines",
-        geo_json_overlay=GeoJsonOverlay(
+        geoJsonOverlay=GeoJsonOverlayInput(
             data=FeatureCollection(lv_lines_geojson),
             styles=["lv-lines", "lv-lengths"]  # Select which Mapbox layers to show for this result
         )
     )
 
     # Create and upload the study.
-    study = Study(
+    study = StudyInput(
         name="Example Study",
         description="Example study with two results.",
         tags=["example"],  # Tags make it easy to search for studies in a large list of them.
@@ -84,16 +89,22 @@ async def main():
     )
     print("Study created..")
     print("Connecting to EAS..")
-    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
+    eas_client = EasClient(
+        host=c["host"],
+        port=c["rpc_port"],
+        protocol="https",
+        access_token=c["access_token"],
+        asynchronous=True
+    )
 
     print("Connection established..")
 
     print("Uploading study...")
-    response = await eas_client.async_upload_study(study)
+    response = await eas_client.mutation(Mutation.add_studies([study]))
     print(response)
     print("Study uploaded! Please check the Evolve Web App.")
 
-    await eas_client.aclose()
+    await eas_client.close()
 
 
 if __name__ == "__main__":
