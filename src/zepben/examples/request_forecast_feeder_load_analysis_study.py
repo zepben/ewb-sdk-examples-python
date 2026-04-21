@@ -6,8 +6,7 @@
 import asyncio
 import sys
 
-from zepben.eas.client.feeder_load_analysis_input import FeederLoadAnalysisInput
-from zepben.eas.client.fla_forecast_config import FlaForecastConfig
+from zepben.eas import FeederLoadAnalysisInput, FlaForecastConfig
 
 from zepben.examples.utils import get_config_dir, get_client
 

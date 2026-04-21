@@ -4,18 +4,26 @@
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 import asyncio
+import json
 import sys
 
-from zepben.eas.client.feeder_load_analysis_input import FeederLoadAnalysisInput
+from zepben.eas import FeederLoadAnalysisInput, EasClient
 
-from zepben.examples.utils import get_config_dir, get_client
+with open("config.json") as f:
+    c = json.loads(f.read())
 
 
 async def main(argv):
     # See connecting_to_grpc_service.py for examples of each connect function
-    config_dir = get_config_dir(argv)
     print("Connecting to EAS..")
-    eas_client = get_client(config_dir)
+    eas_client = EasClient(
+        host=c["eas_host"],
+        port=c["eas_port"],
+        protocol=c["eas_protocol"],
+        access_token=c["access_token"],
+        verify_certificate=c.get("verify_certificate", True),
+        ca_filename=c["ca_path"]
+    )
     print("Connection established..")
     # Fire off a feeder load analysis study
     feeder_load_analysis_token = await eas_client.async_run_feeder_load_analysis_report(

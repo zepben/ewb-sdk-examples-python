@@ -6,7 +6,7 @@
 import json
 from typing import Dict
 
-from zepben.eas.client.eas_client import EasClient
+from zepben.eas import EasClient
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s: %(message)s')

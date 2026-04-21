@@ -12,8 +12,7 @@ from typing import List, Dict, Tuple, Callable, Any, Union, Type, Set
 
 from geojson import FeatureCollection, Feature
 from geojson.geometry import Geometry, LineString, Point
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import Study, Result, GeoJsonOverlay
+from zepben.eas import EasClient, Study, Result, GeoJsonOverlay
 from zepben.ewb import PowerTransformer, ConductingEquipment, EnergyConsumer, AcLineSegment, \
     NetworkConsumerClient, PhaseCode, PowerElectronicsConnection, Feeder, PowerSystemResource, Location, \
     connect_with_token, NetworkTraceStep, Tracing, downstream, upstream, IncludedEnergizedContainers
