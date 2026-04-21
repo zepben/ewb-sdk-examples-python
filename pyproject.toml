@@ -23,8 +23,8 @@ authors = [
     {name = "Zeppelin Bend", email = "oss@zepben.com"}
 ]
 dependencies = [
-    "zepben.eas==0.27.0b1",
-    "zepben.ewb==1.1.0b14",
+    "zepben.eas==0.28.0",
+    "zepben.ewb==1.3.1",
     "numba==0.60.0",
     "geojson==2.5.0",
     "gql[requests]==3.5.3",

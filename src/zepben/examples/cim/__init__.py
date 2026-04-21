@@ -1,9 +1,5 @@
-#  Copyright 2022 Zeppelin Bend Pty Ltd
+#  Copyright 2026 Zeppelin Bend Pty Ltd
 #
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
-from pathlib import Path
-
-# root dir of repo if cloned
-CONFIG_DIR = f"{Path(__file__).parent.parent.parent.parent}/"
