@@ -1,28 +1,28 @@
 [
   {
-    "id": "feeder-tie-confirmed",
-    "name": "Feeder Tie Switches (Confirmed)",
+    "id": "feeder-tie-switch-mv-mv",
+    "name": "Feeder Tie Switches (MV↔MV)",
     "type": "circle",
     "minzoom": 11,
     "paint": {
       "circle-radius": 9,
-      "circle-color": "rgb(0,180,40)",
+      "circle-color": "rgb(49,130,189)",
       "circle-stroke-color": "white",
       "circle-stroke-width": 1.5
     },
-    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_class"], "confirmed_tie"]]
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "mv_mv_tie"]]
   },
   {
-    "id": "feeder-tie-confirmed-label",
-    "name": "Feeder Tie Switch Labels (Confirmed)",
+    "id": "feeder-tie-switch-label-mv-mv",
+    "name": "Feeder Tie Switch Labels (MV↔MV)",
     "type": "symbol",
     "minzoom": 13,
     "layout": {
       "text-field": [
         "concat",
         ["get", "name"],
-        " (",
-        ["get", "confidence"],
+        " (MV↔MV, containers: ",
+        ["to-string", ["get", "container_count"]],
         ")"
       ],
       "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
@@ -34,37 +34,32 @@
       "text-halo-width": 4,
       "text-halo-color": "white"
     },
-    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_class"], "confirmed_tie"]]
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "mv_mv_tie"]]
   },
   {
-    "id": "feeder-tie-candidate",
-    "name": "Feeder Tie Switches (Candidate)",
+    "id": "feeder-tie-switch-mv-lv",
+    "name": "Feeder Tie Switches (MV↔LV)",
     "type": "circle",
     "minzoom": 11,
-    "layout": {
-      "visibility": "none"
-    },
     "paint": {
-      "circle-radius": 8,
+      "circle-radius": 9,
       "circle-color": "rgb(244,109,67)",
       "circle-stroke-color": "white",
-      "circle-stroke-width": 1.2,
-      "circle-opacity": 0.9
+      "circle-stroke-width": 1.5
     },
-    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_class"], "candidate_tie"]]
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "mv_lv_tie"]]
   },
   {
-    "id": "feeder-tie-candidate-label",
-    "name": "Feeder Tie Switch Labels (Candidate)",
+    "id": "feeder-tie-switch-label-mv-lv",
+    "name": "Feeder Tie Switch Labels (MV↔LV)",
     "type": "symbol",
     "minzoom": 13,
     "layout": {
-      "visibility": "none",
       "text-field": [
         "concat",
         ["get", "name"],
-        " (",
-        ["get", "confidence"],
+        " (MV↔LV, containers: ",
+        ["to-string", ["get", "container_count"]],
         ")"
       ],
       "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
@@ -76,6 +71,43 @@
       "text-halo-width": 4,
       "text-halo-color": "white"
     },
-    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_class"], "candidate_tie"]]
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "mv_lv_tie"]]
+  },
+  {
+    "id": "feeder-tie-switch-lv-lv",
+    "name": "Feeder Tie Switches (LV↔LV)",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 9,
+      "circle-color": "rgb(49,163,84)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.5
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "lv_lv_tie"]]
+  },
+  {
+    "id": "feeder-tie-switch-label-lv-lv",
+    "name": "Feeder Tie Switch Labels (LV↔LV)",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": [
+        "concat",
+        ["get", "name"],
+        " (LV↔LV, containers: ",
+        ["to-string", ["get", "container_count"]],
+        ")"
+      ],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 6,
+      "text-halo-width": 4,
+      "text-halo-color": "white"
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "lv_lv_tie"]]
   }
 ]

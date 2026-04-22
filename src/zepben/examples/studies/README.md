@@ -26,15 +26,17 @@ python transformer_utilisation_by_demand.py --mode feeders CPM3B3
 
 ## Feeder tie switches study
 
-Detects switches acting as feeder ties and uploads a single result containing detected switch points.
+Detects switches acting as feeder ties and uploads a single tie-switch result layer.
 
 - **Default scope**: MV-only switch detection.
-- **Tie classes**:
-  - `confirmed_tie`: feeder evidence resolves to 2+ feeder MRIDs.
-  - `candidate_tie`: partial feeder evidence with open-tie diagnostic signals.
+- **Core tie rule**: a switch is treated as a feeder tie when it belongs to **more than one container** (normal/current feeder containers, plus LV parent containers when `--include-lv` is used).
+- **Tie type classification**:
+  - `mv_mv_tie` → MV↔MV ties
+  - `mv_lv_tie` → MV↔LV ties
+  - `lv_lv_tie` → LV↔LV ties
 - **LV support**: opt-in via `--include-lv`.
-- **Study upload default**: confirmed ties only; candidates are excluded unless `--include-candidates-in-study` is set.
-- **CSV export**: always writes a detailed tie report (confirmed + candidate) to CSV. Override path with `--csv-output`.
+- **CSV export**: always writes a detailed tie report to CSV. Override path with `--csv-output`.
+- **Study styling**: tie types are colour-coded in the study layers.
 
 Examples:
 
@@ -42,7 +44,6 @@ Examples:
 python feeder_tie_switches.py CPM
 python feeder_tie_switches.py --mode feeders CPM3B3
 python feeder_tie_switches.py --include-lv CPM
-python feeder_tie_switches.py CPM --include-candidates-in-study
 python feeder_tie_switches.py CPM --csv-output ./reports/feeder_tie_switches_cpm.csv
 python feeder_tie_switches.py --mode full-network
 python feeder_tie_switches.py --mode full-network --full-network-list zones

@@ -20,7 +20,6 @@ from geojson.geometry import Geometry, LineString, Point
 from zepben.eas.client.eas_client import EasClient
 from zepben.eas.client.study import GeoJsonOverlay, Result, Study
 from zepben.ewb import (
-    EquipmentContainer,
     Feeder,
     IncludedEnergizedContainers,
     Location,
@@ -37,26 +36,24 @@ CSV_FIELDNAMES = [
     "switch_mrid",
     "name",
     "type",
+    "is_tie",
     "tie_class",
-    "confidence",
-    "confidence_score",
-    "feeder_count",
-    "feeder_ids",
-    "switch_feeder_ids",
-    "adjacent_feeder_ids",
-    "normal_feeder_ids",
-    "current_feeder_ids",
-    "lv_parent_feeder_ids",
-    "source_feeder_ids",
-    "source_feeder_count",
+    "tie_type",
+    "tie_type_label",
+    "container_count",
+    "container_ids",
+    "normal_container_ids",
+    "current_container_ids",
+    "lv_parent_container_ids",
+    "mv_container_count",
+    "mv_container_ids",
+    "lv_circuit_count",
+    "lv_circuit_ids",
+    "normal_lv_circuit_ids",
+    "current_lv_circuit_ids",
+    "observed_container_ids",
+    "observed_container_count",
     "terminal_count",
-    "connected_terminal_count",
-    "terminals_missing_connectivity_node",
-    "unresolved_container_ref_count",
-    "unresolved_container_refs",
-    "has_external_adjacent_feeder",
-    "has_partial_terminal_signal",
-    "candidate_signals",
     "is_open",
     "is_normally_open",
     "include_lv_mode",
@@ -70,7 +67,6 @@ CSV_FIELDNAMES = [
 class SwitchEvidence:
     switch: Switch
     source_feeder_mrids: Set[str] = field(default_factory=set)
-    unresolved_container_refs: Set[str] = field(default_factory=set)
 
 
 def chunk(it, size):
@@ -98,7 +94,6 @@ async def main():
         config_path,
         include_lv,
         full_network_list,
-        include_candidates_in_study,
         csv_output,
     ) = _parse_args(sys.argv[1:])
     with open(config_path, "r") as f:
@@ -136,10 +131,6 @@ async def main():
 
     print(f"Feeders to be processed: {', '.join(feeder_mrids)}")
     print(f"LV inclusion: {'enabled' if include_lv else 'disabled (MV-only)'}")
-    print(
-        "Candidate study results: "
-        f"{'enabled' if include_candidates_in_study else 'disabled (confirmed-only default)'}"
-    )
 
     switch_evidence_by_mrid: Dict[str, SwitchEvidence] = {}
     failed_feeder_requests: List[str] = []
@@ -191,30 +182,21 @@ async def main():
     print(f"Unique switches considered: {len(switch_evidence_by_mrid)}")
 
     switch_to_properties: Dict[str, Dict[str, Any]] = {}
-    confirmed_switches: List[Switch] = []
-    candidate_switches: List[Switch] = []
+    tie_switches: List[Switch] = []
 
-    confirmed_count = 0
-    candidate_count = 0
+    tie_count = 0
 
     for evidence in switch_evidence_by_mrid.values():
         props = _build_tie_properties(evidence, include_lv)
-        tie_class = props.get("tie_class")
-        if tie_class == "confirmed_tie":
-            confirmed_count += 1
-            confirmed_switches.append(evidence.switch)
-        elif tie_class == "candidate_tie":
-            candidate_count += 1
-            candidate_switches.append(evidence.switch)
-        else:
+        if props.get("tie_class") != "feeder_tie":
             continue
+
+        tie_count += 1
+        tie_switches.append(evidence.switch)
 
         switch_to_properties[evidence.switch.mrid] = props
 
-    print(
-        "Detected tie switches: "
-        f"confirmed={confirmed_count}, candidate={candidate_count}, total={confirmed_count + candidate_count}"
-    )
+    print(f"Detected feeder ties: {tie_count}")
 
     if mode == "zones":
         scope_label = ", ".join(zone_mrids)
@@ -227,25 +209,33 @@ async def main():
         scope_tag = f"full-network-{full_network_list}"
 
     lv_tag = "mv_lv" if include_lv else "mv_only"
-    candidate_result_tag = (
-        "candidate_results_included" if include_candidates_in_study else "candidate_results_excluded"
-    )
     csv_report_path = _resolve_csv_report_path(csv_output, scope_tag, lv_tag)
     csv_rows = _build_csv_rows(switch_to_properties, mode, scope_label)
     _write_tie_csv_report(csv_report_path, csv_rows)
     print(f"Wrote tie switch CSV report: {csv_report_path} ({len(csv_rows)} rows)")
 
-    confirmed_feature_collection = _build_feature_collection(confirmed_switches, switch_to_properties)
-    candidate_feature_collection = _build_feature_collection(candidate_switches, switch_to_properties)
-    if not confirmed_feature_collection.features and not candidate_feature_collection.features:
+    mv_tie_switches = [
+        sw
+        for sw in tie_switches
+        if switch_to_properties.get(sw.mrid, {}).get("tie_type") in ("mv_mv_tie", "mv_lv_tie")
+    ]
+    lv_lv_tie_switches = [
+        sw
+        for sw in tie_switches
+        if switch_to_properties.get(sw.mrid, {}).get("tie_type") == "lv_lv_tie"
+    ]
+
+    mv_tie_feature_collection = _build_feature_collection(mv_tie_switches, switch_to_properties)
+    lv_lv_tie_feature_collection = _build_feature_collection(lv_lv_tie_switches, switch_to_properties)
+    if not mv_tie_feature_collection.features and not lv_lv_tie_feature_collection.features:
         print("No mappable tie switch features were found (e.g. missing location). Study upload skipped.")
         return
 
     print(
         "Mappable tie features: "
-        f"confirmed={len(confirmed_feature_collection.features)}, "
-        f"candidate={len(candidate_feature_collection.features)}, "
-        f"total={len(confirmed_feature_collection.features) + len(candidate_feature_collection.features)}"
+        f"mv={len(mv_tie_feature_collection.features)}, "
+        f"lv_lv={len(lv_lv_tie_feature_collection.features)}, "
+        f"total={len(mv_tie_feature_collection.features) + len(lv_lv_tie_feature_collection.features)}"
     )
 
     style_path = os.path.join(os.path.dirname(__file__), "style_feeder_tie_switches.json")
@@ -259,38 +249,36 @@ async def main():
         f"total={len(feeder_mrids)}, "
         f"failed_unique={len(failed_feeder_mrids)}."
     )
-    candidate_upload_summary = (
-        "Candidate ties are included in the uploaded study."
-        if include_candidates_in_study
-        else "Candidate ties are excluded from the uploaded study by default "
-             "(use --include-candidates-in-study to include them)."
-    )
 
     results: List[Result] = []
-    if confirmed_feature_collection.features:
+    if mv_tie_feature_collection.features:
         results.append(
             Result(
-                name=f"Confirmed feeder ties ({len(confirmed_feature_collection.features)})",
+                name=f"Feeder ties (MV↔MV + MV↔LV) ({len(mv_tie_feature_collection.features)})",
                 geo_json_overlay=GeoJsonOverlay(
-                    data=confirmed_feature_collection,
-                    styles=["feeder-tie-confirmed", "feeder-tie-confirmed-label"],
+                    data=mv_tie_feature_collection,
+                    styles=[
+                        "feeder-tie-switch-mv-mv",
+                        "feeder-tie-switch-mv-lv",
+                        "feeder-tie-switch-label-mv-mv",
+                        "feeder-tie-switch-label-mv-lv",
+                    ],
                 ),
             )
         )
-    if candidate_feature_collection.features and include_candidates_in_study:
+
+    if lv_lv_tie_feature_collection.features:
         results.append(
             Result(
-                name=f"Candidate feeder ties ({len(candidate_feature_collection.features)})",
+                name=f"Feeder ties (LV↔LV) ({len(lv_lv_tie_feature_collection.features)})",
                 geo_json_overlay=GeoJsonOverlay(
-                    data=candidate_feature_collection,
-                    styles=["feeder-tie-candidate", "feeder-tie-candidate-label"],
+                    data=lv_lv_tie_feature_collection,
+                    styles=[
+                        "feeder-tie-switch-lv-lv",
+                        "feeder-tie-switch-label-lv-lv",
+                    ],
                 ),
             )
-        )
-    elif candidate_feature_collection.features:
-        print(
-            "Candidate tie features detected but excluded from study upload by default. "
-            "Use --include-candidates-in-study to include them in EAS results."
         )
 
     if not results:
@@ -308,17 +296,15 @@ async def main():
         Study(
             name=f"Feeder tie switches ({scope_label})",
             description=(
-                "Detects feeder tie switches by feeder-membership evidence. "
+                "Detects feeder tie switches using container-membership evidence "
+                "(switch associated with more than one container). "
                 "Detected tie switch attributes are exported to CSV. "
-                "Confirmed ties are uploaded by default. "
-                f"{candidate_upload_summary} "
                 f"{fetch_coverage_summary}"
             ),
             tags=[
                 "feeder_tie_switches",
                 lv_tag,
                 scope_tag,
-                candidate_result_tag,
                 f"fetch_failed_{failed_feeder_request_count}",
                 f"fetch_total_{len(feeder_mrids)}",
             ],
@@ -390,7 +376,6 @@ async def _fetch_feeder_switch_evidence(
         feeder_switches[sw.mrid] = SwitchEvidence(
             switch=sw,
             source_feeder_mrids={feeder_mrid},
-            unresolved_container_refs=_unresolved_container_refs(network, sw.mrid),
         )
 
     return feeder_switches
@@ -429,7 +414,6 @@ def _merge_switch_evidence(
             continue
 
         existing.source_feeder_mrids.update(evidence.source_feeder_mrids)
-        existing.unresolved_container_refs.update(evidence.unresolved_container_refs)
 
         # Keep whichever object has location data for better map output.
         if existing.switch.location is None and evidence.switch.location is not None:
@@ -438,126 +422,116 @@ def _merge_switch_evidence(
 
 def _build_tie_properties(evidence: SwitchEvidence, include_lv: bool) -> Dict[str, Any]:
     switch = evidence.switch
-    switch_feeder_ids, normal_feeder_ids, current_feeder_ids, lv_parent_feeder_ids = _switch_feeder_ids(switch, include_lv)
-    adjacent_feeder_ids, connected_terminal_count, missing_connectivity_node_count = _adjacent_feeder_ids(switch, include_lv)
-    combined_feeder_ids = switch_feeder_ids | adjacent_feeder_ids
-
-    unresolved_ref_count = len(evidence.unresolved_container_refs)
+    (
+        container_ids,
+        normal_container_ids,
+        current_container_ids,
+        lv_parent_container_ids,
+        normal_lv_circuit_ids,
+        current_lv_circuit_ids,
+    ) = _switch_container_ids(switch, include_lv)
+    mv_container_ids = set(normal_container_ids | current_container_ids)
+    lv_circuit_ids = set(normal_lv_circuit_ids | current_lv_circuit_ids)
     total_terminal_count = len(list(switch.terminals))
     is_open = _switch_open_value(switch)
     is_normally_open = _switch_normal_open_value(switch)
 
-    has_external_adjacent_feeder = bool(adjacent_feeder_ids - switch_feeder_ids)
-    has_partial_terminal_signal = connected_terminal_count < 2 or missing_connectivity_node_count > 0
-
-    tie_class = "non_tie"
-    confidence = "none"
-    confidence_score = 0
-    candidate_signals: List[str] = []
-
-    if len(combined_feeder_ids) >= 2:
-        tie_class = "confirmed_tie"
-        confidence = "high"
-        confidence_score = 100
-    elif len(combined_feeder_ids) == 1:
-        if unresolved_ref_count > 0:
-            candidate_signals.append("unresolved_container_ref")
-        if has_external_adjacent_feeder:
-            candidate_signals.append("external_adjacent_feeder")
-        if has_partial_terminal_signal:
-            candidate_signals.append("partial_terminal_connectivity")
-        if is_open is True or is_normally_open is True:
-            candidate_signals.append("open_state")
-
-        if candidate_signals:
-            tie_class = "candidate_tie"
-            if "external_adjacent_feeder" in candidate_signals or "unresolved_container_ref" in candidate_signals:
-                confidence = "medium"
-                confidence_score = 70
-            else:
-                confidence = "low"
-                confidence_score = 50
+    tie_class = "feeder_tie" if len(container_ids) > 1 else "non_tie"
+    tie_type = _classify_tie_type(tie_class, mv_container_ids, lv_circuit_ids, lv_parent_container_ids)
 
     return {
         "name": switch.name or switch.mrid,
         "type": "switch",
+        "is_tie": tie_class == "feeder_tie",
         "tie_class": tie_class,
-        "confidence": confidence,
-        "confidence_score": confidence_score,
-        "feeder_count": len(combined_feeder_ids),
-        "feeder_ids": sorted(combined_feeder_ids),
-        "switch_feeder_ids": sorted(switch_feeder_ids),
-        "adjacent_feeder_ids": sorted(adjacent_feeder_ids),
-        "normal_feeder_ids": sorted(normal_feeder_ids),
-        "current_feeder_ids": sorted(current_feeder_ids),
-        "lv_parent_feeder_ids": sorted(lv_parent_feeder_ids),
-        "source_feeder_ids": sorted(evidence.source_feeder_mrids),
-        "source_feeder_count": len(evidence.source_feeder_mrids),
+        "tie_type": tie_type,
+        "tie_type_label": _tie_type_label(tie_type),
+        "container_count": len(container_ids),
+        "container_ids": sorted(container_ids),
+        "normal_container_ids": sorted(normal_container_ids),
+        "current_container_ids": sorted(current_container_ids),
+        "lv_parent_container_ids": sorted(lv_parent_container_ids),
+        "mv_container_count": len(mv_container_ids),
+        "mv_container_ids": sorted(mv_container_ids),
+        "lv_circuit_count": len(lv_circuit_ids),
+        "lv_circuit_ids": sorted(lv_circuit_ids),
+        "normal_lv_circuit_ids": sorted(normal_lv_circuit_ids),
+        "current_lv_circuit_ids": sorted(current_lv_circuit_ids),
+        "observed_container_ids": sorted(evidence.source_feeder_mrids),
+        "observed_container_count": len(evidence.source_feeder_mrids),
         "terminal_count": total_terminal_count,
-        "connected_terminal_count": connected_terminal_count,
-        "terminals_missing_connectivity_node": missing_connectivity_node_count,
-        "unresolved_container_ref_count": unresolved_ref_count,
-        "unresolved_container_refs": sorted(evidence.unresolved_container_refs),
-        "has_external_adjacent_feeder": has_external_adjacent_feeder,
-        "has_partial_terminal_signal": has_partial_terminal_signal,
-        "candidate_signals": candidate_signals,
         "is_open": is_open,
         "is_normally_open": is_normally_open,
         "include_lv_mode": include_lv,
     }
 
 
-def _switch_feeder_ids(switch: Switch, include_lv: bool) -> Tuple[Set[str], Set[str], Set[str], Set[str]]:
-    normal_feeder_ids = _normal_feeder_ids(switch)
-    current_feeder_ids = _current_feeder_ids(switch)
-    feeder_ids = set(normal_feeder_ids or current_feeder_ids)
+def _switch_container_ids(
+    switch: Switch,
+    include_lv: bool,
+) -> Tuple[Set[str], Set[str], Set[str], Set[str], Set[str], Set[str]]:
+    normal_container_ids = _normal_container_ids(switch)
+    current_container_ids = _current_container_ids(switch)
+    container_ids = set(normal_container_ids | current_container_ids)
 
-    lv_parent_feeder_ids: Set[str] = set()
+    lv_parent_container_ids: Set[str] = set()
+    normal_lv_circuit_ids: Set[str] = set()
+    current_lv_circuit_ids: Set[str] = set()
     if include_lv:
-        lv_parent_feeder_ids.update(_normal_lv_parent_feeder_ids(switch))
-        if not lv_parent_feeder_ids:
-            lv_parent_feeder_ids.update(_current_lv_parent_feeder_ids(switch))
-        feeder_ids.update(lv_parent_feeder_ids)
+        normal_lv_circuit_ids.update(_normal_lv_circuit_ids(switch))
+        current_lv_circuit_ids.update(_current_lv_circuit_ids(switch))
+        lv_parent_container_ids.update(_normal_lv_parent_container_ids(switch))
+        lv_parent_container_ids.update(_current_lv_parent_container_ids(switch))
+        container_ids.update(lv_parent_container_ids)
+        container_ids.update(normal_lv_circuit_ids)
+        container_ids.update(current_lv_circuit_ids)
 
-    return feeder_ids, normal_feeder_ids, current_feeder_ids, lv_parent_feeder_ids
-
-
-def _equipment_feeder_ids(equipment: Any, include_lv: bool) -> Set[str]:
-    normal_feeder_ids = _normal_feeder_ids(equipment)
-    current_feeder_ids = _current_feeder_ids(equipment)
-    feeder_ids = set(normal_feeder_ids or current_feeder_ids)
-
-    if include_lv:
-        lv_parent_ids = _normal_lv_parent_feeder_ids(equipment)
-        if not lv_parent_ids:
-            lv_parent_ids = _current_lv_parent_feeder_ids(equipment)
-        feeder_ids.update(lv_parent_ids)
-
-    return feeder_ids
+    return (
+        container_ids,
+        normal_container_ids,
+        current_container_ids,
+        lv_parent_container_ids,
+        normal_lv_circuit_ids,
+        current_lv_circuit_ids,
+    )
 
 
-def _adjacent_feeder_ids(switch: Switch, include_lv: bool) -> Tuple[Set[str], int, int]:
-    feeder_ids: Set[str] = set()
-    connected_terminal_count = 0
-    missing_connectivity_node_count = 0
+def _classify_tie_type(
+    tie_class: str,
+    mv_container_ids: Set[str],
+    lv_circuit_ids: Set[str],
+    lv_parent_container_ids: Set[str],
+) -> str:
+    if tie_class != "feeder_tie":
+        return "non_tie"
 
-    for terminal in switch.terminals:
-        node = terminal.connectivity_node
-        if node is None:
-            missing_connectivity_node_count += 1
-            continue
+    # Treat LV parent containers as MV-side evidence for classification,
+    # even when MV feeders are not directly materialised on the switch.
+    effective_mv_container_ids = set(mv_container_ids | lv_parent_container_ids)
+    mv_count = len(effective_mv_container_ids)
+    lv_circuit_count = len(lv_circuit_ids)
 
-        connected_terminal_count += 1
-        for other_terminal in node.terminals:
-            conducting_equipment = other_terminal.conducting_equipment
-            if conducting_equipment is None or conducting_equipment is switch:
-                continue
-            feeder_ids.update(_equipment_feeder_ids(conducting_equipment, include_lv))
+    if mv_count >= 2:
+        return "mv_mv_tie"
+    if mv_count >= 1 and lv_circuit_count >= 1:
+        return "mv_lv_tie"
+    if lv_circuit_count >= 2:
+        return "lv_lv_tie"
 
-    return feeder_ids, connected_terminal_count, missing_connectivity_node_count
+    return "mv_mv_tie"
 
 
-def _normal_feeder_ids(equipment: Any) -> Set[str]:
+def _tie_type_label(tie_type: str) -> str:
+    if tie_type == "mv_mv_tie":
+        return "MV↔MV ties"
+    if tie_type == "mv_lv_tie":
+        return "MV↔LV ties"
+    if tie_type == "lv_lv_tie":
+        return "LV↔LV ties"
+    return "Non-tie"
+
+
+def _normal_container_ids(equipment: Any) -> Set[str]:
     return {
         feeder.mrid
         for feeder in (getattr(equipment, "normal_feeders", None) or [])
@@ -565,7 +539,7 @@ def _normal_feeder_ids(equipment: Any) -> Set[str]:
     }
 
 
-def _current_feeder_ids(equipment: Any) -> Set[str]:
+def _current_container_ids(equipment: Any) -> Set[str]:
     return {
         feeder.mrid
         for feeder in (getattr(equipment, "current_feeders", None) or [])
@@ -573,7 +547,23 @@ def _current_feeder_ids(equipment: Any) -> Set[str]:
     }
 
 
-def _normal_lv_parent_feeder_ids(equipment: Any) -> Set[str]:
+def _normal_lv_circuit_ids(equipment: Any) -> Set[str]:
+    return {
+        feeder.mrid
+        for feeder in (getattr(equipment, "normal_lv_feeders", None) or [])
+        if getattr(feeder, "mrid", None)
+    }
+
+
+def _current_lv_circuit_ids(equipment: Any) -> Set[str]:
+    return {
+        feeder.mrid
+        for feeder in (getattr(equipment, "current_lv_feeders", None) or [])
+        if getattr(feeder, "mrid", None)
+    }
+
+
+def _normal_lv_parent_container_ids(equipment: Any) -> Set[str]:
     parent_ids: Set[str] = set()
     for lv_feeder in (getattr(equipment, "normal_lv_feeders", None) or []):
         for feeder in (getattr(lv_feeder, "normal_energizing_feeders", None) or []):
@@ -582,7 +572,7 @@ def _normal_lv_parent_feeder_ids(equipment: Any) -> Set[str]:
     return parent_ids
 
 
-def _current_lv_parent_feeder_ids(equipment: Any) -> Set[str]:
+def _current_lv_parent_container_ids(equipment: Any) -> Set[str]:
     parent_ids: Set[str] = set()
     for lv_feeder in (getattr(equipment, "current_lv_feeders", None) or []):
         for feeder in (getattr(lv_feeder, "current_energizing_feeders", None) or []):
@@ -629,31 +619,9 @@ def _is_lv_switch(sw: Switch) -> bool:
 
     # Fallback for models where base voltage is absent:
     # if the switch appears only in LV containers, treat as LV.
-    has_mv = bool(_normal_feeder_ids(sw) or _current_feeder_ids(sw))
-    has_lv = bool(_normal_lv_parent_feeder_ids(sw) or _current_lv_parent_feeder_ids(sw))
+    has_mv = bool(_normal_container_ids(sw) or _current_container_ids(sw))
+    has_lv = bool(_normal_lv_parent_container_ids(sw) or _current_lv_parent_container_ids(sw))
     return has_lv and not has_mv
-
-
-def _unresolved_container_refs(network, mrid: str) -> Set[str]:
-    get_refs = getattr(network, "get_unresolved_references_from", None)
-    if not callable(get_refs):
-        return set()
-
-    refs: Set[str] = set()
-    try:
-        for ref in get_refs(mrid):
-            resolver = getattr(ref, "resolver", None)
-            to_class = getattr(resolver, "to_class", None)
-            to_mrid = getattr(ref, "to_mrid", None)
-            if not to_mrid:
-                continue
-
-            if to_class is EquipmentContainer or getattr(to_class, "__name__", None) == "EquipmentContainer":
-                refs.add(str(to_mrid))
-    except Exception:
-        return refs
-
-    return refs
 
 
 def _build_feature_collection(
@@ -746,11 +714,11 @@ def _write_tie_csv_report(path: str, rows: List[Dict[str, Any]]) -> None:
             writer.writerow({column: _csv_cell(row.get(column)) for column in CSV_FIELDNAMES})
 
 
-def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, str, bool, str]:
+def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, str, str]:
     parser = argparse.ArgumentParser(
         description=(
             "Generate a feeder-tie switch study for one or more zones or feeders. "
-            "Default behavior is MV-only with confirmed ties only in study results; "
+            "Default behavior is MV-only; "
             "use --include-lv to include LV containers."
         )
     )
@@ -790,11 +758,6 @@ def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, 
         help="Include LV containers in fetch and tie detection (default is MV-only).",
     )
     parser.add_argument(
-        "--include-candidates-in-study",
-        action="store_true",
-        help="Include candidate tie layers in uploaded study results (default is confirmed-only).",
-    )
-    parser.add_argument(
         "--csv-output",
         default="",
         help=(
@@ -827,7 +790,6 @@ def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, 
             args.config,
             bool(args.include_lv),
             args.full_network_list,
-            bool(args.include_candidates_in_study),
             args.csv_output,
         )
 
@@ -839,7 +801,6 @@ def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, 
             args.config,
             bool(args.include_lv),
             args.full_network_list,
-            bool(args.include_candidates_in_study),
             args.csv_output,
         )
 
@@ -854,7 +815,6 @@ def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, 
         args.config,
         bool(args.include_lv),
         args.full_network_list,
-        bool(args.include_candidates_in_study),
         args.csv_output,
     )
 
