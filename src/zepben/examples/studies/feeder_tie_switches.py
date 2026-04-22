@@ -6,6 +6,7 @@
 
 import argparse
 import asyncio
+import csv
 import json
 import os
 import sys
@@ -32,6 +33,37 @@ from zepben.ewb import (
 
 DEFAULT_CONFIG_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "config.json"))
 DEFAULT_BATCH_SIZE = 3
+CSV_FIELDNAMES = [
+    "switch_mrid",
+    "name",
+    "type",
+    "tie_class",
+    "confidence",
+    "confidence_score",
+    "feeder_count",
+    "feeder_ids",
+    "switch_feeder_ids",
+    "adjacent_feeder_ids",
+    "normal_feeder_ids",
+    "current_feeder_ids",
+    "lv_parent_feeder_ids",
+    "source_feeder_ids",
+    "source_feeder_count",
+    "terminal_count",
+    "connected_terminal_count",
+    "terminals_missing_connectivity_node",
+    "unresolved_container_ref_count",
+    "unresolved_container_refs",
+    "has_external_adjacent_feeder",
+    "has_partial_terminal_signal",
+    "candidate_signals",
+    "is_open",
+    "is_normally_open",
+    "include_lv_mode",
+    "scope_mode",
+    "scope_label",
+    "generated_at_utc",
+]
 
 
 @dataclass
@@ -59,7 +91,16 @@ def _connect_rpc(config):
 
 
 async def main():
-    zone_mrids, feeder_mrids, mode, config_path, include_lv, full_network_list = _parse_args(sys.argv[1:])
+    (
+        zone_mrids,
+        feeder_mrids,
+        mode,
+        config_path,
+        include_lv,
+        full_network_list,
+        include_candidates_in_study,
+        csv_output,
+    ) = _parse_args(sys.argv[1:])
     with open(config_path, "r") as f:
         config = json.loads(f.read())
 
@@ -95,6 +136,10 @@ async def main():
 
     print(f"Feeders to be processed: {', '.join(feeder_mrids)}")
     print(f"LV inclusion: {'enabled' if include_lv else 'disabled (MV-only)'}")
+    print(
+        "Candidate study results: "
+        f"{'enabled' if include_candidates_in_study else 'disabled (confirmed-only default)'}"
+    )
 
     switch_evidence_by_mrid: Dict[str, SwitchEvidence] = {}
     failed_feeder_requests: List[str] = []
@@ -171,6 +216,25 @@ async def main():
         f"confirmed={confirmed_count}, candidate={candidate_count}, total={confirmed_count + candidate_count}"
     )
 
+    if mode == "zones":
+        scope_label = ", ".join(zone_mrids)
+        scope_tag = "-".join(zone_mrids)
+    elif mode == "feeders":
+        scope_label = ", ".join(feeder_mrids)
+        scope_tag = "-".join(feeder_mrids)
+    else:
+        scope_label = f"full-network ({full_network_list})"
+        scope_tag = f"full-network-{full_network_list}"
+
+    lv_tag = "mv_lv" if include_lv else "mv_only"
+    candidate_result_tag = (
+        "candidate_results_included" if include_candidates_in_study else "candidate_results_excluded"
+    )
+    csv_report_path = _resolve_csv_report_path(csv_output, scope_tag, lv_tag)
+    csv_rows = _build_csv_rows(switch_to_properties, mode, scope_label)
+    _write_tie_csv_report(csv_report_path, csv_rows)
+    print(f"Wrote tie switch CSV report: {csv_report_path} ({len(csv_rows)} rows)")
+
     confirmed_feature_collection = _build_feature_collection(confirmed_switches, switch_to_properties)
     candidate_feature_collection = _build_feature_collection(candidate_switches, switch_to_properties)
     if not confirmed_feature_collection.features and not candidate_feature_collection.features:
@@ -188,24 +252,18 @@ async def main():
     with open(style_path, "r") as f:
         styles = json.load(f)
 
-    if mode == "zones":
-        scope_mrids = zone_mrids
-        scope_label = ", ".join(scope_mrids)
-        scope_tag = "-".join(scope_mrids)
-    elif mode == "feeders":
-        scope_mrids = feeder_mrids
-        scope_label = ", ".join(scope_mrids)
-        scope_tag = "-".join(scope_mrids)
-    else:
-        scope_label = f"full-network ({full_network_list})"
-        scope_tag = f"full-network-{full_network_list}"
-    lv_tag = "mv_lv" if include_lv else "mv_only"
     fetch_coverage_summary = (
         "Feeder fetch coverage: "
         f"succeeded={succeeded_feeder_request_count}, "
         f"failed={failed_feeder_request_count}, "
         f"total={len(feeder_mrids)}, "
         f"failed_unique={len(failed_feeder_mrids)}."
+    )
+    candidate_upload_summary = (
+        "Candidate ties are included in the uploaded study."
+        if include_candidates_in_study
+        else "Candidate ties are excluded from the uploaded study by default "
+             "(use --include-candidates-in-study to include them)."
     )
 
     results: List[Result] = []
@@ -219,7 +277,7 @@ async def main():
                 ),
             )
         )
-    if candidate_feature_collection.features:
+    if candidate_feature_collection.features and include_candidates_in_study:
         results.append(
             Result(
                 name=f"Candidate feeder ties ({len(candidate_feature_collection.features)})",
@@ -229,6 +287,15 @@ async def main():
                 ),
             )
         )
+    elif candidate_feature_collection.features:
+        print(
+            "Candidate tie features detected but excluded from study upload by default. "
+            "Use --include-candidates-in-study to include them in EAS results."
+        )
+
+    if not results:
+        print("No enabled mappable tie switch layers were produced. Study upload skipped.")
+        return
 
     eas_client = EasClient(
         host=config["host"],
@@ -242,14 +309,16 @@ async def main():
             name=f"Feeder tie switches ({scope_label})",
             description=(
                 "Detects feeder tie switches by feeder-membership evidence. "
-                "Includes confirmed ties (>=2 feeder IDs) and candidate ties "
-                "(single-feeder evidence plus open-tie signals). "
+                "Detected tie switch attributes are exported to CSV. "
+                "Confirmed ties are uploaded by default. "
+                f"{candidate_upload_summary} "
                 f"{fetch_coverage_summary}"
             ),
             tags=[
                 "feeder_tie_switches",
                 lv_tag,
                 scope_tag,
+                candidate_result_tag,
                 f"fetch_failed_{failed_feeder_request_count}",
                 f"fetch_total_{len(feeder_mrids)}",
             ],
@@ -626,11 +695,63 @@ def to_geojson_geometry(location: Location) -> Union[Geometry, None]:
     return None
 
 
-def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, str]:
+def _resolve_csv_report_path(csv_output: str, scope_tag: str, lv_tag: str) -> str:
+    if csv_output:
+        return csv_output
+    timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    return os.path.join(
+        os.path.dirname(__file__),
+        f"feeder_tie_switches_{scope_tag}_{lv_tag}_{timestamp}.csv",
+    )
+
+
+def _build_csv_rows(
+    switch_to_properties: Dict[str, Dict[str, Any]],
+    mode: str,
+    scope_label: str,
+) -> List[Dict[str, Any]]:
+    generated_at_utc = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+    rows: List[Dict[str, Any]] = []
+    for switch_mrid in sorted(switch_to_properties.keys()):
+        row: Dict[str, Any] = {
+            "switch_mrid": switch_mrid,
+            "scope_mode": mode,
+            "scope_label": scope_label,
+            "generated_at_utc": generated_at_utc,
+        }
+        row.update(switch_to_properties[switch_mrid])
+        rows.append(row)
+    return rows
+
+
+def _csv_cell(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (list, tuple, set)):
+        return "|".join(str(item) for item in value)
+    return str(value)
+
+
+def _write_tie_csv_report(path: str, rows: List[Dict[str, Any]]) -> None:
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+
+    with open(path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=CSV_FIELDNAMES)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({column: _csv_cell(row.get(column)) for column in CSV_FIELDNAMES})
+
+
+def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, str, bool, str]:
     parser = argparse.ArgumentParser(
         description=(
             "Generate a feeder-tie switch study for one or more zones or feeders. "
-            "Default behavior is MV-only; use --include-lv to include LV containers."
+            "Default behavior is MV-only with confirmed ties only in study results; "
+            "use --include-lv to include LV containers."
         )
     )
     parser.add_argument(
@@ -669,6 +790,19 @@ def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, 
         help="Include LV containers in fetch and tie detection (default is MV-only).",
     )
     parser.add_argument(
+        "--include-candidates-in-study",
+        action="store_true",
+        help="Include candidate tie layers in uploaded study results (default is confirmed-only).",
+    )
+    parser.add_argument(
+        "--csv-output",
+        default="",
+        help=(
+            "Optional path for detected tie CSV report. "
+            "Default writes feeder_tie_switches_<scope>_<mode>_<timestamp>.csv in this folder."
+        ),
+    )
+    parser.add_argument(
         "ids",
         nargs="*",
         help="Zone codes or feeder MRIDs (positional values override --zones/--feeders).",
@@ -686,16 +820,43 @@ def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, 
         feeders = _split_values(args.ids) or _split_values(args.feeders)
         if not feeders:
             raise ValueError("At least one feeder MRID is required in feeder mode.")
-        return [], feeders, args.mode, args.config, bool(args.include_lv), args.full_network_list
+        return (
+            [],
+            feeders,
+            args.mode,
+            args.config,
+            bool(args.include_lv),
+            args.full_network_list,
+            bool(args.include_candidates_in_study),
+            args.csv_output,
+        )
 
     if args.mode == "full-network":
-        return [], [], args.mode, args.config, bool(args.include_lv), args.full_network_list
+        return (
+            [],
+            [],
+            args.mode,
+            args.config,
+            bool(args.include_lv),
+            args.full_network_list,
+            bool(args.include_candidates_in_study),
+            args.csv_output,
+        )
 
     zones = _split_values(args.ids) or _split_values(args.zones)
     if not zones:
         raise ValueError("At least one zone code is required in zone mode.")
 
-    return zones, [], args.mode, args.config, bool(args.include_lv), args.full_network_list
+    return (
+        zones,
+        [],
+        args.mode,
+        args.config,
+        bool(args.include_lv),
+        args.full_network_list,
+        bool(args.include_candidates_in_study),
+        args.csv_output,
+    )
 
 
 if __name__ == "__main__":

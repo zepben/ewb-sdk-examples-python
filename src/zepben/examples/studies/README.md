@@ -33,7 +33,8 @@ Detects switches acting as feeder ties and uploads a single result containing de
   - `confirmed_tie`: feeder evidence resolves to 2+ feeder MRIDs.
   - `candidate_tie`: partial feeder evidence with open-tie diagnostic signals.
 - **LV support**: opt-in via `--include-lv`.
-- **Default visibility**: candidate layers are included but hidden by default.
+- **Study upload default**: confirmed ties only; candidates are excluded unless `--include-candidates-in-study` is set.
+- **CSV export**: always writes a detailed tie report (confirmed + candidate) to CSV. Override path with `--csv-output`.
 
 Examples:
 
@@ -41,6 +42,8 @@ Examples:
 python feeder_tie_switches.py CPM
 python feeder_tie_switches.py --mode feeders CPM3B3
 python feeder_tie_switches.py --include-lv CPM
+python feeder_tie_switches.py CPM --include-candidates-in-study
+python feeder_tie_switches.py CPM --csv-output ./reports/feeder_tie_switches_cpm.csv
 python feeder_tie_switches.py --mode full-network
 python feeder_tie_switches.py --mode full-network --full-network-list zones
 ```
