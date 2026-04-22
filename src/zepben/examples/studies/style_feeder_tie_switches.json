@@ -1,0 +1,81 @@
+[
+  {
+    "id": "feeder-tie-confirmed",
+    "name": "Feeder Tie Switches (Confirmed)",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 9,
+      "circle-color": "rgb(0,180,40)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.5
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_class"], "confirmed_tie"]]
+  },
+  {
+    "id": "feeder-tie-confirmed-label",
+    "name": "Feeder Tie Switch Labels (Confirmed)",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": [
+        "concat",
+        ["get", "name"],
+        " (",
+        ["get", "confidence"],
+        ")"
+      ],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 6,
+      "text-halo-width": 4,
+      "text-halo-color": "white"
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_class"], "confirmed_tie"]]
+  },
+  {
+    "id": "feeder-tie-candidate",
+    "name": "Feeder Tie Switches (Candidate)",
+    "type": "circle",
+    "minzoom": 11,
+    "layout": {
+      "visibility": "none"
+    },
+    "paint": {
+      "circle-radius": 8,
+      "circle-color": "rgb(244,109,67)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.2,
+      "circle-opacity": 0.9
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_class"], "candidate_tie"]]
+  },
+  {
+    "id": "feeder-tie-candidate-label",
+    "name": "Feeder Tie Switch Labels (Candidate)",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "visibility": "none",
+      "text-field": [
+        "concat",
+        ["get", "name"],
+        " (",
+        ["get", "confidence"],
+        ")"
+      ],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 6,
+      "text-halo-width": 4,
+      "text-halo-color": "white"
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_class"], "candidate_tie"]]
+  }
+]

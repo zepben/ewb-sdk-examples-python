@@ -24,6 +24,27 @@ python transformer_utilisation_by_demand.py --mode feeders CPM3B3
 - **Styles**: Each study uses a companion `style_*.json` file to control map rendering.
 - **Outputs**: Studies upload results to EAS and will log progress in the terminal.
 
+## Feeder tie switches study
+
+Detects switches acting as feeder ties and uploads a single result containing detected switch points.
+
+- **Default scope**: MV-only switch detection.
+- **Tie classes**:
+  - `confirmed_tie`: feeder evidence resolves to 2+ feeder MRIDs.
+  - `candidate_tie`: partial feeder evidence with open-tie diagnostic signals.
+- **LV support**: opt-in via `--include-lv`.
+- **Default visibility**: candidate layers are included but hidden by default.
+
+Examples:
+
+```bash
+python feeder_tie_switches.py CPM
+python feeder_tie_switches.py --mode feeders CPM3B3
+python feeder_tie_switches.py --include-lv CPM
+python feeder_tie_switches.py --mode full-network
+python feeder_tie_switches.py --mode full-network --full-network-list zones
+```
+
 ## Data quality studies
 
 Data quality scripts live in `data_quality_studies/`. See the dedicated README for usage:
@@ -48,6 +69,7 @@ Representative studies:
 - `transformer_utilisation_by_demand.py`
 - `pv_percent_by_transformer.py`
 - `suspect_end_of_line.py`
+- `feeder_tie_switches.py`
 - `transformer_downstream_density.py`
 - `customer_distance_to_transformer.py`
 - `loop_impedance_by_energy_consumer.py`
