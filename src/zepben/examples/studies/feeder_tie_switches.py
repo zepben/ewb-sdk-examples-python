@@ -11,7 +11,7 @@ import json
 import os
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from itertools import islice
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 
@@ -214,10 +214,20 @@ async def main():
     _write_tie_csv_report(csv_report_path, csv_rows)
     print(f"Wrote tie switch CSV report: {csv_report_path} ({len(csv_rows)} rows)")
 
-    mv_tie_switches = [
+    mv_mv_tie_switches = [
         sw
         for sw in tie_switches
-        if switch_to_properties.get(sw.mrid, {}).get("tie_type") in ("mv_mv_tie", "mv_lv_tie")
+        if switch_to_properties.get(sw.mrid, {}).get("tie_type") == "mv_mv_tie"
+    ]
+    mv_lv_tie_switches = [
+        sw
+        for sw in tie_switches
+        if switch_to_properties.get(sw.mrid, {}).get("tie_type") == "mv_lv_tie"
+    ]
+    mv_via_lv_tie_switches = [
+        sw
+        for sw in tie_switches
+        if switch_to_properties.get(sw.mrid, {}).get("tie_type") == "mv_via_lv_tie"
     ]
     lv_lv_tie_switches = [
         sw
@@ -225,17 +235,26 @@ async def main():
         if switch_to_properties.get(sw.mrid, {}).get("tie_type") == "lv_lv_tie"
     ]
 
-    mv_tie_feature_collection = _build_feature_collection(mv_tie_switches, switch_to_properties)
+    mv_mv_tie_feature_collection = _build_feature_collection(mv_mv_tie_switches, switch_to_properties)
+    mv_lv_tie_feature_collection = _build_feature_collection(mv_lv_tie_switches, switch_to_properties)
+    mv_via_lv_tie_feature_collection = _build_feature_collection(mv_via_lv_tie_switches, switch_to_properties)
     lv_lv_tie_feature_collection = _build_feature_collection(lv_lv_tie_switches, switch_to_properties)
-    if not mv_tie_feature_collection.features and not lv_lv_tie_feature_collection.features:
+    if (
+        not mv_mv_tie_feature_collection.features
+        and not mv_lv_tie_feature_collection.features
+        and not mv_via_lv_tie_feature_collection.features
+        and not lv_lv_tie_feature_collection.features
+    ):
         print("No mappable tie switch features were found (e.g. missing location). Study upload skipped.")
         return
 
     print(
         "Mappable tie features: "
-        f"mv={len(mv_tie_feature_collection.features)}, "
+        f"mv_mv={len(mv_mv_tie_feature_collection.features)}, "
+        f"mv_lv={len(mv_lv_tie_feature_collection.features)}, "
+        f"mv_via_lv={len(mv_via_lv_tie_feature_collection.features)}, "
         f"lv_lv={len(lv_lv_tie_feature_collection.features)}, "
-        f"total={len(mv_tie_feature_collection.features) + len(lv_lv_tie_feature_collection.features)}"
+        f"total={len(mv_mv_tie_feature_collection.features) + len(mv_lv_tie_feature_collection.features) + len(mv_via_lv_tie_feature_collection.features) + len(lv_lv_tie_feature_collection.features)}"
     )
 
     style_path = os.path.join(os.path.dirname(__file__), "style_feeder_tie_switches.json")
@@ -251,17 +270,43 @@ async def main():
     )
 
     results: List[Result] = []
-    if mv_tie_feature_collection.features:
+    if mv_mv_tie_feature_collection.features:
         results.append(
             Result(
-                name=f"Feeder ties (MV↔MV + MV↔LV) ({len(mv_tie_feature_collection.features)})",
+                name=f"Feeder ties (MV↔MV) ({len(mv_mv_tie_feature_collection.features)})",
                 geo_json_overlay=GeoJsonOverlay(
-                    data=mv_tie_feature_collection,
+                    data=mv_mv_tie_feature_collection,
                     styles=[
                         "feeder-tie-switch-mv-mv",
-                        "feeder-tie-switch-mv-lv",
                         "feeder-tie-switch-label-mv-mv",
+                    ],
+                ),
+            )
+        )
+
+    if mv_lv_tie_feature_collection.features:
+        results.append(
+            Result(
+                name=f"Feeder ties (MV↔LV) ({len(mv_lv_tie_feature_collection.features)})",
+                geo_json_overlay=GeoJsonOverlay(
+                    data=mv_lv_tie_feature_collection,
+                    styles=[
+                        "feeder-tie-switch-mv-lv",
                         "feeder-tie-switch-label-mv-lv",
+                    ],
+                ),
+            )
+        )
+
+    if mv_via_lv_tie_feature_collection.features:
+        results.append(
+            Result(
+                name=f"Feeder ties (MV via LV) ({len(mv_via_lv_tie_feature_collection.features)})",
+                geo_json_overlay=GeoJsonOverlay(
+                    data=mv_via_lv_tie_feature_collection,
+                    styles=[
+                        "feeder-tie-switch-mv-via-lv",
+                        "feeder-tie-switch-label-mv-via-lv",
                     ],
                 ),
             )
@@ -435,9 +480,16 @@ def _build_tie_properties(evidence: SwitchEvidence, include_lv: bool) -> Dict[st
     total_terminal_count = len(list(switch.terminals))
     is_open = _switch_open_value(switch)
     is_normally_open = _switch_normal_open_value(switch)
+    is_lv_switch = _is_lv_switch(switch)
 
-    tie_class = "feeder_tie" if len(container_ids) > 1 else "non_tie"
-    tie_type = _classify_tie_type(tie_class, mv_container_ids, lv_circuit_ids, lv_parent_container_ids)
+    tie_type = _classify_tie_type(
+        include_lv=include_lv,
+        is_lv_switch=is_lv_switch,
+        mv_container_ids=mv_container_ids,
+        lv_circuit_ids=lv_circuit_ids,
+        lv_parent_container_ids=lv_parent_container_ids,
+    )
+    tie_class = "feeder_tie" if tie_type != "non_tie" else "non_tie"
 
     return {
         "name": switch.name or switch.mrid,
@@ -462,6 +514,7 @@ def _build_tie_properties(evidence: SwitchEvidence, include_lv: bool) -> Dict[st
         "terminal_count": total_terminal_count,
         "is_open": is_open,
         "is_normally_open": is_normally_open,
+        "is_lv_switch": is_lv_switch,
         "include_lv_mode": include_lv,
     }
 
@@ -497,28 +550,37 @@ def _switch_container_ids(
 
 
 def _classify_tie_type(
-    tie_class: str,
+    include_lv: bool,
+    is_lv_switch: bool,
     mv_container_ids: Set[str],
     lv_circuit_ids: Set[str],
     lv_parent_container_ids: Set[str],
 ) -> str:
-    if tie_class != "feeder_tie":
+    mv_count = len(mv_container_ids)
+
+    # MV↔MV ties are strictly MV switch + more than one MV feeder container.
+    if not is_lv_switch and mv_count >= 2:
+        return "mv_mv_tie"
+
+    if not include_lv:
         return "non_tie"
 
-    # Treat LV parent containers as MV-side evidence for classification,
-    # even when MV feeders are not directly materialised on the switch.
-    effective_mv_container_ids = set(mv_container_ids | lv_parent_container_ids)
-    mv_count = len(effective_mv_container_ids)
     lv_circuit_count = len(lv_circuit_ids)
+    lv_parent_count = len(lv_parent_container_ids)
 
-    if mv_count >= 2:
-        return "mv_mv_tie"
+    # MV↔LV ties require MV assignment plus one or more LV circuits.
     if mv_count >= 1 and lv_circuit_count >= 1:
         return "mv_lv_tie"
+
+    # MV-via-LV only when LV parent evidence indicates >1 distinct parent
+    # containers for the switch.
+    if lv_parent_count >= 2:
+        return "mv_via_lv_tie"
+
     if lv_circuit_count >= 2:
         return "lv_lv_tie"
 
-    return "mv_mv_tie"
+    return "non_tie"
 
 
 def _tie_type_label(tie_type: str) -> str:
@@ -526,6 +588,8 @@ def _tie_type_label(tie_type: str) -> str:
         return "MV↔MV ties"
     if tie_type == "mv_lv_tie":
         return "MV↔LV ties"
+    if tie_type == "mv_via_lv_tie":
+        return "MV via LV ties"
     if tie_type == "lv_lv_tie":
         return "LV↔LV ties"
     return "Non-tie"
@@ -666,7 +730,7 @@ def to_geojson_geometry(location: Location) -> Union[Geometry, None]:
 def _resolve_csv_report_path(csv_output: str, scope_tag: str, lv_tag: str) -> str:
     if csv_output:
         return csv_output
-    timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     return os.path.join(
         os.path.dirname(__file__),
         f"feeder_tie_switches_{scope_tag}_{lv_tag}_{timestamp}.csv",
@@ -678,7 +742,7 @@ def _build_csv_rows(
     mode: str,
     scope_label: str,
 ) -> List[Dict[str, Any]]:
-    generated_at_utc = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+    generated_at_utc = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     rows: List[Dict[str, Any]] = []
     for switch_mrid in sorted(switch_to_properties.keys()):
         row: Dict[str, Any] = {
