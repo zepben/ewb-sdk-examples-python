@@ -61,6 +61,13 @@ Mock zone-substation analytics demo scripts live in `analytics_demo_examples/`:
 
 - `src/zepben/examples/studies/analytics_demo_examples/README.md`
 
+## Hosting Capacity DB-backed studies
+
+Hosting Capacity examples that query PostgreSQL and upload propagated measurement-zone studies live in
+`hosting_capacity_examples/`:
+
+- `src/zepben/examples/studies/hosting_capacity_examples/README.md`
+
 ## Troubleshooting
 
 - **Timeouts**: Large zones can take several minutes. Use a longer shell timeout or reduce concurrency if available.

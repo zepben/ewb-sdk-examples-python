@@ -1,0 +1,412 @@
+[
+  {
+    "id": "hc-peak-import-line",
+    "name": "Peak Import Lines",
+    "type": "line",
+    "paint": {
+      "line-width": 4.6,
+      "line-opacity": 0.92,
+      "line-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#2c7bb6",
+        1, "#00a6ca",
+        2, "#fdae61",
+        3, "#f46d43",
+        4, "#d73027",
+        "#8f8f8f"
+      ]
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Peak Import",
+        "states": [
+          { "label": "Very Low (#2c7bb6)", "properties": { "bucket": 0 } },
+          { "label": "Low (#00a6ca)", "properties": { "bucket": 1 } },
+          { "label": "Medium (#fdae61)", "properties": { "bucket": 2 } },
+          { "label": "High (#f46d43)", "properties": { "bucket": 3 } },
+          { "label": "Very High (#d73027)", "properties": { "bucket": 4 } }
+        ]
+      }
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "peak_import"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "hc-peak-import-label",
+    "name": "Peak Import Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "symbol-placement": "line-center",
+      "text-field": ["get", "value_label"],
+      "text-size": 10
+    },
+    "paint": {
+      "text-color": "#1f2a44",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1.2
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "peak_import"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "hc-peak-import-point",
+    "name": "Peak Import Points",
+    "type": "circle",
+    "minzoom": 10,
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.94,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 0.8,
+      "circle-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#2c7bb6",
+        1, "#00a6ca",
+        2, "#fdae61",
+        3, "#f46d43",
+        4, "#d73027",
+        "#8f8f8f"
+      ]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "peak_import"], ["==", ["get", "geom_kind"], "point"]]
+  },
+  {
+    "id": "hc-peak-export-line",
+    "name": "Peak Export Lines",
+    "type": "line",
+    "paint": {
+      "line-width": 4.6,
+      "line-opacity": 0.92,
+      "line-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#d73027",
+        1, "#f46d43",
+        2, "#fdae61",
+        3, "#abd9e9",
+        4, "#4575b4",
+        "#8f8f8f"
+      ]
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Peak Export",
+        "states": [
+          { "label": "Most Negative (High) #d73027", "properties": { "bucket": 0 } },
+          { "label": "Negative (Elevated) #f46d43", "properties": { "bucket": 1 } },
+          { "label": "Moderate #fdae61", "properties": { "bucket": 2 } },
+          { "label": "Near Zero (Low) #abd9e9", "properties": { "bucket": 3 } },
+          { "label": "Closest to Zero (Lowest) #4575b4", "properties": { "bucket": 4 } }
+        ]
+      }
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "peak_export"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "hc-peak-export-label",
+    "name": "Peak Export Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "symbol-placement": "line-center",
+      "text-field": ["get", "value_label"],
+      "text-size": 10
+    },
+    "paint": {
+      "text-color": "#1f2a44",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1.2
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "peak_export"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "hc-peak-export-point",
+    "name": "Peak Export Points",
+    "type": "circle",
+    "minzoom": 10,
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.94,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 0.8,
+      "circle-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#d73027",
+        1, "#f46d43",
+        2, "#fdae61",
+        3, "#abd9e9",
+        4, "#4575b4",
+        "#8f8f8f"
+      ]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "peak_export"], ["==", ["get", "geom_kind"], "point"]]
+  },
+  {
+    "id": "hc-import-utilisation-line",
+    "name": "Import Utilisation Lines",
+    "type": "line",
+    "paint": {
+      "line-width": 4.6,
+      "line-opacity": 0.92,
+      "line-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#2c7bb6",
+        1, "#00a6ca",
+        2, "#fdae61",
+        3, "#f46d43",
+        4, "#d73027",
+        "#8f8f8f"
+      ]
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Import Utilisation (%)",
+        "states": [
+          { "label": "Very Low (#2c7bb6)", "properties": { "bucket": 0 } },
+          { "label": "Low (#00a6ca)", "properties": { "bucket": 1 } },
+          { "label": "Medium (#fdae61)", "properties": { "bucket": 2 } },
+          { "label": "High (#f46d43)", "properties": { "bucket": 3 } },
+          { "label": "Very High (#d73027)", "properties": { "bucket": 4 } }
+        ]
+      }
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "import_utilisation"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "hc-import-utilisation-label",
+    "name": "Import Utilisation Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "symbol-placement": "line-center",
+      "text-field": ["get", "value_label"],
+      "text-size": 10
+    },
+    "paint": {
+      "text-color": "#1f2a44",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1.2
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "import_utilisation"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "hc-export-utilisation-line",
+    "name": "Export Utilisation Lines",
+    "type": "line",
+    "paint": {
+      "line-width": 4.6,
+      "line-opacity": 0.92,
+      "line-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#2c7bb6",
+        1, "#00a6ca",
+        2, "#fdae61",
+        3, "#f46d43",
+        4, "#d73027",
+        "#8f8f8f"
+      ]
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Export Utilisation (%)",
+        "states": [
+          { "label": "Very Low (#2c7bb6)", "properties": { "bucket": 0 } },
+          { "label": "Low (#00a6ca)", "properties": { "bucket": 1 } },
+          { "label": "Medium (#fdae61)", "properties": { "bucket": 2 } },
+          { "label": "High (#f46d43)", "properties": { "bucket": 3 } },
+          { "label": "Very High (#d73027)", "properties": { "bucket": 4 } }
+        ]
+      }
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "export_utilisation"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "hc-export-utilisation-label",
+    "name": "Export Utilisation Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "symbol-placement": "line-center",
+      "text-field": ["get", "value_label"],
+      "text-size": 10
+    },
+    "paint": {
+      "text-color": "#1f2a44",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1.2
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "export_utilisation"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "hc-load-thermal-voltage-line",
+    "name": "Load Thermal/Voltage Lines",
+    "type": "line",
+    "paint": {
+      "line-width": 4.6,
+      "line-opacity": 0.92,
+      "line-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#2166ac",
+        1, "#67a9cf",
+        2, "#fddbc7",
+        3, "#ef8a62",
+        4, "#b2182b",
+        "#8f8f8f"
+      ]
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Load Exceeding Normal Thermal + Voltage (kWh)",
+        "states": [
+          { "label": "Very Low (#2166ac)", "properties": { "bucket": 0 } },
+          { "label": "Low (#67a9cf)", "properties": { "bucket": 1 } },
+          { "label": "Medium (#fddbc7)", "properties": { "bucket": 2 } },
+          { "label": "High (#ef8a62)", "properties": { "bucket": 3 } },
+          { "label": "Very High (#b2182b)", "properties": { "bucket": 4 } }
+        ]
+      }
+    },
+    "filter": [
+      "all",
+      ["==", ["get", "metric_key"], "load_exceeding_normal_thermal_voltage_kwh"],
+      ["==", ["get", "geom_kind"], "line"]
+    ]
+  },
+  {
+    "id": "hc-load-thermal-voltage-label",
+    "name": "Load Thermal/Voltage Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "symbol-placement": "line-center",
+      "text-field": ["get", "value_label"],
+      "text-size": 10
+    },
+    "paint": {
+      "text-color": "#1f2a44",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1.2
+    },
+    "filter": [
+      "all",
+      ["==", ["get", "metric_key"], "load_exceeding_normal_thermal_voltage_kwh"],
+      ["==", ["get", "geom_kind"], "line"]
+    ]
+  },
+  {
+    "id": "hc-load-thermal-voltage-point",
+    "name": "Load Thermal/Voltage Points",
+    "type": "circle",
+    "minzoom": 10,
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.94,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 0.8,
+      "circle-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#2166ac",
+        1, "#67a9cf",
+        2, "#fddbc7",
+        3, "#ef8a62",
+        4, "#b2182b",
+        "#8f8f8f"
+      ]
+    },
+    "filter": [
+      "all",
+      ["==", ["get", "metric_key"], "load_exceeding_normal_thermal_voltage_kwh"],
+      ["==", ["get", "geom_kind"], "point"]
+    ]
+  },
+  {
+    "id": "hc-gen-thermal-voltage-line",
+    "name": "Generation Thermal/Voltage Lines",
+    "type": "line",
+    "paint": {
+      "line-width": 4.6,
+      "line-opacity": 0.92,
+      "line-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#238443",
+        1, "#78c679",
+        2, "#fdd49e",
+        3, "#f16913",
+        4, "#b30000",
+        "#8f8f8f"
+      ]
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Generation Exceeding Normal Thermal + Voltage (kWh)",
+        "states": [
+          { "label": "Very Low (#238443)", "properties": { "bucket": 0 } },
+          { "label": "Low (#78c679)", "properties": { "bucket": 1 } },
+          { "label": "Medium (#fdd49e)", "properties": { "bucket": 2 } },
+          { "label": "High (#f16913)", "properties": { "bucket": 3 } },
+          { "label": "Very High (#b30000)", "properties": { "bucket": 4 } }
+        ]
+      }
+    },
+    "filter": [
+      "all",
+      ["==", ["get", "metric_key"], "gen_exceeding_normal_thermal_voltage_kwh"],
+      ["==", ["get", "geom_kind"], "line"]
+    ]
+  },
+  {
+    "id": "hc-gen-thermal-voltage-label",
+    "name": "Generation Thermal/Voltage Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "symbol-placement": "line-center",
+      "text-field": ["get", "value_label"],
+      "text-size": 10
+    },
+    "paint": {
+      "text-color": "#1f2a44",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1.2
+    },
+    "filter": [
+      "all",
+      ["==", ["get", "metric_key"], "gen_exceeding_normal_thermal_voltage_kwh"],
+      ["==", ["get", "geom_kind"], "line"]
+    ]
+  },
+  {
+    "id": "hc-gen-thermal-voltage-point",
+    "name": "Generation Thermal/Voltage Points",
+    "type": "circle",
+    "minzoom": 10,
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.94,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 0.8,
+      "circle-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#238443",
+        1, "#78c679",
+        2, "#fdd49e",
+        3, "#f16913",
+        4, "#b30000",
+        "#8f8f8f"
+      ]
+    },
+    "filter": [
+      "all",
+      ["==", ["get", "metric_key"], "gen_exceeding_normal_thermal_voltage_kwh"],
+      ["==", ["get", "geom_kind"], "point"]
+    ]
+  }
+]

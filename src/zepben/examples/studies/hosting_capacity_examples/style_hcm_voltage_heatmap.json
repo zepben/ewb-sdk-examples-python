@@ -1,0 +1,106 @@
+[
+  {
+    "id": "hc-v1-line",
+    "name": "V1 Line-Ground Zone Lines",
+    "type": "line",
+    "paint": {
+      "line-width": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        8, 3.0,
+        12, 4.8,
+        15, 6.2
+      ],
+      "line-opacity": 0.9,
+      "line-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#d73027",
+        1, "#fdae61",
+        2, "#1a9850",
+        "#8f8f8f"
+      ]
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "V1 Avg Section Voltage (Line-Ground)",
+        "states": [
+          { "label": "Outside Limit (<216V or >240V) - Red", "properties": { "bucket": 0 } },
+          { "label": "Approaching Limit (216-225V) - Orange", "properties": { "bucket": 1 } },
+          { "label": "Normal (225-240V) - Green", "properties": { "bucket": 2 } }
+        ]
+      }
+    },
+    "filter": ["==", ["get", "metric_key"], "v1_avg_section_voltage"]
+  },
+  {
+    "id": "hc-v1-label",
+    "name": "V1 Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "symbol-placement": "line-center",
+      "text-field": ["get", "value_label"],
+      "text-size": 10
+    },
+    "paint": {
+      "text-color": "#1f2a44",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1.2
+    },
+    "filter": ["==", ["get", "metric_key"], "v1_avg_section_voltage"]
+  },
+  {
+    "id": "hc-v99-line",
+    "name": "V99 Line-Ground Zone Lines",
+    "type": "line",
+    "paint": {
+      "line-width": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        8, 3.0,
+        12, 4.8,
+        15, 6.2
+      ],
+      "line-opacity": 0.9,
+      "line-color": [
+        "match",
+        ["get", "bucket"],
+        0, "#d73027",
+        1, "#fdae61",
+        2, "#1a9850",
+        "#8f8f8f"
+      ]
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "V99 Avg Section Voltage (Line-Ground)",
+        "states": [
+          { "label": "Outside Limit (>235V or <216V) - Red", "properties": { "bucket": 0 } },
+          { "label": "Approaching Limit (216-225V) - Orange", "properties": { "bucket": 1 } },
+          { "label": "Normal (225-235V) - Green", "properties": { "bucket": 2 } }
+        ]
+      }
+    },
+    "filter": ["==", ["get", "metric_key"], "v99_avg_section_voltage"]
+  },
+  {
+    "id": "hc-v99-label",
+    "name": "V99 Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "symbol-placement": "line-center",
+      "text-field": ["get", "value_label"],
+      "text-size": 10
+    },
+    "paint": {
+      "text-color": "#1f2a44",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1.2
+    },
+    "filter": ["==", ["get", "metric_key"], "v99_avg_section_voltage"]
+  }
+]
