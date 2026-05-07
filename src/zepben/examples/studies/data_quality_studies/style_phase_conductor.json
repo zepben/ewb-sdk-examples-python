@@ -1,0 +1,32 @@
+[
+  {
+    "id": "dq-phase-mismatch-node",
+    "name": "Phase mismatch nodes",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 7,
+      "circle-color": "rgb(158,1,66)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    }
+  },
+  {
+    "id": "dq-missing-phase-lines",
+    "name": "Lines missing phase info",
+    "type": "line",
+    "paint": {
+      "line-color": "rgb(210,2,29)",
+      "line-width": 2
+    }
+  },
+  {
+    "id": "dq-no-anomalies",
+    "name": "No anomalies detected",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 1,
+      "circle-opacity": 0,
+      "circle-stroke-opacity": 0
+    }
+  }
+]

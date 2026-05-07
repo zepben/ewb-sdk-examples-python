@@ -1,0 +1,411 @@
+[
+  {
+    "id": "uc6-neutral-customer",
+    "name": "Neutral integrity faults",
+    "type": "circle",
+    "minzoom": 10,
+    "paint": {
+      "circle-radius": [
+        "interpolate",
+        ["linear"],
+        ["get", "fault_events"],
+        1,
+        6,
+        6,
+        18
+      ],
+      "circle-color": [
+        "match",
+        ["get", "feature_kind"],
+        "neutral_customer",
+        "#de2d26",
+        "#de2d26"
+      ],
+      "circle-opacity": 0.9,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1.2
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Neutral integrity fault detection"
+      }
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 6], ["==", ["get", "feature_kind"], "neutral_customer"]]
+  },
+  {
+    "id": "uc6-neutral-label",
+    "name": "Neutral fault labels",
+    "type": "symbol",
+    "minzoom": 15,
+    "layout": {
+      "text-field": ["get", "fault_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 22,
+      "text-allow-overlap": true,
+      "text-ignore-placement": true
+    },
+    "paint": {
+      "text-color": "#202020",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 2
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 6], ["==", ["get", "feature_kind"], "neutral_customer"]]
+  },
+  {
+    "id": "uc7-voltage-heatmap",
+    "name": "Voltage heatmap",
+    "type": "heatmap",
+    "maxzoom": 15,
+    "paint": {
+      "heatmap-weight": [
+        "interpolate",
+        ["linear"],
+        ["get", "voltage_heat_weight"],
+        0,
+        0,
+        1,
+        0.8
+      ],
+      "heatmap-intensity": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        6,
+        0.08,
+        9,
+        0.2,
+        12,
+        0.55,
+        14,
+        1.0
+      ],
+      "heatmap-radius": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        6,
+        12,
+        9,
+        16,
+        12,
+        24,
+        14,
+        32
+      ],
+      "heatmap-opacity": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        6,
+        0.36,
+        10,
+        0.55,
+        14,
+        0.85
+      ],
+      "heatmap-color": [
+        "interpolate",
+        ["linear"],
+        ["heatmap-density"],
+        0,
+        "rgba(33,102,172,0)",
+        0.2,
+        "rgb(146,197,222)",
+        0.4,
+        "rgb(209,229,240)",
+        0.6,
+        "rgb(253,219,199)",
+        0.8,
+        "rgb(244,165,130)",
+        1,
+        "rgb(214,96,77)"
+      ]
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Voltage monitoring and reporting"
+      }
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 7], ["==", ["get", "feature_kind"], "voltage_customer"]]
+  },
+  {
+    "id": "uc7-voltage-hotspot",
+    "name": "Voltage severe points",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 3,
+      "circle-color": "#b10026",
+      "circle-opacity": 0.45,
+      "circle-stroke-width": 0
+    },
+    "filter": [
+      "all",
+      ["==", ["get", "use_case"], 7],
+      ["==", ["get", "feature_kind"], "voltage_customer"],
+      ["==", ["get", "severe"], 1]
+    ]
+  },
+  {
+    "id": "uc8-dvc-mv-line",
+    "name": "DVC tap zones on MV lines",
+    "type": "line",
+    "minzoom": 9,
+    "paint": {
+      "line-width": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        9,
+        1.5,
+        14,
+        4.2
+      ],
+      "line-color": [
+        "interpolate",
+        ["linear"],
+        ["get", "estimated_end_voltage_pct"],
+        97.5,
+        "#d73027",
+        99,
+        "#fdae61",
+        100,
+        "#ffffbf",
+        101,
+        "#abd9e9",
+        102.5,
+        "#4575b4"
+      ],
+      "line-opacity": 0.93
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Dynamic Voltage Control"
+      }
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 8], ["==", ["get", "feature_kind"], "dvc_mv_line"]]
+  },
+  {
+    "id": "uc8-dvc-tap-transformer",
+    "name": "Transformers requiring tap change",
+    "type": "circle",
+    "minzoom": 10,
+    "paint": {
+      "circle-radius": 18,
+      "circle-color": [
+        "match",
+        ["get", "tap_action"],
+        "Raise",
+        "#2ca25f",
+        "Lower",
+        "#de2d26",
+        "#636363"
+      ],
+      "circle-opacity": 0.9,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1.2
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 8], ["==", ["get", "feature_kind"], "dvc_tap_transformer"]]
+  },
+  {
+    "id": "uc8-dvc-tap-label",
+    "name": "DVC tap labels",
+    "type": "symbol",
+    "minzoom": 11,
+    "layout": {
+      "text-field": ["get", "tap_move"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 24,
+      "text-allow-overlap": true,
+      "text-ignore-placement": true
+    },
+    "paint": {
+      "text-color": "#111111",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 2
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 8], ["==", ["get", "feature_kind"], "dvc_tap_transformer"]]
+  },
+  {
+    "id": "uc9-phase-customer",
+    "name": "Customer phase circles",
+    "type": "circle",
+    "minzoom": 10,
+    "paint": {
+      "circle-radius": 4.6,
+      "circle-color": [
+        "match",
+        ["get", "phase_class"],
+        "A",
+        "#ff2020",
+        "B",
+        "#ffffff",
+        "C",
+        "#1e5bff",
+        "#000000"
+      ],
+      "circle-stroke-color": "#333333",
+      "circle-stroke-width": 0.8,
+      "circle-opacity": 0.92
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Phase identification"
+      }
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 9], ["==", ["get", "feature_kind"], "phase_customer"]]
+  },
+  {
+    "id": "uc13-compliance-customer",
+    "name": "CER compliance at customers",
+    "type": "circle",
+    "minzoom": 10,
+    "paint": {
+      "circle-radius": 4.8,
+      "circle-color": [
+        "match",
+        ["get", "compliance_tier"],
+        "Compliant",
+        "#2ca25f",
+        "At Risk",
+        "#fdae6b",
+        "Non-Compliant",
+        "#de2d26",
+        "#636363"
+      ],
+      "circle-opacity": 0.86,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 0.8
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "CER compliance"
+      }
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 13], ["==", ["get", "feature_kind"], "cer_compliance_customer"]]
+  },
+  {
+    "id": "uc14-curtailment-transformer",
+    "name": "Transformer curtailment",
+    "type": "circle",
+    "minzoom": 10,
+    "paint": {
+      "circle-radius": [
+        "interpolate",
+        ["linear"],
+        ["get", "curtailed_kwh"],
+        0,
+        6,
+        1500,
+        10,
+        6000,
+        16
+      ],
+      "circle-color": [
+        "interpolate",
+        ["linear"],
+        ["get", "curtailed_kwh"],
+        0,
+        "#f7fcfd",
+        600,
+        "#ccece6",
+        2500,
+        "#66c2a4",
+        6000,
+        "#238b45",
+        12000,
+        "#00441b"
+      ],
+      "circle-opacity": 0.9,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1.1
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "CER performance"
+      }
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 14], ["==", ["get", "feature_kind"], "cer_performance_transformer"]]
+  },
+  {
+    "id": "uc14-curtailment-label",
+    "name": "Curtailment labels",
+    "type": "symbol",
+    "minzoom": 11,
+    "layout": {
+      "text-field": ["get", "curtailment_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 10,
+      "text-allow-overlap": true,
+      "text-ignore-placement": true
+    },
+    "paint": {
+      "text-color": "#111111",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 2
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 14], ["==", ["get", "feature_kind"], "cer_performance_transformer"]]
+  },
+  {
+    "id": "uc15-ev-customer",
+    "name": "EV detections",
+    "type": "circle",
+    "minzoom": 10,
+    "paint": {
+      "circle-radius": [
+        "interpolate",
+        ["linear"],
+        ["get", "peak_kw"],
+        1,
+        7,
+        4,
+        10,
+        8,
+        14,
+        12,
+        18
+      ],
+      "circle-color": [
+        "interpolate",
+        ["linear"],
+        ["get", "peak_kw"],
+        2.4,
+        "#2ca25f",
+        7,
+        "#fdd49e",
+        11,
+        "#fd8d3c",
+        22,
+        "#de2d26"
+      ],
+      "circle-opacity": 0.86,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1.2
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "EV charger detection"
+      }
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 15], ["==", ["get", "feature_kind"], "ev_customer"]]
+  },
+  {
+    "id": "uc15-ev-label",
+    "name": "EV charger labels",
+    "type": "symbol",
+    "minzoom": 14,
+    "layout": {
+      "text-field": ["get", "ev_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 14,
+      "text-allow-overlap": true,
+      "text-ignore-placement": true
+    },
+    "paint": {
+      "text-color": "#161616",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 2
+    },
+    "filter": ["all", ["==", ["get", "use_case"], 15], ["==", ["get", "feature_kind"], "ev_customer"]]
+  }
+]

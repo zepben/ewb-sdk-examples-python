@@ -1,0 +1,93 @@
+# Studies
+
+This folder contains runnable study scripts that fetch network data, generate GeoJSON overlays, and upload results to EAS.
+Most scripts accept a zone code (e.g. `CPM`) and use the shared config at `src/zepben/examples/config.json`.
+
+## Quick start
+
+1. Ensure `src/zepben/examples/config.json` has valid `host`, `access_token`, and `rpc_port`.
+2. Run a study from this folder, for example:
+
+```bash
+python transformer_utilisation_by_demand.py CPM
+```
+
+## Common patterns
+
+- **Zones vs feeders**: Some scripts support explicit feeder MRIDs. For transformer utilisation, use:
+
+```bash
+python transformer_utilisation_by_demand.py --mode feeders CPM3B3
+```
+
+- **Config override**: Most scripts accept `--config` to point at a different config file.
+- **Styles**: Each study uses a companion `style_*.json` file to control map rendering.
+- **Outputs**: Studies upload results to EAS and will log progress in the terminal.
+
+## Feeder tie switches study
+
+Detects switches acting as feeder ties and uploads a single tie-switch result layer.
+
+- **Default scope**: MV-only switch detection.
+- **Core tie rule**: a switch is treated as a feeder tie when it belongs to **more than one container** (normal/current feeder containers, plus LV parent containers when `--include-lv` is used).
+- **Tie type classification**:
+  - `mv_mv_tie` → MV↔MV ties
+  - `mv_lv_tie` → MV↔LV ties
+  - `lv_lv_tie` → LV↔LV ties
+- **LV support**: opt-in via `--include-lv`.
+- **CSV export**: always writes a detailed tie report to CSV. Override path with `--csv-output`.
+- **Study styling**: tie types are colour-coded in the study layers.
+
+Examples:
+
+```bash
+python feeder_tie_switches.py CPM
+python feeder_tie_switches.py --mode feeders CPM3B3
+python feeder_tie_switches.py --include-lv CPM
+python feeder_tie_switches.py CPM --csv-output ./reports/feeder_tie_switches_cpm.csv
+python feeder_tie_switches.py --mode full-network
+python feeder_tie_switches.py --mode full-network --full-network-list zones
+```
+
+## Data quality studies
+
+Data quality scripts live in `data_quality_studies/`. See the dedicated README for usage:
+
+- `src/zepben/examples/studies/data_quality_studies/README.md`
+
+## Analytics demo studies
+
+Mock zone-substation analytics demo scripts live in `analytics_demo_examples/`:
+
+- `src/zepben/examples/studies/analytics_demo_examples/README.md`
+
+## Hosting Capacity DB-backed studies
+
+Hosting Capacity examples that query PostgreSQL and upload propagated measurement-zone studies live in
+`hosting_capacity_examples/`:
+
+- `src/zepben/examples/studies/hosting_capacity_examples/README.md`
+
+## Troubleshooting
+
+- **Timeouts**: Large zones can take several minutes. Use a longer shell timeout or reduce concurrency if available.
+- **404s from Load API**: Some assets may not have demand profiles; the scripts continue and mark those as missing.
+- **No features uploaded**: If locations are missing, the study skips upload and logs a message.
+
+## Scripts in this folder
+
+Representative studies:
+- `transformer_utilisation_by_demand.py`
+- `pv_percent_by_transformer.py`
+- `suspect_end_of_line.py`
+- `feeder_tie_switches.py`
+- `transformer_downstream_density.py`
+- `customer_distance_to_transformer.py`
+- `loop_impedance_by_energy_consumer.py`
+- `tap_changer_info_by_transformer.py`
+
+See each script’s header and help output for specifics:
+
+```bash
+python <script>.py --help
+```

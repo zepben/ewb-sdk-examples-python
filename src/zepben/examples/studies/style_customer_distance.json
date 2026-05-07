@@ -1,0 +1,44 @@
+[
+  {
+    "id": "ec-distance",
+    "name": "Customer Distance to Transformer (m)",
+    "type": "circle",
+    "minzoom": 12,
+    "paint": {
+      "circle-radius": 12,
+      "circle-color": [
+        "case",
+        ["==", ["get", "distance_m"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "distance_m"],
+          "rgb(0,180,40)", 200,
+          "rgb(171,221,164)", 300,
+          "rgb(253,174,97)", 400,
+          "rgb(244,109,67)", 500,
+          "rgb(210,2,29)"
+        ]
+      ],
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    },
+    "filter" : ["==", ["get", "type"], "ec"]
+  },
+  {
+    "id": "ec-distance-label",
+    "name": "Distance Label",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": ["get", "distance_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 6,
+      "text-halo-width": 6,
+      "text-halo-color": "white"
+    },
+    "filter" : ["==", ["get", "type"], "ec"]
+  }
+]

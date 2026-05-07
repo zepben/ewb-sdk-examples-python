@@ -1,0 +1,128 @@
+[
+  {
+    "id": "ec-density-circle",
+    "name": "EC Density (/100m)",
+    "type": "circle",
+    "minzoom": 12,
+    "paint": {
+      "circle-radius": 15,
+      "circle-color": [
+        "case",
+        ["==", ["get", "ec_density"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "ec_density"],
+          "rgb(0,180,40)", 0.5,
+          "rgb(171,221,164)", 2,
+          "rgb(253,174,97)", 5,
+          "rgb(244,109,67)", 10,
+          "rgb(210,2,29)"
+        ]
+      ],
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
+    "id": "ec-density-label",
+    "name": "EC Density Label",
+    "type": "symbol",
+    "minzoom": 12,
+    "layout": {
+      "text-field": ["get", "ec_density_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 12
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-color": "white",
+      "text-halo-width": 2,
+      "text-halo-blur": 1
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
+    "id": "up-density-circle",
+    "name": "Usage Point Density (/100m)",
+    "type": "circle",
+    "minzoom": 12,
+    "paint": {
+      "circle-radius": 15,
+      "circle-color": [
+        "case",
+        ["==", ["get", "up_density"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "up_density"],
+          "rgb(0,180,40)", 0.5,
+          "rgb(171,221,164)", 2,
+          "rgb(253,174,97)", 5,
+          "rgb(244,109,67)", 10,
+          "rgb(210,2,29)"
+        ]
+      ],
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
+    "id": "up-density-label",
+    "name": "Usage Point Density Label",
+    "type": "symbol",
+    "minzoom": 12,
+    "layout": {
+      "text-field": ["get", "up_density_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 12
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-color": "white",
+      "text-halo-width": 2,
+      "text-halo-blur": 1
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
+    "id": "pv-density-circle",
+    "name": "PV Density (/100m)",
+    "type": "circle",
+    "minzoom": 12,
+    "paint": {
+      "circle-radius": 15,
+      "circle-color": [
+        "case",
+        ["==", ["get", "pv_density"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "pv_density"],
+          "rgb(0,180,40)", 0.1,
+          "rgb(171,221,164)", 0.5,
+          "rgb(253,174,97)", 1,
+          "rgb(244,109,67)", 2,
+          "rgb(210,2,29)"
+        ]
+      ],
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
+    "id": "pv-density-label",
+    "name": "PV Density Label",
+    "type": "symbol",
+    "minzoom": 12,
+    "layout": {
+      "text-field": ["get", "pv_density_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 12
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-color": "white",
+      "text-halo-width": 2,
+      "text-halo-blur": 1
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  }
+]

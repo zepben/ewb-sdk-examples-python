@@ -13,7 +13,7 @@ from typing import List, Dict, Tuple, Callable, Any, Union, Type, Set
 from geojson import FeatureCollection, Feature
 from geojson.geometry import Geometry, LineString, Point
 from zepben.eas import EasClient, Study, Result, GeoJsonOverlay
-from zepben.ewb import PowerTransformer, ConductingEquipment, EnergyConsumer, AcLineSegment, \
+from zepben.ewb import PowerTransformer, ConductingEquipment, EnergyConsumer, AcLineSegment, Switch, \
     NetworkConsumerClient, PhaseCode, PowerElectronicsConnection, Feeder, PowerSystemResource, Location, \
     connect_with_token, NetworkTraceStep, Tracing, downstream, upstream, IncludedEnergizedContainers
 
@@ -29,10 +29,18 @@ def chunk(it, size):
 
 async def main():
     # Only process feeders in the following zones
-    zone_mrids = ["MTN"]
+    zone_mrids = ["CPM"]
     print(f"Start time: {datetime.now()}")
 
-    rpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    rpc_channel = connect_with_token(
+        host=c["host"],
+        access_token=c["access_token"],
+        rpc_port=c["rpc_port"],
+        ca_filename=c.get("ca_filename"),
+        timeout_seconds=c.get("timeout_seconds", 5),
+        debug=bool(c.get("debug", False)),
+        skip_connection_test=bool(c.get("skip_connection_test", False)),
+    )
     client = NetworkConsumerClient(rpc_channel)
     hierarchy = (await client.get_network_hierarchy()).throw_on_error()
     substations = hierarchy.value.substations
@@ -46,38 +54,60 @@ async def main():
                 feeder_mrids.append(feeder.mrid)
 
     print(f"Feeders to be processed: {', '.join(feeder_mrids)}")
-    futures = []
 
     # Process the feeders in batches of 3, using asyncio, for performance
     batches = chunk(feeder_mrids, 3)
     for feeders in batches:
-        all_traced_equipment = []
-        transformer_to_suspect_end = dict()
+        feeder_results = []
+        futures = []
 
-        rpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+        rpc_channel = connect_with_token(
+            host=c["host"],
+            access_token=c["access_token"],
+            rpc_port=c["rpc_port"],
+            ca_filename=c.get("ca_filename"),
+            timeout_seconds=c.get("timeout_seconds", 5),
+            debug=bool(c.get("debug", False)),
+            skip_connection_test=bool(c.get("skip_connection_test", False)),
+        )
         print(f"Processing feeders {', '.join(feeders)}")
         for feeder_mrid in feeders:
             futures.append(asyncio.ensure_future(fetch_feeder_and_trace(feeder_mrid, rpc_channel)))
 
         for future in futures:
-            tx_to_sus_end = await future
-            if tx_to_sus_end:   # Empty if the feeder failed
-                all_traced_equipment.extend(eq for (k, (count, sus_eq_list)) in tx_to_sus_end.items() for eq in sus_eq_list)
-                transformer_to_suspect_end.update(tx_to_sus_end)
+            result = await future
+            if not result:   # Empty if the feeder failed
+                continue
+            feeder_mrid, transformers, tx_to_sus_lines, feeder_suspect_lines = result
+            total_length_m = sum(_line_length_m(line) for line in feeder_suspect_lines)
+            highlight_equipment = set(transformers) | set(feeder_suspect_lines)
+            feeder_results.append(
+                (feeder_mrid, total_length_m, list(highlight_equipment), tx_to_sus_lines)
+            )
 
         print(f"Created Study for {len(feeder_mrids)} feeders")
 
         eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
 
         print(f"Uploading Study for {', '.join(feeders)} ...")
+        styles = json.load(open("style_eol.json", "r"))
+        results = [
+            _build_suspect_end_result(
+                feeder_mrid,
+                total_length_m,
+                equipment,
+                transformer_to_suspect_lines,
+                styles=styles,
+            )
+            for feeder_mrid, total_length_m, equipment, transformer_to_suspect_lines in feeder_results
+        ]
         await upload_suspect_end_of_line_study(
             eas_client,
-            all_traced_equipment,
-            transformer_to_suspect_end,
-            name=f"Suspect end of line {', '.join(feeders)}",
-            description="Highlights every line that is downstream of transformer and ends without a consumer.",
+            results,
+            name=f"Suspect end of line ({', '.join(feeders)})",
+            description="Highlights only line segments that have no downstream EnergyConsumers (excludes shared upstream segments).",
             tags=["suspect_end_of_line", "-".join(zone_mrids)],
-            styles=json.load(open("style_eol.json", "r"))
+            styles=styles
         )
         await eas_client.aclose()
         print(f"Uploaded Study")
@@ -85,24 +115,62 @@ async def main():
     print(f"Finish time: {datetime.now()}")
 
 
-def collect_eq_provider(collection: Set[ConductingEquipment]):
+def collect_downstream_edges_provider(
+    adjacency: Dict[ConductingEquipment, Set[ConductingEquipment]],
+    nodes: Set[ConductingEquipment],
+):
 
-    async def collect_equipment(ps: NetworkTraceStep, _):
-        collection.add(ps.path.to_equipment)
+    async def collect_edges(ps: NetworkTraceStep, _):
+        nodes.add(ps.path.from_equipment)
+        nodes.add(ps.path.to_equipment)
+        if ps.path.traced_externally:
+            adjacency.setdefault(ps.path.from_equipment, set()).add(ps.path.to_equipment)
 
-    return collect_equipment
+    return collect_edges
 
 
-async def get_downstream_eq(ce: ConductingEquipment) -> Set[ConductingEquipment]:
-    equipment_set = set()
+async def build_downstream_graph(
+    start: ConductingEquipment,
+) -> Tuple[Dict[ConductingEquipment, Set[ConductingEquipment]], Set[ConductingEquipment]]:
+    adjacency: Dict[ConductingEquipment, Set[ConductingEquipment]] = {}
+    nodes: Set[ConductingEquipment] = {start}
 
     await (
         Tracing.network_trace()
         .add_condition(downstream())
-        .add_step_action(collect_eq_provider(equipment_set))
-    ).run(start=ce, phases=PhaseCode.ABCN, can_stop_on_start_item=False)
+        .add_step_action(collect_downstream_edges_provider(adjacency, nodes))
+    ).run(start=start, phases=PhaseCode.ABCN, can_stop_on_start_item=False)
 
-    return equipment_set
+    for node in nodes:
+        adjacency.setdefault(node, set())
+
+    return adjacency, nodes
+
+
+def build_has_consumer_downstream(
+    adjacency: Dict[ConductingEquipment, Set[ConductingEquipment]],
+    backfeed_switches: Set[ConductingEquipment],
+):
+    memo: Dict[ConductingEquipment, bool] = {}
+    visiting: Set[ConductingEquipment] = set()
+
+    def has_consumer(node: ConductingEquipment) -> bool:
+        if node in memo:
+            return memo[node]
+        if node in visiting:
+            return False
+        visiting.add(node)
+        result = isinstance(node, EnergyConsumer) or node in backfeed_switches
+        if not result:
+            for child in adjacency.get(node, ()):
+                if has_consumer(child):
+                    result = True
+                    break
+        visiting.remove(node)
+        memo[node] = result
+        return result
+
+    return has_consumer
 
 
 async def fetch_feeder_and_trace(feeder_mrid: str, rpc_channel):
@@ -118,109 +186,139 @@ async def fetch_feeder_and_trace(feeder_mrid: str, rpc_channel):
     )
     if result.was_failure:
         print(f"Failed: {result.thrown}")
-        return {}
+        return None
 
     network = client.service
 
     print(f"Finished fetching Feeder {feeder_mrid}")
-    print(f"Tracing downstream transformers for feeder {feeder_mrid}")
-    transformer_to_eq: Dict[str, Set[ConductingEquipment]] = {}
+    print(f"Tracing suspect lines for feeder {feeder_mrid}")
+    transformers: List[PowerTransformer] = []
+    transformer_to_suspect_lines: Dict[str, Tuple[float, List[ConductingEquipment]]] = {}
+    feeder_suspect_lines: Set[AcLineSegment] = set()
     for io in (pt for pt in network.objects(PowerTransformer)):
         pt: PowerTransformer = io
-        downstream_equipment = await get_downstream_eq(pt)
-        transformer_to_eq[pt.mrid] = downstream_equipment
+        transformers.append(pt)
+        suspect_lines = await get_suspect_lines_for_transformer(pt)
+        feeder_suspect_lines.update(suspect_lines)
+        total_length_m = sum(_line_length_m(line) for line in suspect_lines)
+        transformer_to_suspect_lines[pt.mrid] = (total_length_m, list(suspect_lines))
 
-    print(f"Tracing suspect ends for feeder {feeder_mrid}")
-    transformer_to_suspect_end = await get_transformer_to_suspect_end(transformer_to_eq)
-
-    return transformer_to_suspect_end
-
-
-async def get_transformer_to_suspect_end(
-    transformer_to_eq: Dict[str, Set[ConductingEquipment]]
-) -> Dict[str, Tuple[int, Set[ConductingEquipment]]]:
-
-    transformer_to_suspect_end: Dict[str, (int, List[ConductingEquipment])] = {}
-    for pt_mrid, eq_list in transformer_to_eq.items():
-        single_terminal_junctions = [
-            eq for eq in eq_list
-            if not isinstance(eq, (EnergyConsumer, PowerElectronicsConnection))
-               and len(list(eq.terminals)) == 1
-        ]
-        upstream_eq = set(
-            await _get_upstream_eq_up_to_transformer(stj) for stj in single_terminal_junctions
-        )
-
-        transformer_to_suspect_end[pt_mrid] = (len(single_terminal_junctions), list(upstream_eq))
-
-    return transformer_to_suspect_end
+    return feeder_mrid, transformers, transformer_to_suspect_lines, feeder_suspect_lines
 
 
-async def upload_suspect_end_of_line_study(
-    eas_client: EasClient,
-    pts: List[PowerTransformer],
-    transformer_to_suspect_end: Dict[str, Tuple[int, List[ConductingEquipment]]],
-    name: str,
-    description: str,
-    tags: List[str],
+def _switch_has_external_network(
+    switch: Switch,
+    nodes: Set[ConductingEquipment],
+) -> bool:
+    for terminal in switch.terminals:
+        cn = terminal.connectivity_node
+        if cn is None:
+            continue
+        for term in cn.terminals:
+            ce = term.conducting_equipment
+            if ce is None or ce is switch:
+                continue
+            if ce not in nodes:
+                return True
+    return False
+
+
+def _find_backfeed_switches(
+    nodes: Set[ConductingEquipment],
+) -> Set[ConductingEquipment]:
+    backfeed = set()
+    for node in nodes:
+        if isinstance(node, Switch) and _switch_has_external_network(node, nodes):
+            backfeed.add(node)
+    return backfeed
+
+
+async def get_suspect_lines_for_transformer(
+    transformer: PowerTransformer,
+) -> Set[AcLineSegment]:
+    adjacency, nodes = await build_downstream_graph(transformer)
+    backfeed_switches = _find_backfeed_switches(nodes)
+    has_consumer = build_has_consumer_downstream(adjacency, backfeed_switches)
+
+    suspect_lines = {
+        node for node in nodes
+        if isinstance(node, AcLineSegment) and not has_consumer(node)
+    }
+    return suspect_lines
+
+
+def _build_suspect_end_result(
+    feeder_mrid: str,
+    total_length_m: float,
+    pts: List[ConductingEquipment],
+    transformer_to_suspect_lines: Dict[str, Tuple[float, List[ConductingEquipment]]],
     styles: List
-) -> None:
-
+) -> Result:
     class_to_properties = {
         EnergyConsumer: {
             "name": lambda ec: ec.name,
             "type": lambda x: "ec"
         },
         PowerTransformer: {
-            "consumer_count": _suspect_end_count_from(transformer_to_suspect_end),
+            "suspect_length_m": _suspect_length_m_from(transformer_to_suspect_lines),
+            "suspect_length_label": _suspect_length_label_from(transformer_to_suspect_lines),
             "type": lambda x: "pt"
         },
-        AcLineSegment: {"name": lambda ec: ec.name},
+        AcLineSegment: {
+            "name": lambda ec: ec.name,
+            "length_m": lambda line: _line_length_m(line),
+        },
     }
     feature_collection = to_geojson_feature_collection(pts, class_to_properties)
+    result_name = f"{feeder_mrid} - {round(total_length_m)}m"
+    return Result(
+        name=result_name,
+        geo_json_overlay=GeoJsonOverlay(
+            data=feature_collection,
+            styles=[s['id'] for s in styles]
+        )
+    )
+
+
+async def upload_suspect_end_of_line_study(
+    eas_client: EasClient,
+    results: List[Result],
+    name: str,
+    description: str,
+    tags: List[str],
+    styles: List
+) -> None:
     response = await eas_client.async_upload_study(
         Study(
             name=name,
             description=description,
             tags=tags,
-            results=[
-                Result(
-                    name=name,
-                    geo_json_overlay=GeoJsonOverlay(
-                        data=feature_collection,
-                        styles=[s['id'] for s in styles]
-                    )
-                )
-            ],
+            results=results,
             styles=styles
         )
     )
     print(f"Study response: {response}")
 
 
-async def _get_upstream_eq_up_to_transformer(ce: ConductingEquipment) -> Set[ConductingEquipment]:
-    eqs = set()
-
-    await (
-        Tracing.network_trace()
-        .add_condition(upstream())
-        .add_step_action(collect_eq_provider(eqs))
-        .add_stop_condition(_is_transformer)
-    ).run(start=ce, phases=PhaseCode.ABCN, can_stop_on_start_item=False)
-
-    return eqs
-
-
-async def _is_transformer(ps: NetworkTraceStep):
-    return isinstance(ps.path.to_equipment, PowerTransformer)
-
-
-def _suspect_end_count_from(pt_to_sus_end: Dict[str, Tuple[int, List[ConductingEquipment]]]):
+def _suspect_length_m_from(pt_to_sus_end: Dict[str, Tuple[float, List[ConductingEquipment]]]):
     def fun(pt: PowerTransformer):
-        count, suspect_eq = pt_to_sus_end.get(pt.mrid)
-        return count if count else 0
+        value = pt_to_sus_end.get(pt.mrid)
+        return round(value[0]) if value else 0
 
     return fun
+
+
+def _suspect_length_label_from(pt_to_sus_end: Dict[str, Tuple[float, List[ConductingEquipment]]]):
+    def fun(pt: PowerTransformer):
+        value = pt_to_sus_end.get(pt.mrid)
+        meters = round(value[0]) if value else 0
+        return f"{meters}m"
+
+    return fun
+
+
+def _line_length_m(line: AcLineSegment) -> float:
+    return float(line.length or 0.0)
 
 
 def to_geojson_feature_collection(
@@ -262,5 +360,4 @@ def to_geojson_geometry(location: Location) -> Union[Geometry, None]:
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    asyncio.run(main())

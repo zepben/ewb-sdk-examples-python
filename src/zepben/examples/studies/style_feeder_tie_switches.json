@@ -1,0 +1,142 @@
+[
+  {
+    "id": "feeder-tie-switch-mv-mv",
+    "name": "Feeder Tie Switches (MV↔MV)",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 9,
+      "circle-color": "rgb(49,130,189)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.5
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "mv_mv_tie"]]
+  },
+  {
+    "id": "feeder-tie-switch-label-mv-mv",
+    "name": "Feeder Tie Switch Labels (MV↔MV)",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": [
+        "concat",
+        ["get", "name"],
+        " (MV↔MV)"
+      ],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 6,
+      "text-halo-width": 4,
+      "text-halo-color": "white"
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "mv_mv_tie"]]
+  },
+  {
+    "id": "feeder-tie-switch-mv-lv",
+    "name": "Feeder Tie Switches (MV↔LV)",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 9,
+      "circle-color": "rgb(244,109,67)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.5
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "mv_lv_tie"]]
+  },
+  {
+    "id": "feeder-tie-switch-label-mv-lv",
+    "name": "Feeder Tie Switch Labels (MV↔LV)",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": [
+        "concat",
+        ["get", "name"],
+        " (MV↔LV)"
+      ],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 6,
+      "text-halo-width": 4,
+      "text-halo-color": "white"
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "mv_lv_tie"]]
+  },
+  {
+    "id": "feeder-tie-switch-mv-via-lv",
+    "name": "Feeder Tie Switches (MV via LV)",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 9,
+      "circle-color": "rgb(171,221,164)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.5
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "mv_via_lv_tie"]]
+  },
+  {
+    "id": "feeder-tie-switch-label-mv-via-lv",
+    "name": "Feeder Tie Switch Labels (MV via LV)",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": [
+        "concat",
+        ["get", "name"],
+        " (MV via LV)"
+      ],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 6,
+      "text-halo-width": 4,
+      "text-halo-color": "white"
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "mv_via_lv_tie"]]
+  },
+  {
+    "id": "feeder-tie-switch-lv-lv",
+    "name": "Feeder Tie Switches (LV↔LV)",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 9,
+      "circle-color": "rgb(49,163,84)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.5
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "lv_lv_tie"]]
+  },
+  {
+    "id": "feeder-tie-switch-label-lv-lv",
+    "name": "Feeder Tie Switch Labels (LV↔LV)",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": [
+        "concat",
+        ["get", "name"],
+        " (LV↔LV)"
+      ],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 6,
+      "text-halo-width": 4,
+      "text-halo-color": "white"
+    },
+    "filter": ["all", ["==", ["get", "type"], "switch"], ["==", ["get", "tie_type"], "lv_lv_tie"]]
+  }
+]

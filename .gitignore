@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .idea/
+*.DS_Store
 docs/.docusaurus
 docs/node_modules
 
@@ -135,3 +136,6 @@ src/zepben/examples/config*.json
 *.crt
 
 src/zepben/examples/csvs/
+
+config.json
+src/zepben/examples/config.json

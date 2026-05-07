@@ -50,19 +50,25 @@
     "minzoom": 12,
     "paint": {
       "circle-radius": 15,
-      "circle-color": "rgb(0,200,2)",
+      "circle-color": [
+        "step",
+        ["get", "suspect_length_m"],
+        "rgb(0,200,2)", 100,
+        "rgb(244,109,67)", 200,
+        "rgb(210,2,29)"
+      ],
       "circle-stroke-color": "white",
       "circle-stroke-width": 1
     },
     "filter" : ["==", ["get", "type"], "pt"]
   },
   {
-    "id": "consumer-count-label",
-    "name": "Consumer Count",
+    "id": "suspect-length-label",
+    "name": "Suspect Length",
     "type": "symbol",
     "minzoom": 12,
     "layout": {
-      "text-field": ["get", "consumer_count"],
+      "text-field": ["get", "suspect_length_label"],
       "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
       "text-size": 12
     },

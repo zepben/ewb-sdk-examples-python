@@ -1,0 +1,48 @@
+[
+  {
+    "id": "tap-transformers",
+    "name": "Tap Changer Transformers",
+    "type": "circle",
+    "minzoom": 12,
+    "paint": {
+      "circle-radius": 12,
+      "circle-color": "rgb(0,120,255)",
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
+    "id": "tap-step-label",
+    "name": "Tap Step",
+    "type": "symbol",
+    "minzoom": 12,
+    "layout": {
+      "text-field": ["get", "tap_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11
+    },
+    "paint": {
+      "text-color": "white"
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
+    "id": "tap-json-label",
+    "name": "Tap JSON",
+    "type": "symbol",
+    "minzoom": 16,
+    "layout": {
+      "text-field": ["get", "tap_json"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 10
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 6,
+      "text-halo-width": 6,
+      "text-halo-color": "white"
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  }
+]

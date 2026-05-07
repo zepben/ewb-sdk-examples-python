@@ -1,0 +1,38 @@
+[
+  {
+    "id": "dq-long-service-drop",
+    "name": "Long service drops",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 7,
+      "circle-color": [
+        "step",
+        ["get", "distance_m"],
+        "rgb(244,109,67)", 500,
+        "rgb(210,2,29)", 1000,
+        "rgb(165,0,38)"
+      ],
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    }
+  },
+  {
+    "id": "dq-very-long-lines",
+    "name": "Very long lines",
+    "type": "line",
+    "paint": {
+      "line-color": "rgb(94,79,162)",
+      "line-width": 2
+    }
+  },
+  {
+    "id": "dq-no-anomalies",
+    "name": "No anomalies detected",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 1,
+      "circle-opacity": 0,
+      "circle-stroke-opacity": 0
+    }
+  }
+]

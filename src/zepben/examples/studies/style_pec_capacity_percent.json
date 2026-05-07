@@ -1,0 +1,41 @@
+[
+  {
+    "id": "pec-capacity-transformers",
+    "name": "PEC Capacity % by Transformer",
+    "type": "circle",
+    "minzoom": 12,
+    "paint": {
+      "circle-radius": 15,
+      "circle-color": [
+        "case",
+        ["==", ["get", "transformer_rating_va"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "capacity_percent"],
+          "rgb(0,180,40)",   30,
+          "rgb(171,221,164)", 60,
+          "rgb(253,174,97)", 80,
+          "rgb(244,109,67)", 90,
+          "rgb(210,2,29)"
+        ]
+      ],
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  },
+  {
+    "id": "pec-capacity-label",
+    "name": "PEC Capacity %",
+    "type": "symbol",
+    "minzoom": 12,
+    "layout": {
+      "text-field": ["get", "capacity_percent_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 12
+    },
+    "paint": {
+      "text-color": "white"
+    },
+    "filter" : ["==", ["get", "type"], "pt"]
+  }
+]

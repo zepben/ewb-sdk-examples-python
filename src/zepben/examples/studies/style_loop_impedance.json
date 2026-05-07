@@ -1,0 +1,65 @@
+[
+  {
+    "id": "line-impedance",
+    "name": "Line Impedance (ohm/km)",
+    "type": "line",
+    "paint": {
+      "line-color": [
+        "case",
+        ["==", ["get", "z_ohm_per_km"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "z_ohm_per_km"],
+          "rgb(0,180,40)", 0.2,
+          "rgb(171,221,164)", 0.5,
+          "rgb(253,174,97)", 1.5,
+          "rgb(244,109,67)", 6.0,
+          "rgb(210,2,29)"
+        ]
+      ],
+      "line-width": 2
+    },
+    "filter" : ["==", ["get", "type"], "line"]
+  },
+  {
+    "id": "ec-loop-impedance",
+    "name": "Loop Impedance (ohm)",
+    "type": "circle",
+    "minzoom": 12,
+    "paint": {
+      "circle-radius": 12,
+      "circle-color": [
+        "case",
+        ["==", ["get", "loop_z_ohm"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "loop_z_ohm"],
+          "rgb(0,180,40)", 0.1,
+          "rgb(171,221,164)", 0.2,
+          "rgb(253,174,97)", 0.5,
+          "rgb(244,109,67)", 1.0,
+          "rgb(210,2,29)"
+        ]
+      ],
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1
+    },
+    "filter" : ["==", ["get", "type"], "ec"]
+  },
+  {
+    "id": "ec-loop-impedance-label",
+    "name": "Loop Impedance Label",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": ["get", "loop_z_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 6,
+      "text-halo-width": 6,
+      "text-halo-color": "white"
+    },
+    "filter" : ["==", ["get", "type"], "ec"]
+  }
+]

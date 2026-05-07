@@ -1,0 +1,105 @@
+6	Neutral integrity fault detection	The platform will utilise available time series voltage data to detect loss-of-neutral faults within the low-voltage (LV) network. Each fault detection event will include a confidence score and an estimated fault location, such as the service cable or feeder. In addition to neutral faults, the platform will identify LV and high-voltage (HV) phase faults that manifest in the LV network. These faults will be monitored and reported through a weekly report, which provides detailed tracking and diagnostic insights to support fault resolution and network reliability.	"The platform must understand Evoenergy's policies around neutral integrity and provide:
+- Calculated loop impedance;
+- Estimated loop impendance based on GIS data;
+- Start and end date of non-compliance; 
+- Detection and tracking must be visually represented for user review and evaluation.
+
+Additional requirements of this feature
+- Provide a confidence rating of detected fault;
+- Indicate the location of the fault including customer installation, LV feeder, transformer etc. The platform must be user-friendly, allowing users to easily navigate the local network, identify other NMIs, and determine whether the issue originates from the LV feeder or the distribution transformer.
+- Have provisions to track workflow status and log comments for each fault detected;
+- Send automated emails for faults with >= 85% confidence rating
+
+"
+7	Voltage monitoring and reporting	"Aggregate time series voltage measurements from LV voltage measurements to generate consolidated data at both the distribution substation and zone substation levels. The reporting will include key power quality metrics such as the 1st and 99th voltage percentiles, voltage unbalance, and voltage spread. Data will be available in daily, weekly, and monthly aggregations, and presented in a downloadable report format for user access. 
+When the platform detects voltage breaches, the platform should automatically generate notifications and/or compile them into a structured report, delivered on a weekly basis. This reporting capability enables timely visibility into voltage compliance issues and supports proactive network management and planning. "	"The platform must understand Evoenergy's obligations around voltage performance management and provide:
+Weekly, monthly and yearly assessments of
+- Network wide customer compliance of all LV voltage measurements - this will be available as total noncompliance customers, undervoltage customers, overvoltage customers, sag customers and swell customers. This data will be presented both as a graph and as a table that the users can easily navigate across various layers of the network starting from the zone substation down to the customer premises.
+- Voltage assessment (V99 and V1) across zone substations, distribution substations and customers. This data must be presented in an easy to access format on the platform and the users must be able to sort the columns from low to high or high to low readings and download the reports.
+- User must be able to select the view of their preference- i.e. Weekly, Monthly or Yearly
+- Automated notifications when voltages exceed Evoenergy's safety limits. The platform must have provisions for Evoenergy to manage workflow- for instance, sites that breached the limits must be made available in a report format daily, with provisions to capture workflow status.
+
+Additional requirements:
+Distribution substation data:
+- A time series of aggregated voltage data (daily, weekly, and monthly) must be available for each distribution substation and provided in a downloadable format.
+- A detailed list of customers on each LV circuit must be displayed, including their V99 and V1 values and estimated phase connections. This data must also be downloadable.
+- The platform must have the capability to simulate changing a distribution trasnformer tap setting and evaluate the affect to downstream customers.
+Customer data:
+-For each customer, a time series plot of voltage data by phase (daily, weekly, and monthly) must be available and downloadable."
+8	 Dynamic Voltage Control	The analytics platform will utilise data from smart meters, distribution transformers, and zone substation SCADA points to support planning and implementation of zone substation power transformer dynamic voltage control strategies.	"Core functionalities will include:
+- Visualising zone substation power transformer power quality data via a network exploration interface
+- Generating medium-voltage performance reports
+- Producing optimal tap settings for distribution substations
+- Simulating dynamic voltage control scenarios across the zone"
+9	Phase identification	"The data analytics platform must identify phase connections for customers with smart meter power quality data, identify the phase connection as Red, White, Blue for single and three phase customers with reference to the distirbution trasnformer and/or other customers on the distribution transformer.
+"	"The platform must indicate
+- The customer's connection type and connected as single phase or three-phase supply, along with the identified phase (R, W, or B) for single-phase customers.
+- A summary of phase connections at the substation level- including the number of customers connected to each phase (R, W, B), the number of three-phase connections, and how many connections are unknown.
+-Identify which phases of the installation have generation connected.
+- Aggregrate power by phase connection at the distribution transformer and LV feeders in aggregated power analysis.
+- Aggregate voltage by phase connection at the distribution transformer in agregated voltage analysis."
+10	 MV and LV network loading	The data analytics platform must analyse network loading for MV feeders, distribution transformers and LV feeders, total loading will be estimated at every timestamp where sufficient data is availiable. Using either direct transformer monitoring data or derived loading estimates, the system will identify peak forward and reverse power flows and calculate both load and generation headroom. 	"The platform must analyse the LV data and provide an aggregated weekly, monthly and yearly overview of
+- MV feeder capacity and its estimated utilisation;
+- Dsitrbution transformers capacity and its utilisation;
+- LV circuits capacity and its utilisation.
+Additional requirements
+-Transformer Capacity and Cyclic Loading: Display current transformer capacity, preferably- its cyclic loading (in accordance with AS/NZS 60076.7) and time spent by the transformer in long-time and short-time emergency loading categories.
+- Utilisation Metric: Show average and maximum utilisation based on estimates, ADMD (After Diversity Maximum Demand), and meter summation, benchmarked against transformer capacity and (preferably) cyclic loading. For meter summation analysis, the platform must indicate the percentage of available smart meters that contributed to the calculation, relative to the total number of customers on the transformer
+- Capacity Exceedance Tracking: Indicate the number of days the transformer capacity and (preferably) cyclic loading limits were exceeded.
+- Headroom Availability: Report available headroom for both load and generation.
+- Estimate Confidence Rating: Include a confidence rating for each estimate to support decision-making.
+- The users must be able to filter data based on transformer size, confidence rating, look up for specific assets etc. and this information must be downloadable
+- Automated email notifications for high confidence asset estimates and/or meter summation exceed 1.5 times the rated load, for 45 consecutive days.
+
+LV circuit analysis must align closely with the substation-level requirements and additionally include automated email notifications if the platform estimates a potential LV circuit outage."
+11	 New load connection assessments	The data analytics platform must leverage both the characteristics of the network model and available smart meter data to assess the potential impacts of a new load connection. 	"The platform must support analysis of new customer connections by providing the following capabilities:
+-Selection Interface: Allow users to select a specific distribution transformer/substation, its associated LV circuit  and a point on the LV circuit to simulate a new connection. The platform should be capable of allowing for single and three phase load simulations.
+-Connection Type Analysis: Support simulation of both load and generation connections. The platform must assess whether the proposed connection would cause the transformer to exceed its ratings.
+-Voltage Impact Simulation: Display the expected voltage rise and/or drop resulting from the new connection. This impact must be visualised as a time series across daily, monthly, and yearly intervals.
+- Risk Identification and Mitigation: The platform will flag high-risk connection proposals to maintain network capacity and power quality.
+- All simulation results must be available in a downloadable format for further analysis or reporting."
+12	 CER detection	The data analytics platform must identify whether a customer has a solar PV system, determine the connected phase, and estimate both arrary and inverter capacity in kilowatts, validating these details against existing CER records. For customers with PV systems, the platform should also detect battery installations and confirm any existing battery records. It must determine the installation date based on when the PV or battery was first detected if this is within the available data period. At the distribution substation level, downstream CERs must be aggregated to support voltage behaviour analysis.	"1. Rooftop Solar PV Detection and Validation
+-System Validation: Detected rooftop solar PV systems must be validated against Evoenergy records, including:
+- PV system size, Inverter rating, Maximum export capacity, Date of installation
+- System Categorisation: Post-validation, each system must be classified into categories such as:
+recorded/unrecorded, Oversized, Undersized, Unable to size, OK, not detected.
+- Detection Source Transparency: Clearly indicate the data source used for detection (e.g., NEM12, BPQD).
+- A symbol on the map must indicate installed PV systems on the network.
+- Reporting and Filtering: All findings must be presented in a report format with various filtering options. 
+- Must have the option to export results as .csv or excel format. Must show a sun or other symbol on map view to indicate where solar is located.
+- Must be able to view timeseries graphs for export at a specific site, or at a group of NMIs at the same connection point. Need to be able to choose between single day or longer time periods. Must have some comparison to weather data to visualise if reduced output is likely from cloud cover or self-consumption.
+
+2. Residential Battery Validation
+-Validate detected residential battery systems against Evoenergy records. Catogorise as recorded/unrecorded and provide an export option of the results in .csv or excel format. A battery symbol must indicate on map view where a battery has been detected. It is preferable that unrecorded batteries will display some sort of confidence rating with the highest confidence category having <5% false positives.
+
+"
+13	CER compliance	The data analytics platform must utilise available smart meter data to improve the accuracy of solar PV identification and sizing, battery detection etc. For each identified PV customer, if sufficient smart meter data is available, the platform should perform performance, inverter compliance characterisation and detect the maximum export date. This includes detecting curtailment modes such as Volt/Watt, Volt/VAr, disconnection curtailment, and hard export limits, which are specified by Evoenergy on a per customer basis. Furthermore, it must determine the version of AS/NZS 4777.2 that the detected PV system complies with and identify the date when a previously non-compliant system becomes compliant. 	"i.The platform must analyse basic power quality data and provide compliance status for each detected system on
+- Volt/Watt (Enabled / Disabled / Undetermined / no data)
+- Volt/Var (Enabled / Disabled / Undetermined / no data)
+- Disconnect settings (Enabled / Disabled / Undetermined / no data)
+-Export limit (compliant / overexport / undetermined)
+ii. Date of non-compliance detection and date of remediation must be recorded. All of the above information must be accessible through the CER detection feature and provided in a downloadable format. The data must include filtering options based on compliance status, enabling users to easily sort and analyse relevant records. New compliance issues must be calculated in a timely fashion, and displayed in reports no more than 1 month after it is first detected, with shorter time periods preferable.
+iii. Preferably a graph showing max import/export on each day with a year history so trends can be seen easily. 
+"
+14	CER performance	The platform must provide functionality to quantify energy losses resulting from inverter curtailment modes, such as Volt/Watt, Volt/VAr, static export limits etc. These calculations must be aggregated over weekly and monthly periods, and expressed as both kilowatt-hours (kWh) and curtailment value ($/kWh), where user-defined pricing inputs are available. 	" The platform must provide information on CER curtailment across distribution substations, zone substations and network wide- in a weekly, monthly and yearly basis and in a downloadable format. 
+- Curtailment due to inverter voltage response (kWh)
+- Curtailment due to static export limits (kWh)
+- Curtailment due to dynamic export limits (kWh)
+- Curtailment directed for system security (kWh)
+The platform must calculate curtailment value ($/kWh) based on user input. "
+15	 Other detection capabilities	The data analytics platform must detect EV chargers using active power data and generate statistical outputs to support engineers in identifying high-risk chargers, enhancing load forecasting. Additionally, the platform must perform large load detection and characterisation across available smart meters to identify significant customer loads that could enable demand management through load shifting and control strategies. Key metrics should include load capacity, median continuous duration, average daily usage duration, and the longest continuous occurrence. 	"1. Electric Vehicle (EV) Charger Detection
+- Customer-Level Detection: Identify EV chargers at the customer level, including:
+Charger type
+Estimated charging sessions per week
+Power time series to show typical usage behavior
+- Substation-Level Aggregation: Count of EV chargers per distribution substation
+- Network-Level Aggregation: Total count of EV chargers across the network
+
+2. Large Load Detection
+- Detect large electrical loads and provide the following metrics:
+Estimated capacity (kW)
+Average daily duration
+Average occurrence duration
+Longest duration
+Power time series to show typical usage behavior
+- All data and insights generated by the platform must be made available to Evoenergy in a downloadable format. Filtering options must be provided across all features to support targeted analysis."
