@@ -6,7 +6,7 @@
 import asyncio
 import sys
 
-from zepben.eas import FeederLoadAnalysisInput, FlaForecastConfig
+from zepben.eas import FeederLoadAnalysisInput, FlaForecastConfigInput
 
 from zepben.examples.utils import get_config_dir, get_client
 
@@ -21,20 +21,21 @@ async def main(argv):
     feeder_load_analysis_token = await eas_client.async_run_feeder_load_analysis_report(
         FeederLoadAnalysisInput(
             feeders=["feeder1", "feeder2"],
-            start_date="2022-04-01",
-            end_date="2022-12-31",
-            fetch_lv_network=True,
-            process_feeder_loads=True,
-            process_coincident_loads=True,
-            aggregate_at_feeder_level=False,
+            startDate="2022-04-01",
+            endDate="2022-12-31",
+            fetchLvNetwork=True,
+            processFeederLoads=True,
+            processCoincidentLoads=True,
+            aggregateAtFeederLevel=False,
             output="Test",
-            fla_forecast_config=FlaForecastConfig(
-                scenario_id='1',
+            flaForecastConfig=FlaForecastConfigInput(
+                scenarioID='1',
                 year=2029,
-                pv_upgrade_threshold=6500,  ##Premise with existing PV will gain additional PV until the threshold wattage is reached.
-                bess_upgrade_threshold=6500,  ##Premise with existing battery will gain additional battery until the threshold wattage is reached.
+                pvUpgradeThreshold=6500,  ##Premise with existing PV will gain additional PV until the threshold wattage is reached.
+                bessUpgradeThreshold=6500,  ##Premise with existing battery will gain additional battery until the threshold wattage is reached.
                 seed=12345  ##Seed can be set to keep modification of forecast network consistent between studies.
-            )
+            ),
+            produceConductorReport=False
         )
     )
 
@@ -42,7 +43,7 @@ async def main(argv):
 
     # Feeder Load Analysis Study results can be retrieved from back end storage set up with EAS.
 
-    await eas_client.aclose()
+    await eas_client.close()
 
 
 if __name__ == "__main__":

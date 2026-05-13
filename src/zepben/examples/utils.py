@@ -25,7 +25,7 @@ def read_json_config(config_file_path: str) -> Dict:
     return config_dict
 
 
-def get_client(config_dir):
+def get_client(config_dir, async_=True):
     # Change sample_auth_config.json to any other file name
     auth_config = read_json_config(f"{config_dir}/sample_auth_config.json")
 
@@ -35,5 +35,6 @@ def get_client(config_dir):
         protocol=auth_config["eas_server"]["protocol"],
         access_token=auth_config["eas_server"]["access_token"],
         verify_certificate=auth_config["eas_server"].get("verify_certificate", True),
-        ca_filename=auth_config["eas_server"].get("ca_filename")
+        ca_filename=auth_config["eas_server"].get("ca_filename"),
+        asynchronous=async_
     )

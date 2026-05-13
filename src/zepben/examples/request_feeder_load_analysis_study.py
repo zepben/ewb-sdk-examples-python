@@ -7,7 +7,7 @@ import asyncio
 import json
 import sys
 
-from zepben.eas import FeederLoadAnalysisInput, EasClient
+from zepben.eas import FeederLoadAnalysisInput, EasClient, Mutation
 
 with open("config.json") as f:
     c = json.loads(f.read())
@@ -22,23 +22,27 @@ async def main(argv):
         protocol=c["eas_protocol"],
         access_token=c["access_token"],
         verify_certificate=c.get("verify_certificate", True),
-        ca_filename=c["ca_path"]
+        ca_filename=c["ca_path"],
+        asynchronous=True
     )
     print("Connection established..")
     # Fire off a feeder load analysis study
-    feeder_load_analysis_token = await eas_client.async_run_feeder_load_analysis_report(
-        FeederLoadAnalysisInput(
-            feeders=["feeder1", "feeder2"],
-            substations=None,
-            sub_geographical_regions=None,
-            geographical_regions=None,
-            start_date="2022-04-01",
-            end_date="2022-12-31",
-            fetch_lv_network=True,
-            process_feeder_loads=True,
-            process_coincident_loads=True,
-            aggregate_at_feeder_level=False,
-            output="Test"
+    feeder_load_analysis_token = await eas_client.mutation(
+        Mutation.run_feeder_load_analysis(
+            FeederLoadAnalysisInput(
+                feeders=["feeder1", "feeder2"],
+                substations=None,
+                subGeographicalRegions=None,
+                geographicalRegions=None,
+                startDate="2022-04-01",
+                endDate="2022-12-31",
+                fetchLvNetwork=True,
+                processFeederLoads=True,
+                processCoincidentLoads=True,
+                aggregateAtFeederLevel=False,
+                output="Test",
+                produceConductorReport=False,
+            )
         )
     )
 
@@ -46,7 +50,7 @@ async def main(argv):
 
     # Feeder Load Analysis Study results can be retrieved from back end storage set up with EAS.
 
-    await eas_client.aclose()
+    await eas_client.close()
 
 
 if __name__ == "__main__":
