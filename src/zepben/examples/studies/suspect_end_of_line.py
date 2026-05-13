@@ -67,7 +67,7 @@ async def main():
 
         print(f"Created Study for {len(feeder_mrids)} feeders")
 
-        eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
+        eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"], asynchronous=True)
 
         print(f"Uploading Study for {', '.join(feeders)} ...")
         await upload_suspect_end_of_line_study(
@@ -191,7 +191,8 @@ async def upload_suspect_end_of_line_study(
                         geoJsonOverlay=GeoJsonOverlayInput(
                             data=feature_collection,
                             styles=[s['id'] for s in styles]
-                        )
+                        ),
+                        sections=[]
                     )
                 ],
                 styles=styles

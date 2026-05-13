@@ -34,7 +34,8 @@ async def main(argv):
                 pvUpgradeThreshold=6500,  ##Premise with existing PV will gain additional PV until the threshold wattage is reached.
                 bessUpgradeThreshold=6500,  ##Premise with existing battery will gain additional battery until the threshold wattage is reached.
                 seed=12345  ##Seed can be set to keep modification of forecast network consistent between studies.
-            )
+            ),
+            produceConductorReport=False
         )
     )
 

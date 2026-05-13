@@ -53,7 +53,8 @@ async def main():
         geoJsonOverlay=GeoJsonOverlayInput(
             data=FeatureCollection(ec_geojson),
             styles=["ec-heatmap"]  # Select which Mapbox layers to show for this result
-        )
+        ),
+        sections=[]
     )
 
     # Make result that highlights LV lines. Each result is a named GeoJSON overlay.
@@ -74,7 +75,8 @@ async def main():
         geoJsonOverlay=GeoJsonOverlayInput(
             data=FeatureCollection(lv_lines_geojson),
             styles=["lv-lines", "lv-lengths"]  # Select which Mapbox layers to show for this result
-        )
+        ),
+        sections=[]
     )
 
     # Create and upload the study.
