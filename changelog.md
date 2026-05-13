@@ -7,10 +7,10 @@
 * None.
 
 ### Enhancements
-* None.
+* Added a small F.A.Q section that can be populated in the future from user feed backs.
 
 ### Fixes
-* None.
+* Fixed small issue in get_lvfeeder in request_power_factory_models.
 
 ### Notes
 * None.
