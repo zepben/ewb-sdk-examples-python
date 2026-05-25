@@ -12,8 +12,7 @@ from typing import Dict, List, Set, Tuple
 import sys
 
 from geojson import FeatureCollection
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import GeoJsonOverlay, Result, Study
+from zepben.eas import EasClient, Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
 from zepben.ewb import (
     EnergyConsumer,
     PowerTransformer,
@@ -106,27 +105,30 @@ async def main():
             results.append(result)
         else:
             results.append(
-                Result(
+                StudyResultInput(
                     name=f"No anomalies detected: {name}",
-                    geo_json_overlay=GeoJsonOverlay(
+                    sections=[],
+                    geo_json_overlay=GeoJsonOverlayInput(
                         data=no_anomaly_feature_collection(),
                         styles=["dq-no-anomalies"],
                     ),
                 )
             )
 
-    eas_client = EasClient(host=config["host"], port=config["rpc_port"], protocol="https", access_token=config["access_token"])
+    eas_client = EasClient(host=config["host"], port=config["rpc_port"], protocol="https", access_token=config["access_token"], asynchronous=True, enable_legacy_methods=True)
     print(f"Uploading Study for zones {', '.join(zone_mrids)} ...")
-    await eas_client.async_upload_study(
-        Study(
+    await eas_client.mutation(Mutation.add_studies(studies=[
+        StudyInput(
             name=f"Consumer mapping issues ({', '.join(zone_mrids)})",
             description="Unserved consumers, consumers missing LV feeder containers, and transformers with no downstream consumers.",
             tags=["dq_consumer_mapping", "-".join(zone_mrids)],
             results=results,
             styles=styles,
         )
+    ]
     )
-    await eas_client.aclose()
+    )
+    await eas_client.close()
     print("Uploaded Study")
     print(f"Finish time: {datetime.now()}")
 
@@ -259,7 +261,7 @@ def _build_point_result(
     ecs: List[EnergyConsumer],
     style_ids: List[str],
     issue: str,
-) -> Result | None:
+) -> StudyResultInput | None:
     if not ecs:
         return None
     class_to_properties = {
@@ -272,9 +274,10 @@ def _build_point_result(
     feature_collection: FeatureCollection = to_geojson_feature_collection(ecs, class_to_properties)
     if not feature_collection.features:
         return None
-    return Result(
+    return StudyResultInput(
         name=name,
-        geo_json_overlay=GeoJsonOverlay(
+        sections=[],
+        geo_json_overlay=GeoJsonOverlayInput(
             data=feature_collection,
             styles=style_ids,
         ),
@@ -286,7 +289,7 @@ def _build_transformer_result(
     transformers: List[PowerTransformer],
     style_ids: List[str],
     issue: str,
-) -> Result | None:
+) -> StudyResultInput | None:
     if not transformers:
         return None
     class_to_properties = {
@@ -299,9 +302,10 @@ def _build_transformer_result(
     feature_collection: FeatureCollection = to_geojson_feature_collection(transformers, class_to_properties)
     if not feature_collection.features:
         return None
-    return Result(
+    return StudyResultInput(
         name=name,
-        geo_json_overlay=GeoJsonOverlay(
+        sections=[],
+        geo_json_overlay=GeoJsonOverlayInput(
             data=feature_collection,
             styles=style_ids,
         ),

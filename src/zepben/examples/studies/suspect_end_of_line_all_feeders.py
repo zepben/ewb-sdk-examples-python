@@ -111,7 +111,7 @@ async def main():
         tags=["suspect_end_of_line", "-".join(zone_mrids)],
         styles=styles,
     )
-    await eas_client.aclose()
+    await eas_client.close()
     print("Uploaded Study")
 
     print(f"Finish time: {datetime.now()}")

@@ -15,10 +15,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Sequence
 
-import aiohttp
 from geojson import Feature, FeatureCollection
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import GeoJsonOverlay, Result, Study
+from zepben.eas import EasClient, Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
 
 try:
     from zepben.examples.studies.hosting_capacity_examples.common import (
@@ -547,23 +545,25 @@ async def main(argv: Sequence[str]) -> None:
         print(f"  - V99 heatmap features: {len(v99_features)}")
 
         results = [
-            Result(
+            StudyResultInput(
                 name="V1 Avg Section Voltage (Line-Ground)",
-                geo_json_overlay=GeoJsonOverlay(
+                sections=[],
+                geo_json_overlay=GeoJsonOverlayInput(
                     data=FeatureCollection(v1_features),
                     styles=["hc-v1-line", "hc-v1-label"],
                 ),
             ),
-            Result(
+            StudyResultInput(
                 name="V99 Avg Section Voltage (Line-Ground)",
-                geo_json_overlay=GeoJsonOverlay(
+                sections=[],
+                geo_json_overlay=GeoJsonOverlayInput(
                     data=FeatureCollection(v99_features),
                     styles=["hc-v99-line", "hc-v99-label"],
                 ),
             ),
         ]
 
-        study = Study(
+        study = StudyInput(
             name=args.name,
             description=(
                 "Hosting Capacity voltage heatmaps derived from measurement-zone results and propagated "
@@ -587,20 +587,20 @@ async def main(argv: Sequence[str]) -> None:
             print("Dry-run enabled. Study was not uploaded.")
             return
 
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=300))
         eas_client = EasClient(
             host=ewb_settings.host,
             port=ewb_settings.rpc_port,
             protocol="https",
             access_token=ewb_settings.access_token,
-            session=session,
+            asynchronous=True,
+            enable_legacy_methods=True,
         )
         try:
             print("Uploading study...")
-            response = await eas_client.async_upload_study(study)
+            response = await eas_client.mutation(Mutation.add_studies(studies=[study]))
             print(f"Study upload response: {response}")
         finally:
-            await eas_client.aclose()
+            await eas_client.close()
     finally:
         engine.dispose()
 

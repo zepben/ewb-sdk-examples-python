@@ -7,7 +7,7 @@ import asyncio
 import json
 import sys
 
-from zepben.eas import FeederLoadAnalysisInput, EasClient
+from zepben.eas import FeederLoadAnalysisInput, EasClient, Mutation
 
 with open("config.json") as f:
     c = json.loads(f.read())
@@ -26,7 +26,7 @@ async def main(argv):
     )
     print("Connection established..")
     # Fire off a feeder load analysis study
-    feeder_load_analysis_token = await eas_client.async_run_feeder_load_analysis_report(
+    feeder_load_analysis_token = await eas_client.mutation(Mutation.run_feeder_load_analysis(
         FeederLoadAnalysisInput(
             feeders=["feeder1", "feeder2"],
             substations=None,
@@ -41,12 +41,13 @@ async def main(argv):
             output="Test"
         )
     )
+    )
 
     print(f"Feeder Load Analysis study: {feeder_load_analysis_token['data']['runFeederLoadAnalysis']}")
 
     # Feeder Load Analysis Study results can be retrieved from back end storage set up with EAS.
 
-    await eas_client.aclose()
+    await eas_client.close()
 
 
 if __name__ == "__main__":

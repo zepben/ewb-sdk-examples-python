@@ -12,8 +12,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import Study
+from zepben.eas import EasClient, Mutation, StudyInput
+
 from zepben.ewb import (
     Feeder,
     IncludedEnergizedContainers,
@@ -118,18 +118,20 @@ async def main():
     description = _description_from_tests(detected_tests)
     tags = [_slugify(test) for test in detected_tests]
 
-    eas_client = EasClient(host=config["host"], port=config["rpc_port"], protocol="https", access_token=config["access_token"])
+    eas_client = EasClient(host=config["host"], port=config["rpc_port"], protocol="https", access_token=config["access_token"], asynchronous=True, enable_legacy_methods=True)
     print(f"Uploading Study for zones {', '.join(zone_mrids)} ...")
-    await eas_client.async_upload_study(
-        Study(
+    await eas_client.mutation(Mutation.add_studies(studies=[
+        StudyInput(
             name=f"Data quality summary ({', '.join(zone_mrids)})",
             description=description,
             tags=tags,
             results=results,
             styles=styles,
         )
+    ]
     )
-    await eas_client.aclose()
+    )
+    await eas_client.close()
     print("Uploaded Study")
     print(f"Finish time: {datetime.now()}")
 

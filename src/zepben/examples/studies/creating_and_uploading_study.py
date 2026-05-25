@@ -3,12 +3,14 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 import asyncio
 import json
 
 from geojson import Feature, LineString, FeatureCollection, Point
-from zepben.eas import Study, Result, GeoJsonOverlay, EasClient
+from zepben.eas import StudyInput, StudyResultInput, GeoJsonOverlayInput, EasClient, Mutation
 from zepben.ewb import AcLineSegment, EnergyConsumer, connect_with_token, NetworkConsumerClient, IncludedEnergizedContainers
+
 # A study is a geographical visualisation of data that is drawn on top of the network.
 # This data is typically the result of a load flow simulation.
 # Each study may contain multiple results: different visualisations that the user may switch between.
@@ -43,9 +45,9 @@ async def main():
             )
             ec_geojson.append(ec_feature)
 
-    ec_result = Result(
+    ec_result = StudyResultInput(
         name="Energy Consumers",
-        geo_json_overlay=GeoJsonOverlay(
+        geo_json_overlay=GeoJsonOverlayInput(
             data=FeatureCollection(ec_geojson),
             styles=["ec-heatmap"]  # Select which Mapbox layers to show for this result
         )
@@ -64,16 +66,16 @@ async def main():
             )
             lv_lines_geojson.append(line_feature)
 
-    lv_lines_result = Result(
+    lv_lines_result = StudyResultInput(
         name="LV Lines",
-        geo_json_overlay=GeoJsonOverlay(
+        geo_json_overlay=GeoJsonOverlayInput(
             data=FeatureCollection(lv_lines_geojson),
             styles=["lv-lines", "lv-lengths"]  # Select which Mapbox layers to show for this result
         )
     )
 
     # Create and upload the study.
-    study = Study(
+    study = StudyInput(
         name="Example Study",
         description="Example study with two results.",
         tags=["example"],  # Tags make it easy to search for studies in a large list of them.
@@ -84,16 +86,16 @@ async def main():
     )
     print("Study created..")
     print("Connecting to EAS..")
-    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
+    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"], asynchronous=True, enable_legacy_methods=True)
 
     print("Connection established..")
 
     print("Uploading study...")
-    response = await eas_client.async_upload_study(study)
+    response = await eas_client.mutation(Mutation.add_studies(studies=[study]))
     print(response)
     print("Study uploaded! Please check the Evolve Web App.")
 
-    await eas_client.aclose()
+    await eas_client.close()
 
 
 if __name__ == "__main__":

@@ -12,8 +12,8 @@ from typing import Dict, List, Set, Tuple
 import sys
 
 from geojson import FeatureCollection
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import GeoJsonOverlay, Result, Study
+from zepben.eas import EasClient, Mutation
+from zepben.eas import GeoJsonOverlayInput, StudyInput, StudyResultInput
 from zepben.ewb import (
     AcLineSegment,
     Feeder,
@@ -121,27 +121,31 @@ async def main():
             results.append(result)
         else:
             results.append(
-                Result(
+                StudyResultInput(
                     name=f"No anomalies detected: {name}",
-                    geo_json_overlay=GeoJsonOverlay(
+                    sections=[],
+                    geo_json_overlay=GeoJsonOverlayInput(
                         data=no_anomaly_feature_collection(),
                         styles=["dq-no-anomalies"],
                     ),
                 )
             )
 
-    eas_client = EasClient(host=config["host"], port=config["rpc_port"], protocol="https", access_token=config["access_token"])
+    eas_client = EasClient(host=config["host"], port=config["rpc_port"], protocol="https", access_token=config["access_token"], enable_legacy_methods=True,
+                           asynchronous=True)
     print(f"Uploading Study for zones {', '.join(zone_mrids)} ...")
-    await eas_client.async_upload_study(
-        Study(
+    await eas_client.mutation(Mutation.add_studies(studies=[
+        StudyInput(
             name=f"Asset attribute inconsistencies ({', '.join(zone_mrids)})",
             description="Lines with missing length/impedance, transformers missing ratings/impedance, and switches missing normal state.",
             tags=["dq_asset_attributes", "-".join(zone_mrids)],
             results=results,
             styles=styles,
         )
+    ]
     )
-    await eas_client.aclose()
+    )
+    await eas_client.close()
     print("Uploaded Study")
     print(f"Finish time: {datetime.now()}")
 
@@ -262,8 +266,8 @@ def _has_transformer_impedance(pt: PowerTransformer) -> bool:
         if rr is not None and not rr.is_empty():
             return True
 
-    power_transformer_info = getattr(pt, "power_transformer_info", None)
-    if power_transformer_info is not None and getattr(primary_end, "end_number", None) is not None:
+    power_transformer_info = pt.asset_info
+    if power_transformer_info is not None and primary_end.end_number is not None:
         rr = power_transformer_info.resistance_reactance(primary_end.end_number)
         if rr is not None and not rr.is_empty():
             return True
@@ -309,7 +313,7 @@ def _build_line_result(
     lines: List[AcLineSegment],
     style_ids: List[str],
     issue: str,
-) -> Result | None:
+) -> StudyResultInput | None:
     if not lines:
         return None
     class_to_properties = {
@@ -322,9 +326,10 @@ def _build_line_result(
     feature_collection: FeatureCollection = to_geojson_feature_collection(lines, class_to_properties)
     if not feature_collection.features:
         return None
-    return Result(
+    return StudyResultInput(
         name=name,
-        geo_json_overlay=GeoJsonOverlay(
+        sections=[],
+        geo_json_overlay=GeoJsonOverlayInput(
             data=feature_collection,
             styles=style_ids,
         ),
@@ -336,7 +341,7 @@ def _build_transformer_result(
     transformers: List[PowerTransformer],
     style_ids: List[str],
     issue: str,
-) -> Result | None:
+) -> StudyResultInput | None:
     if not transformers:
         return None
     class_to_properties = {
@@ -349,9 +354,9 @@ def _build_transformer_result(
     feature_collection: FeatureCollection = to_geojson_feature_collection(transformers, class_to_properties)
     if not feature_collection.features:
         return None
-    return Result(
+    return StudyResultInput(
         name=name,
-        geo_json_overlay=GeoJsonOverlay(
+        geo_json_overlay=GeoJsonOverlayInput(
             data=feature_collection,
             styles=style_ids,
         ),
@@ -363,7 +368,7 @@ def _build_switch_result(
     switches: List[Switch],
     style_ids: List[str],
     issue: str,
-) -> Result | None:
+) -> StudyResultInput | None:
     if not switches:
         return None
     class_to_properties = {
@@ -376,9 +381,10 @@ def _build_switch_result(
     feature_collection: FeatureCollection = to_geojson_feature_collection(switches, class_to_properties)
     if not feature_collection.features:
         return None
-    return Result(
+    return StudyResultInput(
         name=name,
-        geo_json_overlay=GeoJsonOverlay(
+        sections=[],
+        geo_json_overlay=GeoJsonOverlayInput(
             data=feature_collection,
             styles=style_ids,
         ),

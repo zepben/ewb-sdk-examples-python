@@ -15,10 +15,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
-import aiohttp
 from geojson import Feature, FeatureCollection
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import GeoJsonOverlay, Result, Study
+from zepben.eas import EasClient, Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
 from zepben.ewb import AcLineSegment, ConductingEquipment, PowerTransformer
 
 try:
@@ -73,7 +71,6 @@ except ModuleNotFoundError:
         split_csv_values,
         to_equipment_geometry,
     )
-
 
 STYLE_PATH = Path(__file__).resolve().parent / "style_hcm_asset_metrics.json"
 
@@ -670,7 +667,7 @@ async def main(argv: Sequence[str]) -> None:
         if missing_head_total:
             print(f"Total missing zone heads: {missing_head_total}")
 
-        results: List[Result] = []
+        results: List[StudyResultInput] = []
         for metric_key, metric_name, style_prefix in METRIC_SPECS:
             by_segment = metric_segment_values[metric_key]
             aggregated = {
@@ -732,16 +729,17 @@ async def main(argv: Sequence[str]) -> None:
             print(f"  - {metric_name}: {len(features)} line feature(s)")
 
             results.append(
-                Result(
+                StudyResultInput(
                     name=metric_name,
-                    geo_json_overlay=GeoJsonOverlay(
+                    sections=[],
+                    geo_json_overlay=GeoJsonOverlayInput(
                         data=FeatureCollection(features),
                         styles=[f"{style_prefix}-line", f"{style_prefix}-label"],
                     ),
                 )
             )
 
-        study = Study(
+        study = StudyInput(
             name=args.name,
             description=(
                 "Hosting Capacity metric layers sourced from public.network_performance_metrics_enhanced, "
@@ -763,20 +761,20 @@ async def main(argv: Sequence[str]) -> None:
             print("Dry-run enabled. Study was not uploaded.")
             return
 
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=300))
         eas_client = EasClient(
             host=ewb_settings.host,
             port=ewb_settings.rpc_port,
             protocol="https",
             access_token=ewb_settings.access_token,
-            session=session,
+            asynchronous=True,
+            enable_legacy_methods=True
         )
         try:
             print("Uploading study...")
-            response = await eas_client.async_upload_study(study)
+            response = await eas_client.mutation(Mutation.add_studies(studies=[study]))
             print(f"Study upload response: {response}")
         finally:
-            await eas_client.aclose()
+            await eas_client.close()
     finally:
         engine.dispose()
 

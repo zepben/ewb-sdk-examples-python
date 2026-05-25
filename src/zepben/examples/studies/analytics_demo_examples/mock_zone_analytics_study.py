@@ -16,8 +16,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from geojson import Feature, FeatureCollection
 from geojson.geometry import LineString, Point
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import GeoJsonOverlay, Result, Study
+from zepben.eas import EasClient, Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
 from zepben.ewb import (
     AcLineSegment,
     ConductingEquipment,
@@ -1145,7 +1144,7 @@ def _build_uc15_ev_detection(feeders: Sequence[FeederAnalytics], seed: int, peri
     return FeatureCollection(features)
 
 
-def _build_results(feeders: Sequence[FeederAnalytics], seed: int, period_start: str, period_end: str) -> List[Result]:
+def _build_results(feeders: Sequence[FeederAnalytics], seed: int, period_start: str, period_end: str) -> List[StudyResultInput]:
     uc6 = _build_uc6_neutral_faults(feeders, seed, period_start, period_end)
     uc7 = _build_uc7_voltage_reporting(feeders, seed, period_start, period_end)
     uc8 = _build_uc8_dynamic_voltage_control(feeders, period_start, period_end)
@@ -1155,38 +1154,45 @@ def _build_results(feeders: Sequence[FeederAnalytics], seed: int, period_start: 
     uc15 = _build_uc15_ev_detection(feeders, seed, period_start, period_end)
 
     return [
-        Result(
+        StudyResultInput(
             name=USE_CASE_NAMES[6],
-            geo_json_overlay=GeoJsonOverlay(data=uc6, styles=["uc6-neutral-customer", "uc6-neutral-label"]),
+            sections=[],
+            geo_json_overlay=GeoJsonOverlayInput(data=uc6, styles=["uc6-neutral-customer", "uc6-neutral-label"]),
         ),
-        Result(
+        StudyResultInput(
             name=USE_CASE_NAMES[7],
-            geo_json_overlay=GeoJsonOverlay(data=uc7, styles=["uc7-voltage-heatmap", "uc7-voltage-hotspot"]),
+            sections=[],
+            geo_json_overlay=GeoJsonOverlayInput(data=uc7, styles=["uc7-voltage-heatmap", "uc7-voltage-hotspot"]),
         ),
-        Result(
+        StudyResultInput(
             name=USE_CASE_NAMES[8],
-            geo_json_overlay=GeoJsonOverlay(data=uc8, styles=["uc8-dvc-mv-line", "uc8-dvc-tap-transformer", "uc8-dvc-tap-label"]),
+            sections=[],
+            geo_json_overlay=GeoJsonOverlayInput(data=uc8, styles=["uc8-dvc-mv-line", "uc8-dvc-tap-transformer", "uc8-dvc-tap-label"]),
         ),
-        Result(
+        StudyResultInput(
             name=USE_CASE_NAMES[9],
-            geo_json_overlay=GeoJsonOverlay(data=uc9, styles=["uc9-phase-customer"]),
+            sections=[],
+            geo_json_overlay=GeoJsonOverlayInput(data=uc9, styles=["uc9-phase-customer"]),
         ),
-        Result(
+        StudyResultInput(
             name=USE_CASE_NAMES[13],
-            geo_json_overlay=GeoJsonOverlay(data=uc13, styles=["uc13-compliance-customer"]),
+            sections=[],
+            geo_json_overlay=GeoJsonOverlayInput(data=uc13, styles=["uc13-compliance-customer"]),
         ),
-        Result(
+        StudyResultInput(
             name=USE_CASE_NAMES[14],
-            geo_json_overlay=GeoJsonOverlay(data=uc14, styles=["uc14-curtailment-transformer", "uc14-curtailment-label"]),
+            sections=[],
+            geo_json_overlay=GeoJsonOverlayInput(data=uc14, styles=["uc14-curtailment-transformer", "uc14-curtailment-label"]),
         ),
-        Result(
+        StudyResultInput(
             name=USE_CASE_NAMES[15],
-            geo_json_overlay=GeoJsonOverlay(data=uc15, styles=["uc15-ev-customer", "uc15-ev-label"]),
+            sections=[],
+            geo_json_overlay=GeoJsonOverlayInput(data=uc15, styles=["uc15-ev-customer", "uc15-ev-label"]),
         ),
     ]
 
 
-def _count_features(results: Sequence[Result]) -> Dict[str, int]:
+def _count_features(results: Sequence[StudyResultInput]) -> Dict[str, int]:
     counts: Dict[str, int] = {}
     for result in results:
         data = result.geo_json_overlay.data
@@ -1243,7 +1249,7 @@ async def main(argv: Sequence[str]) -> None:
         access_token=config["access_token"],
     )
 
-    study = Study(
+    study = StudyInput(
         name=args.name,
         description=(
             "Zone-substation analytics demo generated from live feeder topology with correlated synthetic "
@@ -1255,8 +1261,8 @@ async def main(argv: Sequence[str]) -> None:
     )
 
     print(f"Uploading study for zones: {', '.join(zone_codes)}")
-    response = await eas_client.async_upload_study(study)
-    await eas_client.aclose()
+    response = await eas_client.mutation(Mutation.add_studies(studies=[study]))
+    await eas_client.close()
     print(f"Study upload response: {response}")
 
 

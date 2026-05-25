@@ -19,8 +19,7 @@ from typing import List, Dict, Tuple, Callable, Any, Union, Type, Optional
 import requests
 from geojson import FeatureCollection, Feature
 from geojson.geometry import Geometry, LineString, Point
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import Study, Result, GeoJsonOverlay
+from zepben.eas import EasClient, Mutation, StudyInput, StudyResultInput, GeoJsonOverlayInput
 from zepben.ewb import (
     PowerTransformer,
     NetworkConsumerClient,
@@ -30,7 +29,6 @@ from zepben.ewb import (
     connect_with_token,
     IncludedEnergizedContainers,
 )
-
 
 DEFAULT_CONFIG_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "config.json"))
 
@@ -490,9 +488,10 @@ async def main():
 
     if max_feature_collection.features:
         results.append(
-            Result(
+            StudyResultInput(
                 name="Max Demand Utilisation (Import)",
-                geo_json_overlay=GeoJsonOverlay(
+                sections=[],
+                geo_json_overlay=GeoJsonOverlayInput(
                     data=max_feature_collection,
                     styles=max_styles,
                 ),
@@ -500,9 +499,10 @@ async def main():
         )
     if min_feature_collection.features:
         results.append(
-            Result(
+            StudyResultInput(
                 name="Min Demand Utilisation (Export)",
-                geo_json_overlay=GeoJsonOverlay(
+                sections=[],
+                geo_json_overlay=GeoJsonOverlayInput(
                     data=min_feature_collection,
                     styles=min_styles,
                 ),
@@ -517,10 +517,10 @@ async def main():
     scope_label = ", ".join(scope_mrids)
     scope_tag = "-".join(scope_mrids)
 
-    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
+    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"], asynchronous=True, enable_legacy_methods=True)
     print(f"Uploading Study for {mode} {scope_label} ...")
-    await eas_client.async_upload_study(
-        Study(
+    await eas_client.mutation(Mutation.add_studies(studies=[
+        StudyInput(
             name=f"Transformer utilisation (import/export) ({scope_label})",
             description=(
                 "Max-demand import utilisation (kwIn) and min-demand export utilisation (kwOut) "
@@ -530,8 +530,10 @@ async def main():
             results=results,
             styles=styles,
         )
+    ]
     )
-    await eas_client.aclose()
+    )
+    await eas_client.close()
     print("Uploaded Study")
 
     print(f"Finish time: {datetime.now()}")
@@ -712,7 +714,6 @@ def to_geojson_feature_collection(
     psrs: List[PowerSystemResource],
     class_to_properties: Dict[Type, Dict[str, Callable[[Any], Any]]],
 ) -> FeatureCollection:
-
     features = []
     for psr in psrs:
         properties_map = class_to_properties.get(type(psr))
@@ -729,7 +730,6 @@ def to_geojson_feature(
     psr: PowerSystemResource,
     property_map: Dict[str, Callable[[PowerSystemResource], Any]],
 ) -> Union[Feature, None]:
-
     geometry = to_geojson_geometry(psr.location)
     if geometry is None:
         return None

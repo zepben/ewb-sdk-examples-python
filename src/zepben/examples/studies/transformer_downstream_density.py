@@ -12,8 +12,7 @@ from typing import List, Dict, Tuple, Callable, Any, Union, Type, Set
 
 from geojson import FeatureCollection, Feature
 from geojson.geometry import Geometry, LineString, Point
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import Study, Result, GeoJsonOverlay
+from zepben.eas import EasClient, Mutation, StudyInput, StudyResultInput, GeoJsonOverlayInput
 from zepben.ewb import (
     AcLineSegment,
     EnergyConsumer,
@@ -128,18 +127,20 @@ async def main():
         print("No transformer features to display (missing locations). Study upload skipped.")
         return
 
-    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
+    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"], asynchronous=True, enable_legacy_methods=True)
     print(f"Uploading Study for zones {', '.join(zone_mrids)} ...")
-    await eas_client.async_upload_study(
-        Study(
+    await eas_client.mutation(Mutation.add_studies(studies=[
+        StudyInput(
             name=f"Transformer densities ({', '.join(zone_mrids)})",
             description="Downstream EC, UsagePoint and PV density per 100m of AC line segment.",
             tags=["transformer_density", "-".join(zone_mrids)],
             results=results,
             styles=styles,
         )
+    ]
     )
-    await eas_client.aclose()
+    )
+    await eas_client.close()
     print("Uploaded Study")
     print(f"Finish time: {datetime.now()}")
 
@@ -284,7 +285,7 @@ def _build_density_result(
     metric_key: str,
     label_key: str,
     style_ids: List[str],
-) -> Union[Result, None]:
+) -> Union[StudyResultInput, None]:
     class_to_properties = {
         PowerTransformer: {
             metric_key: _metric_from(transformer_to_metrics, metric_key),
@@ -295,9 +296,10 @@ def _build_density_result(
     feature_collection = to_geojson_feature_collection(transformers, class_to_properties)
     if not feature_collection.features:
         return None
-    return Result(
+    return StudyResultInput(
         name=result_name,
-        geo_json_overlay=GeoJsonOverlay(
+        sections=[],
+        geo_json_overlay=GeoJsonOverlayInput(
             data=feature_collection,
             styles=style_ids,
         )

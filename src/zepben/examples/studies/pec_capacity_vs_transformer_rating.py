@@ -12,8 +12,7 @@ from typing import List, Dict, Tuple, Callable, Any, Union, Type, Set
 
 from geojson import FeatureCollection, Feature
 from geojson.geometry import Geometry, LineString, Point
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import Study, Result, GeoJsonOverlay
+from zepben.eas import EasClient, Mutation, StudyInput, StudyResultInput, GeoJsonOverlayInput
 from zepben.ewb import (
     PowerTransformer,
     ConductingEquipment,
@@ -30,7 +29,6 @@ from zepben.ewb import (
     downstream,
     IncludedEnergizedContainers,
 )
-
 
 with open("../config.json") as f:
     c = json.loads(f.read())
@@ -105,7 +103,7 @@ async def main():
 
     print(f"Created Study for {len(all_transformers)} transformers")
 
-    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
+    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"], asynchronous=True, enable_legacy_methods=True)
     print(f"Uploading Study for zones {', '.join(zone_mrids)} ...")
     await upload_capacity_percent_study(
         eas_client,
@@ -116,14 +114,13 @@ async def main():
         tags=["pec_capacity_percent", "-".join(zone_mrids)],
         styles=json.load(open("style_pec_capacity_percent.json", "r")),
     )
-    await eas_client.aclose()
+    await eas_client.close()
     print("Uploaded Study")
 
     print(f"Finish time: {datetime.now()}")
 
 
 def collect_eq_provider(collection: Set[ConductingEquipment]):
-
     async def collect_equipment(ps: NetworkTraceStep, _):
         collection.add(ps.path.to_equipment)
 
@@ -221,7 +218,6 @@ async def upload_capacity_percent_study(
     tags: List[str],
     styles: List,
 ) -> None:
-
     class_to_properties = {
         PowerTransformer: {
             "capacity_percent": _capacity_percent_from(transformer_to_stats),
@@ -233,15 +229,16 @@ async def upload_capacity_percent_study(
         }
     }
     feature_collection = to_geojson_feature_collection(transformers, class_to_properties)
-    response = await eas_client.async_upload_study(
-        Study(
+    response = await eas_client.mutation(Mutation.add_studies(studies=[
+        StudyInput(
             name=name,
             description=description,
             tags=tags,
             results=[
-                Result(
+                StudyResultInput(
                     name=name,
-                    geo_json_overlay=GeoJsonOverlay(
+                    sections=[],
+                    geo_json_overlay=GeoJsonOverlayInput(
                         data=feature_collection,
                         styles=[s["id"] for s in styles],
                     ),
@@ -249,6 +246,8 @@ async def upload_capacity_percent_study(
             ],
             styles=styles,
         )
+    ]
+    )
     )
     print(f"Study response: {response}")
 
@@ -297,7 +296,6 @@ def to_geojson_feature_collection(
     psrs: List[PowerSystemResource],
     class_to_properties: Dict[Type, Dict[str, Callable[[Any], Any]]],
 ) -> FeatureCollection:
-
     features = []
     for psr in psrs:
         properties_map = class_to_properties.get(type(psr))
@@ -314,7 +312,6 @@ def to_geojson_feature(
     psr: PowerSystemResource,
     property_map: Dict[str, Callable[[PowerSystemResource], Any]],
 ) -> Union[Feature, None]:
-
     geometry = to_geojson_geometry(psr.location)
     if geometry is None:
         return None

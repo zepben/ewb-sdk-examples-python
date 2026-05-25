@@ -6,7 +6,7 @@
 import asyncio
 import sys
 
-from zepben.eas import FeederLoadAnalysisInput, FlaForecastConfig
+from zepben.eas import FeederLoadAnalysisInput, FlaForecastConfigInput, Mutation
 
 from zepben.examples.utils import get_config_dir, get_client
 
@@ -18,7 +18,7 @@ async def main(argv):
     eas_client = get_client(config_dir)
     print("Connection established..")
     # Fire off a feeder load analysis study
-    feeder_load_analysis_token = await eas_client.async_run_feeder_load_analysis_report(
+    feeder_load_analysis_token = await eas_client.mutation(Mutation.run_feeder_load_analysis(
         FeederLoadAnalysisInput(
             feeders=["feeder1", "feeder2"],
             start_date="2022-04-01",
@@ -28,7 +28,7 @@ async def main(argv):
             process_coincident_loads=True,
             aggregate_at_feeder_level=False,
             output="Test",
-            fla_forecast_config=FlaForecastConfig(
+            fla_forecast_config=FlaForecastConfigInput(
                 scenario_id='1',
                 year=2029,
                 pv_upgrade_threshold=6500,  ##Premise with existing PV will gain additional PV until the threshold wattage is reached.
@@ -37,12 +37,13 @@ async def main(argv):
             )
         )
     )
+    )
 
     print(f"Feeder Load Analysis study: {feeder_load_analysis_token['data']['runFeederLoadAnalysis']}")
 
     # Feeder Load Analysis Study results can be retrieved from back end storage set up with EAS.
 
-    await eas_client.aclose()
+    await eas_client.close()
 
 
 if __name__ == "__main__":

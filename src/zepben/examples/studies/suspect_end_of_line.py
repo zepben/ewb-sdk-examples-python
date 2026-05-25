@@ -12,7 +12,7 @@ from typing import List, Dict, Tuple, Callable, Any, Union, Type, Set
 
 from geojson import FeatureCollection, Feature
 from geojson.geometry import Geometry, LineString, Point
-from zepben.eas import EasClient, Study, Result, GeoJsonOverlay
+from zepben.eas import EasClient, Mutation, StudyInput, StudyResultInput, GeoJsonOverlayInput
 from zepben.ewb import PowerTransformer, ConductingEquipment, EnergyConsumer, AcLineSegment, Switch, \
     NetworkConsumerClient, PhaseCode, PowerElectronicsConnection, Feeder, PowerSystemResource, Location, \
     connect_with_token, NetworkTraceStep, Tracing, downstream, upstream, IncludedEnergizedContainers
@@ -87,7 +87,7 @@ async def main():
 
         print(f"Created Study for {len(feeder_mrids)} feeders")
 
-        eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"])
+        eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"], asynchronous=True, enable_legacy_methods=True)
 
         print(f"Uploading Study for {', '.join(feeders)} ...")
         styles = json.load(open("style_eol.json", "r"))
@@ -109,7 +109,7 @@ async def main():
             tags=["suspect_end_of_line", "-".join(zone_mrids)],
             styles=styles
         )
-        await eas_client.aclose()
+        await eas_client.close()
         print(f"Uploaded Study")
 
     print(f"Finish time: {datetime.now()}")
@@ -253,7 +253,7 @@ def _build_suspect_end_result(
     pts: List[ConductingEquipment],
     transformer_to_suspect_lines: Dict[str, Tuple[float, List[ConductingEquipment]]],
     styles: List
-) -> Result:
+) -> StudyResultInput:
     class_to_properties = {
         EnergyConsumer: {
             "name": lambda ec: ec.name,
@@ -271,9 +271,10 @@ def _build_suspect_end_result(
     }
     feature_collection = to_geojson_feature_collection(pts, class_to_properties)
     result_name = f"{feeder_mrid} - {round(total_length_m)}m"
-    return Result(
+    return StudyResultInput(
         name=result_name,
-        geo_json_overlay=GeoJsonOverlay(
+        sections=[],
+        geo_json_overlay=GeoJsonOverlayInput(
             data=feature_collection,
             styles=[s['id'] for s in styles]
         )
@@ -282,20 +283,22 @@ def _build_suspect_end_result(
 
 async def upload_suspect_end_of_line_study(
     eas_client: EasClient,
-    results: List[Result],
+    results: List[StudyResultInput],
     name: str,
     description: str,
     tags: List[str],
     styles: List
 ) -> None:
-    response = await eas_client.async_upload_study(
-        Study(
+    response = await eas_client.mutation(Mutation.add_studies(studies=[
+        StudyInput(
             name=name,
             description=description,
             tags=tags,
             results=results,
             styles=styles
         )
+        ]
+    )
     )
     print(f"Study response: {response}")
 

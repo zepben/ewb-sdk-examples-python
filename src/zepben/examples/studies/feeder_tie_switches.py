@@ -17,8 +17,7 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 
 from geojson import Feature, FeatureCollection
 from geojson.geometry import Geometry, LineString, Point
-from zepben.eas.client.eas_client import EasClient
-from zepben.eas.client.study import GeoJsonOverlay, Result, Study
+from zepben.eas import EasClient, Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
 from zepben.ewb import (
     Feeder,
     IncludedEnergizedContainers,
@@ -28,7 +27,6 @@ from zepben.ewb import (
     Switch,
     connect_with_token,
 )
-
 
 DEFAULT_CONFIG_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "config.json"))
 DEFAULT_BATCH_SIZE = 3
@@ -269,12 +267,13 @@ async def main():
         f"failed_unique={len(failed_feeder_mrids)}."
     )
 
-    results: List[Result] = []
+    results: List[StudyResultInput] = []
     if mv_mv_tie_feature_collection.features:
         results.append(
-            Result(
+            StudyResultInput(
                 name=f"Feeder ties (MV↔MV) ({len(mv_mv_tie_feature_collection.features)})",
-                geo_json_overlay=GeoJsonOverlay(
+                sections=[],
+                geo_json_overlay=GeoJsonOverlayInput(
                     data=mv_mv_tie_feature_collection,
                     styles=[
                         "feeder-tie-switch-mv-mv",
@@ -286,9 +285,10 @@ async def main():
 
     if mv_lv_tie_feature_collection.features:
         results.append(
-            Result(
+            StudyResultInput(
                 name=f"Feeder ties (MV↔LV) ({len(mv_lv_tie_feature_collection.features)})",
-                geo_json_overlay=GeoJsonOverlay(
+                sections=[],
+                geo_json_overlay=GeoJsonOverlayInput(
                     data=mv_lv_tie_feature_collection,
                     styles=[
                         "feeder-tie-switch-mv-lv",
@@ -300,9 +300,10 @@ async def main():
 
     if mv_via_lv_tie_feature_collection.features:
         results.append(
-            Result(
+            StudyResultInput(
                 name=f"Feeder ties (MV via LV) ({len(mv_via_lv_tie_feature_collection.features)})",
-                geo_json_overlay=GeoJsonOverlay(
+                sections=[],
+                geo_json_overlay=GeoJsonOverlayInput(
                     data=mv_via_lv_tie_feature_collection,
                     styles=[
                         "feeder-tie-switch-mv-via-lv",
@@ -314,9 +315,10 @@ async def main():
 
     if lv_lv_tie_feature_collection.features:
         results.append(
-            Result(
+            StudyResultInput(
                 name=f"Feeder ties (LV↔LV) ({len(lv_lv_tie_feature_collection.features)})",
-                geo_json_overlay=GeoJsonOverlay(
+                sections=[],
+                geo_json_overlay=GeoJsonOverlayInput(
                     data=lv_lv_tie_feature_collection,
                     styles=[
                         "feeder-tie-switch-lv-lv",
@@ -335,10 +337,12 @@ async def main():
         port=config["rpc_port"],
         protocol="https",
         access_token=config["access_token"],
+        asynchronous=True,
+        enable_legacy_methods=True,
     )
     print(f"Uploading Study for {mode} {scope_label} ...")
-    await eas_client.async_upload_study(
-        Study(
+    await eas_client.mutation(Mutation.add_studies(studies=[
+        StudyInput(
             name=f"Feeder tie switches ({scope_label})",
             description=(
                 "Detects feeder tie switches using container-membership evidence "
@@ -356,8 +360,10 @@ async def main():
             results=results,
             styles=styles,
         )
+    ]
     )
-    await eas_client.aclose()
+    )
+    await eas_client.close()
     print("Uploaded Study")
     print(f"Finish time: {datetime.now()}")
 
