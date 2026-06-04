@@ -139,3 +139,6 @@ src/zepben/examples/csvs/
 
 config.json
 src/zepben/examples/config.json
+
+*.csv
+*.xlsx

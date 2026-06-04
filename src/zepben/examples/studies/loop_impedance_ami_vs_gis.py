@@ -1,18 +1,25 @@
 """
-Create a study that compares loop impedance values from GIS (`R_gis`) with AMI-derived
-estimates (`R_est`) and visualises the relative error (`R_error`) on customer locations.
+Create a study that compares loop impedance values from GIS (`R_gis`, `X_gis`) with
+AMI-derived estimates (`R_est`, `X_est`) and visualises the relative error
+(`R_error`, `X_error`) on customer locations.
 
 Matching rules
 --------------
-- The CSV `NMI` column is matched to EWB `UsagePoint.names` where `Name.type.name == "NMI"`.
-- If duplicate CSV rows exist for the same NMI, the rows are treated as per-phase values and
-  averaged into a single customer result for `R_gis`, `R_est`, and `R_error`.
+- The CSV base NMI is matched to EWB `UsagePoint.names` where `Name.type.name == "NMI"`.
+- The current CSV schema uses `NMI_Phases`, where phase suffixes are stripped before
+  matching to the network NMI. Phase metadata is retained in the feature properties.
+- The older CSV schema used `NMI`. If duplicate CSV rows exist for the same NMI, the
+  rows are treated as per-phase values and averaged into a single customer result.
 
 Study results
 -------------
 1. `R_error` (first result, colour thresholds derived from the supplied dataset quantiles)
 2. `R_gis`
 3. `R_est`
+4. `X_error`
+5. `X_gis`
+6. `X_est`
+7. `Num_phases`
 """
 
 import argparse
@@ -38,32 +45,51 @@ from zepben.examples.studies.study_utils import (
 )
 from zepben.ewb import EnergyConsumer, Feeder, IncludedEnergizedContainers, Location, NetworkConsumerClient
 
-DEFAULT_CSV_PATH = Path(__file__).resolve().parent / "loop_impedance" / "ue-loop-impedance-errors-tx-91165628.csv"
+DEFAULT_CSV_PATH = (
+    Path(__file__).resolve().parent
+    / "loop_impedance"
+    / "loop_impedance_estimation_results_huber_accumulated_phases.csv"
+)
 STYLE_PATH = Path(__file__).resolve().parent / "style_loop_impedance_ami_vs_gis.json"
 DEFAULT_BATCH_SIZE = 3
 
-# Rounded thresholds chosen after reviewing the supplied CSV distribution.
-# R_error quantiles from the dataset were approximately:
-# p10=0.040, p25=0.074, p50=0.142, p75=0.307, p90=0.520, p95=0.592.
-ERROR_THRESHOLDS = (0.04, 0.08, 0.15, 0.30, 0.55, 1.00)
+# Rounded thresholds chosen after reviewing the supplied accumulated-phase CSV distribution.
+# R_error quantiles were approximately:
+# p10=0.042, p25=0.099, p50=0.225, p75=0.540, p90=0.758, p99=1.136.
+R_ERROR_THRESHOLDS = (0.04, 0.10, 0.22, 0.54, 0.76, 1.14)
+# X_error quantiles were approximately:
+# p10=0.133, p25=0.288, p50=0.538, p75=0.738, p90=0.922, p99=2.673.
+X_ERROR_THRESHOLDS = (0.13, 0.29, 0.54, 0.74, 0.92, 2.67)
 
 
 @dataclass(frozen=True)
 class CsvLoopImpedanceRow:
     nmi: str
+    nmi_phases: str
+    num_phases: int
+    phases: Tuple[str, ...]
     r_gis: float
+    x_gis: Optional[float]
     r_est: float
+    x_est: Optional[float]
     r_error: float
+    x_error: Optional[float]
     source_row_count: int = 1
 
 
 @dataclass(frozen=True)
 class MatchedLoopImpedancePoint:
     nmi: str
+    nmi_phases: str
+    num_phases: int
+    phases: Tuple[str, ...]
     energy_consumer: EnergyConsumer
     r_gis: float
+    x_gis: Optional[float]
     r_est: float
+    x_est: Optional[float]
     r_error: float
+    x_error: Optional[float]
     source_row_count: int
     network_match_count: int
 
@@ -80,7 +106,8 @@ async def main() -> None:
 
     print(f"Loaded {total_csv_rows} CSV rows across {len(csv_rows_by_nmi)} unique NMIs from {csv_path}")
     print(f"Duplicate CSV NMI count: {duplicate_nmi_count} (per-NMI values averaged across duplicate rows)")
-    print(f"R_error thresholds (quantile-informed): {', '.join(f'{value:.2f}' for value in ERROR_THRESHOLDS)}")
+    print(f"R_error thresholds (quantile-informed): {', '.join(f'{value:.2f}' for value in R_ERROR_THRESHOLDS)}")
+    print(f"X_error thresholds (quantile-informed): {', '.join(f'{value:.2f}' for value in X_ERROR_THRESHOLDS)}")
 
     scope_label, scope_tag, feeder_mrids = await _resolve_scope(
         config=config,
@@ -117,10 +144,16 @@ async def main() -> None:
                 csv_row = csv_rows_by_nmi[nmi]
                 candidate = MatchedLoopImpedancePoint(
                     nmi=nmi,
+                    nmi_phases=csv_row.nmi_phases,
+                    num_phases=csv_row.num_phases,
+                    phases=csv_row.phases,
                     energy_consumer=energy_consumer,
                     r_gis=csv_row.r_gis,
+                    x_gis=csv_row.x_gis,
                     r_est=csv_row.r_est,
+                    x_est=csv_row.x_est,
                     r_error=csv_row.r_error,
+                    x_error=csv_row.x_error,
                     source_row_count=csv_row.source_row_count,
                     network_match_count=network_match_counts[nmi],
                 )
@@ -134,10 +167,16 @@ async def main() -> None:
             continue
         matched_points_by_nmi[nmi] = MatchedLoopImpedancePoint(
             nmi=point.nmi,
+            nmi_phases=point.nmi_phases,
+            num_phases=point.num_phases,
+            phases=point.phases,
             energy_consumer=point.energy_consumer,
             r_gis=point.r_gis,
+            x_gis=point.x_gis,
             r_est=point.r_est,
+            x_est=point.x_est,
             r_error=point.r_error,
+            x_error=point.x_error,
             source_row_count=point.source_row_count,
             network_match_count=match_count,
         )
@@ -187,6 +226,41 @@ async def main() -> None:
             ),
         ),
     ]
+    if _feature_collection_has_property(feature_collection, "x_error"):
+        results.append(StudyResultInput(
+            name=f"X_error ({len(feature_collection.features)})",
+            sections=[],
+            geo_json_overlay=GeoJsonOverlayInput(
+                data=feature_collection,
+                styles=["loop-impedance-x-error-circle", "loop-impedance-x-error-label"],
+            ),
+        ))
+    if _feature_collection_has_property(feature_collection, "x_gis"):
+        results.append(StudyResultInput(
+            name=f"X_gis ({len(feature_collection.features)})",
+            sections=[],
+            geo_json_overlay=GeoJsonOverlayInput(
+                data=feature_collection,
+                styles=["loop-impedance-x-gis-circle", "loop-impedance-x-gis-label"],
+            ),
+        ))
+    if _feature_collection_has_property(feature_collection, "x_est"):
+        results.append(StudyResultInput(
+            name=f"X_est ({len(feature_collection.features)})",
+            sections=[],
+            geo_json_overlay=GeoJsonOverlayInput(
+                data=feature_collection,
+                styles=["loop-impedance-x-est-circle", "loop-impedance-x-est-label"],
+            ),
+        ))
+    results.append(StudyResultInput(
+        name=f"Num_phases ({len(feature_collection.features)})",
+        sections=[],
+        geo_json_overlay=GeoJsonOverlayInput(
+            data=feature_collection,
+            styles=["loop-impedance-phase-count-circle", "loop-impedance-phase-label"],
+        ),
+    ))
 
     eas_client = create_eas_client_from_config(config)
     resolved_study_name = study_name or f"Loop impedance AMI vs GIS ({scope_label})"
@@ -196,6 +270,7 @@ async def main() -> None:
             name=resolved_study_name,
             description=(
                 "Loop impedance comparison using CSV values matched to EWB UsagePoint NMI names. "
+                "Phase-suffixed NMI values were normalized before matching. "
                 "Where duplicate CSV rows existed for the same NMI, per-phase values were averaged into a single customer result. "
                 f"Matched {len(matched_nmis)} of {len(csv_rows_by_nmi)} CSV NMIs for scope {scope_label}; "
                 f"unmatched={len(unmatched_nmis)}."
@@ -212,8 +287,8 @@ async def main() -> None:
 def _parse_args(argv: Sequence[str]) -> Tuple[List[str], List[str], str, str, Optional[str], str]:
     parser = argparse.ArgumentParser(
         description=(
-            "Create a study showing R_error, R_gis and R_est values from a loop-impedance CSV. "
-            "CSV NMI values are matched to UsagePoint NMI names in the EWB model."
+            "Create a study showing R/X error, GIS, estimated, and phase values from a loop-impedance CSV. "
+            "CSV base NMI values are matched to UsagePoint NMI names in the EWB model."
         )
     )
     parser.add_argument(
@@ -281,37 +356,133 @@ def _parse_args(argv: Sequence[str]) -> Tuple[List[str], List[str], str, str, Op
 
 
 def _load_csv_rows(csv_path: str) -> Tuple[Dict[str, CsvLoopImpedanceRow], int, int]:
-    sums_by_nmi: Dict[str, Dict[str, float]] = defaultdict(lambda: {
-        "r_gis": 0.0,
-        "r_est": 0.0,
-        "r_error": 0.0,
-    })
+    sums_by_nmi: Dict[str, Dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    metric_counts_by_nmi: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
     counts_by_nmi: Dict[str, int] = defaultdict(int)
+    phases_by_nmi: Dict[str, List[str]] = defaultdict(list)
+    nmi_phases_by_nmi: Dict[str, List[str]] = defaultdict(list)
+    num_phases_by_nmi: Dict[str, int] = defaultdict(int)
     total_rows = 0
 
     with open(csv_path, "r", newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            raise ValueError(f"CSV file has no header: {csv_path}")
+        has_accumulated_phase_schema = "NMI_Phases" in reader.fieldnames
+        if not has_accumulated_phase_schema and "NMI" not in reader.fieldnames:
+            raise ValueError("CSV must contain either NMI_Phases or NMI column.")
+
         for row in reader:
             total_rows += 1
-            nmi = str(row["NMI"]).strip()
-            sums_by_nmi[nmi]["r_gis"] += float(row["R_gis"])
-            sums_by_nmi[nmi]["r_est"] += float(row["R_est"])
-            sums_by_nmi[nmi]["r_error"] += float(row["R_error"])
+            if has_accumulated_phase_schema:
+                nmi, phases, nmi_phases = _parse_phase_coded_nmi(row["NMI_Phases"])
+                num_phases = _parse_optional_int(row.get("Num_phases")) or len(phases) or 1
+            else:
+                nmi, phases, nmi_phases = _parse_phase_coded_nmi(row["NMI"])
+                num_phases = len(phases) or 1
+
+            if not nmi:
+                raise ValueError(f"CSV row {total_rows} has an empty NMI value.")
+
+            for metric in ("R_gis", "X_gis", "R_est", "X_est", "R_error", "X_error"):
+                value = _parse_optional_float(row.get(metric))
+                if value is None:
+                    continue
+                metric_key = metric.lower()
+                sums_by_nmi[nmi][metric_key] += value
+                metric_counts_by_nmi[nmi][metric_key] += 1
+
+            phases_by_nmi[nmi].extend(phases)
+            nmi_phases_by_nmi[nmi].append(nmi_phases)
+            num_phases_by_nmi[nmi] = max(num_phases_by_nmi[nmi], num_phases)
             counts_by_nmi[nmi] += 1
 
     rows_by_nmi: Dict[str, CsvLoopImpedanceRow] = {}
     for nmi, sums in sums_by_nmi.items():
         count = counts_by_nmi[nmi]
+        phases = tuple(dict.fromkeys(phases_by_nmi[nmi]))
+        num_phases = len(phases) or (count if count > 1 else num_phases_by_nmi[nmi]) or 1
         rows_by_nmi[nmi] = CsvLoopImpedanceRow(
             nmi=nmi,
-            r_gis=sums["r_gis"] / count,
-            r_est=sums["r_est"] / count,
-            r_error=sums["r_error"] / count,
+            nmi_phases=", ".join(dict.fromkeys(nmi_phases_by_nmi[nmi])),
+            num_phases=num_phases,
+            phases=phases,
+            r_gis=_required_average(nmi, "r_gis", sums, metric_counts_by_nmi[nmi]),
+            x_gis=_optional_average("x_gis", sums, metric_counts_by_nmi[nmi]),
+            r_est=_required_average(nmi, "r_est", sums, metric_counts_by_nmi[nmi]),
+            x_est=_optional_average("x_est", sums, metric_counts_by_nmi[nmi]),
+            r_error=_required_average(nmi, "r_error", sums, metric_counts_by_nmi[nmi]),
+            x_error=_optional_average("x_error", sums, metric_counts_by_nmi[nmi]),
             source_row_count=count,
         )
 
     duplicate_nmi_count = sum(1 for count in counts_by_nmi.values() if count > 1)
     return rows_by_nmi, total_rows, duplicate_nmi_count
+
+
+def _parse_phase_coded_nmi(value: str) -> Tuple[str, Tuple[str, ...], str]:
+    nmi_phases = str(value).strip()
+    parts = [part.strip() for part in nmi_phases.split(",") if part.strip()]
+    bases: Set[str] = set()
+    phases: List[str] = []
+
+    for part in parts:
+        if "_" in part:
+            base, phase = part.rsplit("_", 1)
+            base = base.strip()
+            phase = phase.strip()
+            if phase:
+                phases.append(phase)
+        else:
+            base = part.strip()
+        if base:
+            bases.add(base)
+
+    if len(bases) != 1:
+        raise ValueError(f"Expected one base NMI in NMI_Phases value {value!r}, found {sorted(bases)}")
+
+    return next(iter(bases)), tuple(phases), nmi_phases
+
+
+def _parse_optional_float(value: Optional[str]) -> Optional[float]:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    return float(text)
+
+
+def _parse_optional_int(value: Optional[str]) -> Optional[int]:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    return int(text)
+
+
+def _required_average(
+    nmi: str,
+    metric: str,
+    sums: Dict[str, float],
+    counts: Dict[str, int],
+) -> float:
+    count = counts.get(metric, 0)
+    if not count:
+        raise ValueError(f"CSV row for NMI {nmi} is missing required {metric.upper()} value.")
+    return sums[metric] / count
+
+
+def _optional_average(
+    metric: str,
+    sums: Dict[str, float],
+    counts: Dict[str, int],
+) -> Optional[float]:
+    count = counts.get(metric, 0)
+    if not count:
+        return None
+    return sums[metric] / count
 
 
 async def _resolve_scope(
@@ -413,6 +584,10 @@ def _build_feature_collection(points: List[MatchedLoopImpedancePoint]) -> Featur
         properties = {
             "type": "usage_point",
             "nmi": point.nmi,
+            "nmi_phases": point.nmi_phases,
+            "num_phases": point.num_phases,
+            "phases": ", ".join(point.phases),
+            "phase_label": _format_phases(point),
             "name": point.energy_consumer.name or point.nmi,
             "energy_consumer_mrid": point.energy_consumer.mrid,
             "csv_row_count": point.source_row_count,
@@ -424,8 +599,32 @@ def _build_feature_collection(points: List[MatchedLoopImpedancePoint]) -> Featur
             "r_est_label": _format_ohm(point.r_est),
             "r_error_label": _format_error(point.r_error),
         }
+        _add_optional_metric(properties, "x_gis", point.x_gis, _format_ohm)
+        _add_optional_metric(properties, "x_est", point.x_est, _format_ohm)
+        _add_optional_metric(properties, "x_error", point.x_error, _format_error)
         features.append(Feature(point.nmi, geometry, properties))
     return FeatureCollection(features)
+
+
+def _feature_collection_has_property(feature_collection: FeatureCollection, property_name: str) -> bool:
+    for feature in feature_collection.features:
+        properties = getattr(feature, "properties", None) or feature.get("properties", {})
+        if property_name in properties:
+            return True
+    return False
+
+
+def _add_optional_metric(properties: Dict[str, object], key: str, value: Optional[float], label_formatter) -> None:
+    if value is None:
+        return
+    properties[key] = round(value, 6)
+    properties[f"{key}_label"] = label_formatter(value)
+
+
+def _format_phases(point: MatchedLoopImpedancePoint) -> str:
+    if point.phases:
+        return f"{point.num_phases}ph ({'/'.join(point.phases)})"
+    return f"{point.num_phases}ph"
 
 
 def _format_ohm(value: float) -> str:

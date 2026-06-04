@@ -1,7 +1,7 @@
 [
   {
     "id": "loop-impedance-error-circle",
-    "name": "Loop Impedance Error",
+    "name": "Loop Impedance R Error",
     "type": "circle",
     "minzoom": 11,
     "paint": {
@@ -12,11 +12,11 @@
         "rgb(160,160,160)",
         ["step", ["get", "r_error"],
           "rgb(0,180,40)", 0.04,
-          "rgb(171,221,164)", 0.08,
-          "rgb(255,217,47)", 0.15,
-          "rgb(253,174,97)", 0.30,
-          "rgb(244,109,67)", 0.55,
-          "rgb(210,2,29)", 1.00,
+          "rgb(171,221,164)", 0.10,
+          "rgb(255,217,47)", 0.22,
+          "rgb(253,174,97)", 0.54,
+          "rgb(244,109,67)", 0.76,
+          "rgb(210,2,29)", 1.14,
           "rgb(126,1,35)"
         ]
       ],
@@ -28,7 +28,7 @@
   },
   {
     "id": "loop-impedance-error-label",
-    "name": "Loop Impedance Error Label",
+    "name": "Loop Impedance R Error Label",
     "type": "symbol",
     "minzoom": 13,
     "layout": {
@@ -57,12 +57,12 @@
         ["==", ["get", "r_gis"], 0],
         "rgb(160,160,160)",
         ["step", ["get", "r_gis"],
-          "rgb(0,180,40)", 0.07,
-          "rgb(171,221,164)", 0.09,
-          "rgb(255,217,47)", 0.13,
+          "rgb(0,180,40)", 0.06,
+          "rgb(171,221,164)", 0.08,
+          "rgb(255,217,47)", 0.11,
           "rgb(253,174,97)", 0.16,
-          "rgb(244,109,67)", 0.19,
-          "rgb(210,2,29)", 0.22,
+          "rgb(244,109,67)", 0.21,
+          "rgb(210,2,29)", 0.32,
           "rgb(126,1,35)"
         ]
       ],
@@ -103,12 +103,12 @@
         ["==", ["get", "r_est"], 0],
         "rgb(160,160,160)",
         ["step", ["get", "r_est"],
-          "rgb(0,180,40)", 0.04,
-          "rgb(171,221,164)", 0.09,
-          "rgb(255,217,47)", 0.13,
-          "rgb(253,174,97)", 0.15,
-          "rgb(244,109,67)", 0.18,
-          "rgb(210,2,29)", 0.21,
+          "rgb(0,180,40)", 0.03,
+          "rgb(171,221,164)", 0.06,
+          "rgb(255,217,47)", 0.10,
+          "rgb(253,174,97)", 0.14,
+          "rgb(244,109,67)", 0.19,
+          "rgb(210,2,29)", 0.32,
           "rgb(126,1,35)"
         ]
       ],
@@ -125,6 +125,183 @@
     "minzoom": 13,
     "layout": {
       "text-field": ["get", "r_est_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11,
+      "text-offset": [0, 1.2]
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 4,
+      "text-halo-width": 2,
+      "text-halo-color": "white"
+    },
+    "filter": ["==", ["get", "type"], "usage_point"]
+  },
+  {
+    "id": "loop-impedance-x-error-circle",
+    "name": "Loop Impedance X Error",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 10,
+      "circle-color": [
+        "case",
+        ["==", ["get", "x_error"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "x_error"],
+          "rgb(0,180,40)", 0.13,
+          "rgb(171,221,164)", 0.29,
+          "rgb(255,217,47)", 0.54,
+          "rgb(253,174,97)", 0.74,
+          "rgb(244,109,67)", 0.92,
+          "rgb(210,2,29)", 2.67,
+          "rgb(126,1,35)"
+        ]
+      ],
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.2
+    },
+    "filter": ["all", ["==", ["get", "type"], "usage_point"], ["has", "x_error"]]
+  },
+  {
+    "id": "loop-impedance-x-error-label",
+    "name": "Loop Impedance X Error Label",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": ["get", "x_error_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11,
+      "text-offset": [0, 1.2]
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 4,
+      "text-halo-width": 2,
+      "text-halo-color": "white"
+    },
+    "filter": ["all", ["==", ["get", "type"], "usage_point"], ["has", "x_error_label"]]
+  },
+  {
+    "id": "loop-impedance-x-gis-circle",
+    "name": "X_gis",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 10,
+      "circle-color": [
+        "case",
+        ["==", ["get", "x_gis"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "x_gis"],
+          "rgb(0,180,40)", 0.03,
+          "rgb(171,221,164)", 0.05,
+          "rgb(255,217,47)", 0.09,
+          "rgb(253,174,97)", 0.13,
+          "rgb(244,109,67)", 0.18,
+          "rgb(210,2,29)", 0.25,
+          "rgb(126,1,35)"
+        ]
+      ],
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.2
+    },
+    "filter": ["all", ["==", ["get", "type"], "usage_point"], ["has", "x_gis"]]
+  },
+  {
+    "id": "loop-impedance-x-gis-label",
+    "name": "X_gis Label",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": ["get", "x_gis_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11,
+      "text-offset": [0, 1.2]
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 4,
+      "text-halo-width": 2,
+      "text-halo-color": "white"
+    },
+    "filter": ["all", ["==", ["get", "type"], "usage_point"], ["has", "x_gis_label"]]
+  },
+  {
+    "id": "loop-impedance-x-est-circle",
+    "name": "X_est",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 10,
+      "circle-color": [
+        "case",
+        ["==", ["get", "x_est"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "x_est"],
+          "rgb(0,180,40)", 0.01,
+          "rgb(171,221,164)", 0.02,
+          "rgb(255,217,47)", 0.04,
+          "rgb(253,174,97)", 0.07,
+          "rgb(244,109,67)", 0.10,
+          "rgb(210,2,29)", 0.16,
+          "rgb(126,1,35)"
+        ]
+      ],
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.2
+    },
+    "filter": ["all", ["==", ["get", "type"], "usage_point"], ["has", "x_est"]]
+  },
+  {
+    "id": "loop-impedance-x-est-label",
+    "name": "X_est Label",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": ["get", "x_est_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11,
+      "text-offset": [0, 1.2]
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 4,
+      "text-halo-width": 2,
+      "text-halo-color": "white"
+    },
+    "filter": ["all", ["==", ["get", "type"], "usage_point"], ["has", "x_est_label"]]
+  },
+  {
+    "id": "loop-impedance-phase-count-circle",
+    "name": "Phase Count",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 10,
+      "circle-color": [
+        "match", ["get", "num_phases"],
+        1, "rgb(43,131,186)",
+        2, "rgb(255,217,47)",
+        3, "rgb(215,25,28)",
+        "rgb(160,160,160)"
+      ],
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.2
+    },
+    "filter": ["==", ["get", "type"], "usage_point"]
+  },
+  {
+    "id": "loop-impedance-phase-label",
+    "name": "Phase Label",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": ["get", "phase_label"],
       "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
       "text-size": 11,
       "text-offset": [0, 1.2]
