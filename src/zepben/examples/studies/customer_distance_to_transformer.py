@@ -6,6 +6,7 @@
 
 import asyncio
 import json
+from pathlib import Path
 from datetime import datetime
 from itertools import islice
 from typing import List, Dict, Tuple, Callable, Any, Union, Type, Set
@@ -13,6 +14,11 @@ from typing import List, Dict, Tuple, Callable, Any, Union, Type, Set
 from geojson import FeatureCollection, Feature
 from geojson.geometry import Geometry, LineString, Point
 from zepben.eas import EasClient, Mutation, StudyInput, StudyResultInput, GeoJsonOverlayInput
+from zepben.examples.studies.study_utils import (
+    create_eas_client_from_config,
+    connect_rpc_from_config,
+    load_examples_config,
+)
 from zepben.ewb import (
     AcLineSegment,
     EnergyConsumer,
@@ -32,8 +38,9 @@ from zepben.ewb import (
 from zepben.ewb.services.network.tracing.networktrace.operators.network_state_operators import NetworkStateOperators
 
 
-with open("../config.json") as f:
-    c = json.loads(f.read())
+c = load_examples_config()
+
+STYLE_PATH = Path(__file__).resolve().parent / "style_customer_distance.json"
 
 
 def chunk(it, size):
@@ -46,15 +53,7 @@ async def main():
     zone_mrids = ["CPM"]
     print(f"Start time: {datetime.now()}")
 
-    rpc_channel = connect_with_token(
-        host=c["host"],
-        access_token=c["access_token"],
-        rpc_port=c["rpc_port"],
-        ca_filename=c.get("ca_filename"),
-        timeout_seconds=c.get("timeout_seconds", 5),
-        debug=bool(c.get("debug", False)),
-        skip_connection_test=bool(c.get("skip_connection_test", False)),
-    )
+    rpc_channel = connect_rpc_from_config(c)
     client = NetworkConsumerClient(rpc_channel)
     hierarchy = (await client.get_network_hierarchy()).throw_on_error()
     substations = hierarchy.value.substations
@@ -75,15 +74,7 @@ async def main():
     batches = chunk(feeder_mrids, 3)
     for feeders in batches:
         futures = []
-        rpc_channel = connect_with_token(
-            host=c["host"],
-            access_token=c["access_token"],
-            rpc_port=c["rpc_port"],
-            ca_filename=c.get("ca_filename"),
-            timeout_seconds=c.get("timeout_seconds", 5),
-            debug=bool(c.get("debug", False)),
-            skip_connection_test=bool(c.get("skip_connection_test", False)),
-        )
+        rpc_channel = connect_rpc_from_config(c)
         print(f"Processing feeders {', '.join(feeders)}")
         for feeder_mrid in feeders:
             futures.append(asyncio.ensure_future(fetch_feeder_customer_distance(feeder_mrid, rpc_channel)))
@@ -98,7 +89,7 @@ async def main():
 
     print(f"Creating study for {len(all_ecs)} energy consumers")
 
-    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"], asynchronous=True, enable_legacy_methods=True)
+    eas_client = create_eas_client_from_config(c)
     print(f"Uploading Study for zones {', '.join(zone_mrids)} ...")
     await upload_distance_study(
         eas_client,
@@ -107,7 +98,7 @@ async def main():
         name=f"Customer distance to transformer ({', '.join(zone_mrids)})",
         description="Distance along the normal network path from each EnergyConsumer to its upstream transformer.",
         tags=["customer_distance", "-".join(zone_mrids)],
-        styles=json.load(open("style_customer_distance.json", "r")),
+        styles=json.loads(STYLE_PATH.read_text()),
     )
     await eas_client.close()
     print("Uploaded Study")

@@ -16,7 +16,8 @@ from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from geojson import Feature, FeatureCollection
 from geojson.geometry import LineString, Point
-from zepben.eas import EasClient, Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
+from zepben.eas import Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
+from zepben.examples.studies.study_utils import create_eas_client_from_config, connect_rpc_from_config
 from zepben.ewb import (
     AcLineSegment,
     ConductingEquipment,
@@ -197,18 +198,6 @@ def _load_styles() -> List[Dict]:
         return json.loads(f.read())
 
 
-def _connect_rpc(config: Dict):
-    return connect_with_token(
-        host=config["host"],
-        access_token=config["access_token"],
-        rpc_port=config["rpc_port"],
-        ca_filename=config.get("ca_filename"),
-        timeout_seconds=config.get("timeout_seconds", 5),
-        debug=bool(config.get("debug", False)),
-        skip_connection_test=bool(config.get("skip_connection_test", False)),
-    )
-
-
 def _chunk(items: Sequence, size: int) -> Iterable[Sequence]:
     safe = max(size, 1)
     for i in range(0, len(items), safe):
@@ -243,7 +232,7 @@ def _normaliser(values: Iterable[float]) -> Normaliser:
 
 
 async def _collect_feeders(config: Dict, zone_codes: Sequence[str]) -> List[FeederRef]:
-    rpc_channel = _connect_rpc(config)
+    rpc_channel = connect_rpc_from_config(config)
     client = NetworkConsumerClient(rpc_channel)
     hierarchy = (await client.get_network_hierarchy()).throw_on_error()
     substations = hierarchy.value.substations
@@ -510,7 +499,7 @@ def _find_pv_energy_consumers(network) -> Set[str]:
 
 async def _analyse_feeder(ref: FeederRef, config: Dict, seed: int) -> Optional[FeederAnalytics]:
     print(f"Fetching feeder {ref.feeder_name} ({ref.feeder_mrid})")
-    rpc_channel = _connect_rpc(config)
+    rpc_channel = connect_rpc_from_config(config)
     client = NetworkConsumerClient(rpc_channel)
     result = await client.get_equipment_container(
         mrid=ref.feeder_mrid,
@@ -1242,12 +1231,7 @@ async def main(argv: Sequence[str]) -> None:
         print("Dry-run enabled. Study was not uploaded.")
         return
 
-    eas_client = EasClient(
-        host=config["host"],
-        port=config["rpc_port"],
-        protocol="https",
-        access_token=config["access_token"],
-    )
+    eas_client = create_eas_client_from_config(config)
 
     study = StudyInput(
         name=args.name,

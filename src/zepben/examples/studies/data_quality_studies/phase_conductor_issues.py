@@ -12,7 +12,7 @@ from typing import Dict, List, Set, Tuple
 import sys
 
 from geojson import FeatureCollection
-from zepben.eas import EasClient, Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
+from zepben.eas import Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
 from zepben.ewb import (
     AcLineSegment,
     ConductingEquipment,
@@ -30,6 +30,8 @@ from dq_utils import (
     point_feature,
     terminal_phase_code,
     to_geojson_feature_collection,
+    connect_rpc_from_config,
+    create_eas_client_from_config,
 )
 
 
@@ -38,7 +40,7 @@ async def main():
     print(f"Start time: {datetime.now()}")
 
     config = load_config()
-    rpc_channel = _connect_rpc(config)
+    rpc_channel = connect_rpc_from_config(config)
     client = NetworkConsumerClient(rpc_channel)
     hierarchy = (await client.get_network_hierarchy()).throw_on_error()
     feeder_mrids = _collect_feeder_mrids(hierarchy.value.substations, zone_mrids)
@@ -50,7 +52,7 @@ async def main():
     missing_phase_lines: Set[AcLineSegment] = set()
 
     for feeders in chunk(feeder_mrids, 3):
-        rpc_channel = _connect_rpc(config)
+        rpc_channel = connect_rpc_from_config(config)
         for feeder_mrid in feeders:
             result = await _fetch_phase_issues(feeder_mrid, rpc_channel)
             if result is None:
@@ -95,7 +97,7 @@ async def main():
                 )
             )
 
-    eas_client = EasClient(host=config["host"], port=config["rpc_port"], protocol="https", access_token=config["access_token"], asynchronous=True, enable_legacy_methods=True)
+    eas_client = create_eas_client_from_config(config)
     print(f"Uploading Study for zones {', '.join(zone_mrids)} ...")
     await eas_client.mutation(Mutation.add_studies(studies=[
         StudyInput(
@@ -113,16 +115,8 @@ async def main():
     print(f"Finish time: {datetime.now()}")
 
 
-def _connect_rpc(config):
-    return connect_with_token(
-        host=config["host"],
-        access_token=config["access_token"],
-        rpc_port=config["rpc_port"],
-        ca_filename=config.get("ca_filename"),
-        timeout_seconds=config.get("timeout_seconds", 5),
-        debug=bool(config.get("debug", False)),
-        skip_connection_test=bool(config.get("skip_connection_test", False)),
-    )
+def connect_rpc_from_config(config):
+    return connect_rpc_from_config(config)
 
 
 def _collect_feeder_mrids(substations: Dict, zone_mrids: List[str]) -> List[str]:

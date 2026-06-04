@@ -1,0 +1,140 @@
+[
+  {
+    "id": "loop-impedance-error-circle",
+    "name": "Loop Impedance Error",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 10,
+      "circle-color": [
+        "case",
+        ["==", ["get", "r_error"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "r_error"],
+          "rgb(0,180,40)", 0.04,
+          "rgb(171,221,164)", 0.08,
+          "rgb(255,217,47)", 0.15,
+          "rgb(253,174,97)", 0.30,
+          "rgb(244,109,67)", 0.55,
+          "rgb(210,2,29)", 1.00,
+          "rgb(126,1,35)"
+        ]
+      ],
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.2
+    },
+    "filter": ["==", ["get", "type"], "usage_point"]
+  },
+  {
+    "id": "loop-impedance-error-label",
+    "name": "Loop Impedance Error Label",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": ["get", "r_error_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11,
+      "text-offset": [0, 1.2]
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 4,
+      "text-halo-width": 2,
+      "text-halo-color": "white"
+    },
+    "filter": ["==", ["get", "type"], "usage_point"]
+  },
+  {
+    "id": "loop-impedance-r-gis-circle",
+    "name": "R_gis",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 10,
+      "circle-color": [
+        "case",
+        ["==", ["get", "r_gis"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "r_gis"],
+          "rgb(0,180,40)", 0.07,
+          "rgb(171,221,164)", 0.09,
+          "rgb(255,217,47)", 0.13,
+          "rgb(253,174,97)", 0.16,
+          "rgb(244,109,67)", 0.19,
+          "rgb(210,2,29)", 0.22,
+          "rgb(126,1,35)"
+        ]
+      ],
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.2
+    },
+    "filter": ["==", ["get", "type"], "usage_point"]
+  },
+  {
+    "id": "loop-impedance-r-gis-label",
+    "name": "R_gis Label",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": ["get", "r_gis_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11,
+      "text-offset": [0, 1.2]
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 4,
+      "text-halo-width": 2,
+      "text-halo-color": "white"
+    },
+    "filter": ["==", ["get", "type"], "usage_point"]
+  },
+  {
+    "id": "loop-impedance-r-est-circle",
+    "name": "R_est",
+    "type": "circle",
+    "minzoom": 11,
+    "paint": {
+      "circle-radius": 10,
+      "circle-color": [
+        "case",
+        ["==", ["get", "r_est"], 0],
+        "rgb(160,160,160)",
+        ["step", ["get", "r_est"],
+          "rgb(0,180,40)", 0.04,
+          "rgb(171,221,164)", 0.09,
+          "rgb(255,217,47)", 0.13,
+          "rgb(253,174,97)", 0.15,
+          "rgb(244,109,67)", 0.18,
+          "rgb(210,2,29)", 0.21,
+          "rgb(126,1,35)"
+        ]
+      ],
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "white",
+      "circle-stroke-width": 1.2
+    },
+    "filter": ["==", ["get", "type"], "usage_point"]
+  },
+  {
+    "id": "loop-impedance-r-est-label",
+    "name": "R_est Label",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": {
+      "text-field": ["get", "r_est_label"],
+      "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      "text-size": 11,
+      "text-offset": [0, 1.2]
+    },
+    "paint": {
+      "text-color": "black",
+      "text-halo-blur": 4,
+      "text-halo-width": 2,
+      "text-halo-color": "white"
+    },
+    "filter": ["==", ["get", "type"], "usage_point"]
+  }
+]

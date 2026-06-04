@@ -12,6 +12,12 @@ from geojson import Feature, FeatureCollection
 from geojson.geometry import Geometry, LineString, Point
 from zepben.ewb import Location, PowerSystemResource
 
+from zepben.examples.studies.study_utils import (
+    ca_filename_from_config,
+    connect_rpc_from_config,
+    create_eas_client_from_config,
+)
+
 
 CONFIG_PATH = Path(__file__).resolve().parents[2] / "config.json"
 

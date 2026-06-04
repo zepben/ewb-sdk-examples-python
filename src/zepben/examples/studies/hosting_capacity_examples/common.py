@@ -19,6 +19,7 @@ from dotenv import dotenv_values
 from geojson.geometry import LineString, Point
 from sqlalchemy import bindparam, create_engine, text
 from sqlalchemy.engine import Engine, URL
+from zepben.examples.studies.study_utils import ca_filename_from_config
 from zepben.ewb import (
     AcLineSegment,
     ConductingEquipment,
@@ -258,7 +259,7 @@ def _connect_rpc(ewb: EwbSettings):
         host=ewb.host,
         access_token=ewb.access_token,
         rpc_port=ewb.rpc_port,
-        ca_filename=ewb.ca_filename,
+        ca_filename=ewb.ca_filename or ca_filename_from_config({}),
         timeout_seconds=ewb.timeout_seconds,
         debug=ewb.debug,
         skip_connection_test=ewb.skip_connection_test,

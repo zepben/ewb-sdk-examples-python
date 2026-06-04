@@ -76,7 +76,7 @@ Hosting Capacity examples that query PostgreSQL and upload propagated measuremen
 
 ## Scripts in this folder
 
-Representative studies:
+ Representative studies:
 - `transformer_utilisation_by_demand.py`
 - `pv_percent_by_transformer.py`
 - `suspect_end_of_line.py`
@@ -84,6 +84,7 @@ Representative studies:
 - `transformer_downstream_density.py`
 - `customer_distance_to_transformer.py`
 - `loop_impedance_by_energy_consumer.py`
+- `loop_impedance_ami_vs_gis.py`
 - `tap_changer_info_by_transformer.py`
 
 See each script’s header and help output for specifics:

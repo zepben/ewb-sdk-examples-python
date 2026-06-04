@@ -12,6 +12,7 @@ import json
 import os
 import sys
 import threading
+from pathlib import Path
 from datetime import date, datetime
 from itertools import islice
 from typing import List, Dict, Tuple, Callable, Any, Union, Type, Optional
@@ -19,7 +20,8 @@ from typing import List, Dict, Tuple, Callable, Any, Union, Type, Optional
 import requests
 from geojson import FeatureCollection, Feature
 from geojson.geometry import Geometry, LineString, Point
-from zepben.eas import EasClient, Mutation, StudyInput, StudyResultInput, GeoJsonOverlayInput
+from zepben.eas import Mutation, StudyInput, StudyResultInput, GeoJsonOverlayInput
+from zepben.examples.studies.study_utils import ca_filename_from_config, create_eas_client_from_config, connect_rpc_from_config
 from zepben.ewb import (
     PowerTransformer,
     NetworkConsumerClient,
@@ -31,6 +33,8 @@ from zepben.ewb import (
 )
 
 DEFAULT_CONFIG_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "config.json"))
+
+STYLE_PATH = Path(__file__).resolve().parent / "style_transformer_utilisation.json"
 
 
 def chunk(it, size):
@@ -285,15 +289,7 @@ async def main():
         c = json.loads(f.read())
     print(f"Start time: {datetime.now()}")
 
-    rpc_channel = connect_with_token(
-        host=c["host"],
-        access_token=c["access_token"],
-        rpc_port=c["rpc_port"],
-        ca_filename=c.get("ca_filename"),
-        timeout_seconds=c.get("timeout_seconds", 5),
-        debug=bool(c.get("debug", False)),
-        skip_connection_test=bool(c.get("skip_connection_test", False)),
-    )
+    rpc_channel = connect_rpc_from_config(c)
     if mode == "zones":
         client = NetworkConsumerClient(rpc_channel)
         hierarchy = (await client.get_network_hierarchy()).throw_on_error()
@@ -316,15 +312,7 @@ async def main():
     batches = chunk(feeder_mrids, 3)
     for feeders in batches:
         futures = []
-        rpc_channel = connect_with_token(
-            host=c["host"],
-            access_token=c["access_token"],
-            rpc_port=c["rpc_port"],
-            ca_filename=c.get("ca_filename"),
-            timeout_seconds=c.get("timeout_seconds", 5),
-            debug=bool(c.get("debug", False)),
-            skip_connection_test=bool(c.get("skip_connection_test", False)),
-        )
+        rpc_channel = connect_rpc_from_config(c)
         print(f"Processing feeders {', '.join(feeders)}")
         for feeder_mrid in feeders:
             futures.append(asyncio.ensure_future(fetch_feeder_transformers(feeder_mrid, rpc_channel)))
@@ -346,7 +334,7 @@ async def main():
     base_url = _build_base_url(c["host"], c.get("rpc_port"))
     system_tag = c.get("load_api_system_tag", "EWB")
     timeout_seconds = c.get("timeout_seconds", 10)
-    verify = c.get("ca_filename") or True
+    verify = ca_filename_from_config(c) or True
     season_hemisphere = c.get("season_hemisphere", "southern")
     seasonal_shapes = bool(c.get("seasonal_shapes", False)) or seasonal_shapes_flag
 
@@ -384,7 +372,7 @@ async def main():
 
     print(f"Created Study for {len(all_transformers)} transformers")
 
-    styles = json.load(open("style_transformer_utilisation.json", "r"))
+    styles = json.loads(STYLE_PATH.read_text())
     max_feature_collection = to_geojson_feature_collection(
         all_transformers,
         {
@@ -517,7 +505,7 @@ async def main():
     scope_label = ", ".join(scope_mrids)
     scope_tag = "-".join(scope_mrids)
 
-    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"], asynchronous=True, enable_legacy_methods=True)
+    eas_client = create_eas_client_from_config(c)
     print(f"Uploading Study for {mode} {scope_label} ...")
     await eas_client.mutation(Mutation.add_studies(studies=[
         StudyInput(

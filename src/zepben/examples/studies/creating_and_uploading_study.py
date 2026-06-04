@@ -8,7 +8,12 @@ import asyncio
 import json
 
 from geojson import Feature, LineString, FeatureCollection, Point
-from zepben.eas import StudyInput, StudyResultInput, GeoJsonOverlayInput, EasClient, Mutation
+from zepben.eas import StudyInput, StudyResultInput, GeoJsonOverlayInput, Mutation
+from zepben.examples.studies.study_utils import (
+    create_eas_client_from_config,
+    connect_rpc_from_config,
+    load_examples_config,
+)
 from zepben.ewb import AcLineSegment, EnergyConsumer, connect_with_token, NetworkConsumerClient, IncludedEnergizedContainers
 
 # A study is a geographical visualisation of data that is drawn on top of the network.
@@ -19,14 +24,13 @@ from zepben.ewb import AcLineSegment, EnergyConsumer, connect_with_token, Networ
 # Both Evolve App Server and Energy Workbench must be running for this example.
 
 
-with open("../config.json") as f:
-    c = json.loads(f.read())
+c = load_examples_config()
 
 
 async def main():
     # Fetch network model from Energy Workbench's gRPC service (see ../connecting_to_grpc_service.py for examples on different connection functions)
     print("Connecting to EWB..")
-    grpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    grpc_channel = connect_rpc_from_config(c)
     feeder_mrid = "WD24"
     grpc_client = NetworkConsumerClient(grpc_channel)
     print("Connection established..")
@@ -86,7 +90,7 @@ async def main():
     )
     print("Study created..")
     print("Connecting to EAS..")
-    eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"], asynchronous=True, enable_legacy_methods=True)
+    eas_client = create_eas_client_from_config(c)
 
     print("Connection established..")
 

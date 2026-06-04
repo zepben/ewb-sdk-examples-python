@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 
-from zepben.eas import EasClient, Mutation, StudyInput
+from zepben.eas import Mutation, StudyInput
 
 from zepben.ewb import (
     Feeder,
@@ -27,7 +27,13 @@ import consumer_mapping_issues as cm
 import phase_conductor_issues as pc
 import protection_directionality_anomalies as pd
 import spatial_location_anomalies as sl
-from dq_utils import chunk, get_zone_mrids, load_config
+from dq_utils import (
+    chunk,
+    connect_rpc_from_config,
+    create_eas_client_from_config,
+    get_zone_mrids,
+    load_config,
+)
 
 BATCH_SIZE = 4
 
@@ -37,7 +43,7 @@ async def main():
     print(f"Start time: {datetime.now()}")
 
     config = load_config()
-    rpc_channel = _connect_rpc(config)
+    rpc_channel = connect_rpc_from_config(config)
     client = NetworkConsumerClient(rpc_channel)
     hierarchy = (await client.get_network_hierarchy()).throw_on_error()
 
@@ -64,7 +70,7 @@ async def main():
     very_long_lines: Set = set()
 
     for feeders in chunk(feeder_mrids, BATCH_SIZE):
-        rpc_channel = _connect_rpc(config)
+        rpc_channel = connect_rpc_from_config(config)
         tasks = [
             asyncio.create_task(_process_feeder(feeder_mrid, rpc_channel))
             for feeder_mrid in feeders
@@ -118,7 +124,7 @@ async def main():
     description = _description_from_tests(detected_tests)
     tags = [_slugify(test) for test in detected_tests]
 
-    eas_client = EasClient(host=config["host"], port=config["rpc_port"], protocol="https", access_token=config["access_token"], asynchronous=True, enable_legacy_methods=True)
+    eas_client = create_eas_client_from_config(config)
     print(f"Uploading Study for zones {', '.join(zone_mrids)} ...")
     await eas_client.mutation(Mutation.add_studies(studies=[
         StudyInput(
@@ -134,18 +140,6 @@ async def main():
     await eas_client.close()
     print("Uploaded Study")
     print(f"Finish time: {datetime.now()}")
-
-
-def _connect_rpc(config):
-    return connect_with_token(
-        host=config["host"],
-        access_token=config["access_token"],
-        rpc_port=config["rpc_port"],
-        ca_filename=config.get("ca_filename"),
-        timeout_seconds=config.get("timeout_seconds", 5),
-        debug=bool(config.get("debug", False)),
-        skip_connection_test=bool(config.get("skip_connection_test", False)),
-    )
 
 
 def _collect_feeder_mrids(substations: Dict, zone_mrids: List[str]) -> List[str]:

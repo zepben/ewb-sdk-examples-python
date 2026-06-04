@@ -16,7 +16,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from geojson import Feature, FeatureCollection
-from zepben.eas import EasClient, Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
+from zepben.eas import Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
+from zepben.examples.studies.study_utils import create_eas_client_for_host, connect_rpc_from_config
 from zepben.ewb import AcLineSegment, ConductingEquipment, PowerTransformer
 
 try:
@@ -761,13 +762,11 @@ async def main(argv: Sequence[str]) -> None:
             print("Dry-run enabled. Study was not uploaded.")
             return
 
-        eas_client = EasClient(
+        eas_client = create_eas_client_for_host(
             host=ewb_settings.host,
             port=ewb_settings.rpc_port,
-            protocol="https",
             access_token=ewb_settings.access_token,
-            asynchronous=True,
-            enable_legacy_methods=True
+            ca_filename=ewb_settings.ca_filename,
         )
         try:
             print("Uploading study...")

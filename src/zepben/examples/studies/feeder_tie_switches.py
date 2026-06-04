@@ -17,7 +17,8 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 
 from geojson import Feature, FeatureCollection
 from geojson.geometry import Geometry, LineString, Point
-from zepben.eas import EasClient, Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
+from zepben.eas import Mutation, GeoJsonOverlayInput, StudyResultInput, StudyInput
+from zepben.examples.studies.study_utils import create_eas_client_from_config, connect_rpc_from_config
 from zepben.ewb import (
     Feeder,
     IncludedEnergizedContainers,
@@ -72,15 +73,14 @@ def chunk(it, size):
     return iter(lambda: tuple(islice(it, size)), ())
 
 
-def _connect_rpc(config):
-    return connect_with_token(
-        host=config["host"],
-        access_token=config["access_token"],
-        rpc_port=config["rpc_port"],
-        ca_filename=config.get("ca_filename"),
-        timeout_seconds=config.get("timeout_seconds", 5),
-        debug=bool(config.get("debug", False)),
-        skip_connection_test=bool(config.get("skip_connection_test", False)),
+def _log_ewb_connection_target(config: Dict[str, Any], service_name: str) -> None:
+    host = config.get("host", "<missing>")
+    port = config.get("rpc_port", "<missing>")
+    verify_certificate = config.get("verify_certificate", True)
+    ca_filename = config.get("ca_filename") or config.get("ca_path") or "default trust store"
+    print(
+        f"{service_name} target: host={host}, port={port}, "
+        f"verify_certificate={verify_certificate}, ca={ca_filename}"
     )
 
 
@@ -98,8 +98,9 @@ async def main():
         config = json.loads(f.read())
 
     print(f"Start time: {datetime.now()}")
+    _log_ewb_connection_target(config, "EWB RPC")
 
-    rpc_channel = _connect_rpc(config)
+    rpc_channel = connect_rpc_from_config(config)
 
     if mode in ("zones", "full-network"):
         client = NetworkConsumerClient(rpc_channel)
@@ -134,7 +135,7 @@ async def main():
     failed_feeder_requests: List[str] = []
 
     for feeders in chunk(feeder_mrids, DEFAULT_BATCH_SIZE):
-        rpc_channel = _connect_rpc(config)
+        rpc_channel = connect_rpc_from_config(config)
         print(f"Processing feeders {', '.join(feeders)}")
         futures_by_feeder = {
             feeder_mrid: asyncio.ensure_future(
@@ -332,14 +333,8 @@ async def main():
         print("No enabled mappable tie switch layers were produced. Study upload skipped.")
         return
 
-    eas_client = EasClient(
-        host=config["host"],
-        port=config["rpc_port"],
-        protocol="https",
-        access_token=config["access_token"],
-        asynchronous=True,
-        enable_legacy_methods=True,
-    )
+    eas_client = create_eas_client_from_config(config)
+    _log_ewb_connection_target(config, "EWB EAS")
     print(f"Uploading Study for {mode} {scope_label} ...")
     await eas_client.mutation(Mutation.add_studies(studies=[
         StudyInput(
@@ -795,16 +790,20 @@ def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, 
     parser.add_argument(
         "--mode",
         choices=["zones", "feeders", "full-network"],
-        default="zones",
-        help="Run by zones, feeders, or full-network list expansion (default: zones).",
+        default=None,
+        help=(
+            "Run by zones, feeders, or full-network list expansion. "
+            "If omitted, --feeders/--feeder implies feeders mode; otherwise zones mode is used."
+        ),
     )
     parser.add_argument(
         "--zones",
-        default="CPM",
+        default="CFD",
         help="Comma-separated zone codes (default: CPM).",
     )
     parser.add_argument(
         "--feeders",
+        "--feeder",
         default="",
         help="Comma-separated feeder MRIDs (used when --mode feeders).",
     )
@@ -849,25 +848,28 @@ def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, 
             items = list(values)
         return [item.strip() for item in items if item and item.strip()]
 
-    if args.mode == "feeders":
-        feeders = _split_values(args.ids) or _split_values(args.feeders)
+    feeders_from_flag = _split_values(args.feeders)
+    effective_mode = args.mode or ("feeders" if feeders_from_flag else "zones")
+
+    if effective_mode == "feeders":
+        feeders = _split_values(args.ids) or feeders_from_flag
         if not feeders:
             raise ValueError("At least one feeder MRID is required in feeder mode.")
         return (
             [],
             feeders,
-            args.mode,
+            effective_mode,
             args.config,
             bool(args.include_lv),
             args.full_network_list,
             args.csv_output,
         )
 
-    if args.mode == "full-network":
+    if effective_mode == "full-network":
         return (
             [],
             [],
-            args.mode,
+            effective_mode,
             args.config,
             bool(args.include_lv),
             args.full_network_list,
@@ -881,7 +883,7 @@ def _parse_args(argv: List[str]) -> Tuple[List[str], List[str], str, str, bool, 
     return (
         zones,
         [],
-        args.mode,
+        effective_mode,
         args.config,
         bool(args.include_lv),
         args.full_network_list,
