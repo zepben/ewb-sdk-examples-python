@@ -9,6 +9,10 @@ import sys
 
 from zepben.eas import FeederLoadAnalysisInput, EasClient, Mutation, IngestorConfigInput
 
+# This example kicks off an ingest of a network model that has already been uploaded to blob storage.
+# See docs/docs/network_model_ingest.mdx for a full walkthrough, including how to prepare the model
+# files in blob storage before running this script.
+
 with open("config.json") as f:
     c = json.loads(f.read())
 
@@ -25,12 +29,24 @@ async def main(argv):
         asynchronous=True
     )
     print("Connection established..")
-    # Kick off a network model ingest
+    # Kick off a network model ingest.
+    #
+    # "dataStorePath" is the name of a folder in your blob storage, relative to the root
+    # directory that Zepben configures once per environment for network model imports
+    # (e.g. if that root is "data/inputs/models", a value of "full_network_20251015" here
+    # points at "data/inputs/models/full_network_20251015"). The folder must already contain
+    # the model files to ingest.
+    #
+    # The naming convention and internal formatting of these folders is customer-specific -
+    # Zepben will provide you with examples tailored to your environment. A common workflow is
+    # to copy an existing folder and only change what you need (e.g. tap settings), keeping the
+    # rest of the formatting the same.
+
     execute_ingest = await eas_client.mutation(
         Mutation.execute_ingestor(
             run_config=[IngestorConfigInput(
                 key="dataStorePath",
-                value="full_network_20251015"
+                value="<example_file_path>"
             )]
         )
     )
