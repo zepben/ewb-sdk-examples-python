@@ -4,13 +4,14 @@
 * Updated `zepben.ewb` now requires `mrid` when constructing any `IdentifiedObject`.
 
 ### New Features
-* None.
+* Updated `zepben.ewb` to a 3.13 compatible version.
 
 ### Enhancements
 * Added a small F.A.Q section that can be populated in the future from user feed backs.
 
 ### Fixes
 * Fixed small issue in get_lvfeeder in request_power_factory_models.
+* add expected build env to tox so github workflows can run.
 
 ### Notes
 * None.
