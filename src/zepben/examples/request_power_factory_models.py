@@ -151,7 +151,7 @@ def get_lvfeeder(feeder) -> Generator[str, None, None]:
             )
         else:
             # Path to include all lvFeeders
-            yield from (lv['mRID'] for lv in feeder['normalEnergizedFeeders'])
+            yield from (lv['mRID'] for lv in feeder['normalEnergizedLvFeeders'])
 
 
 def request_pf_model(equipment_container_list: List[str], filename: str, spread_max_demand: bool = False):
