@@ -11,7 +11,7 @@ For the full working code, see the [request_network_model_ingest.py](https://git
 
 Triggering an ingest requires telling EAS which model in blob storage to import, via a `dataStorePath` value - the name of a **folder in your blob storage container**. That folder sits under a root directory that Zepben configures once per environment for network model imports. For example, if the root is `data/inputs/models`, a `dataStorePath` of `model_1` refers to `data/inputs/models/model_1`.
 
-Folder naming and internal file formatting is customer-specific - Zepben will provide examples tailored to your environment. Most users start from a previous example, copying an existing folder and changing only what's needed (e.g. tap settings), keeping the rest of the formatting the same. We recommend a blob storage viewer, such as [Azure Storage Explorer](https://azure.microsoft.com/en-us/products/storage/storage-explorer), to browse, copy and edit these folders.
+Folder naming and internal file formatting is customer-specific - Zepben will provide examples tailored to your environment. Most users start from a previous example, copying an existing folder and changing only what's needed (e.g. tap settings), keeping the rest of the formatting the same. We recommend a blob storage viewer, such as [Azure Storage Explorer](https://azure.microsoft.com/en-us/products/storage/storage-explorer) for Azure, or [S3Browser](https://s3browser.com/) for AWS S3, to browse, copy and edit these folders.
 
 ## Part 2: Running the ingestion kick-off script
 
