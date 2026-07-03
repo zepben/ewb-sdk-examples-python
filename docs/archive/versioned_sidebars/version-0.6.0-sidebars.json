@@ -8,6 +8,7 @@
     "examples-fetching-network-hierarchy",
     "examples-fetching-network-model",
     "examples-creating-and-uploading-studies",
-    "examples-downstream-and-upstream-trace"
+    "examples-downstream-and-upstream-trace",
+    "examples-network-model-ingest"
   ]
 }

@@ -1,0 +1,22 @@
+---
+id: examples-network-model-ingest
+title: Ingesting a Network Model
+---
+
+You can trigger a refresh of the network model used in your environment via the SDK. The process has two main parts: putting the required files in the right place in your blob storage, and then running the ingestion kick-off script with the right parameters.
+
+For the full working code, see the [request_network_model_ingest.py](https://github.com/zepben/ewb-sdk-examples-python/blob/main/src/zepben/examples/request_network_model_ingest.py) example script.
+
+## Part 1: Placing your files in blob storage
+
+Triggering an ingest requires telling EAS which model in blob storage to import, via a `dataStorePath` value - the name of a **folder in your blob storage container**. That folder sits under a root directory that Zepben configures once per environment for network model imports. For example, if the root is `data/inputs/models`, a `dataStorePath` of `model_1` refers to `data/inputs/models/model_1`.
+
+Folder naming and internal file formatting is customer-specific - Zepben will provide examples tailored to your environment. Most users start from a previous example, copying an existing folder and changing only what's needed (e.g. tap settings), keeping the rest of the formatting the same. We recommend a blob storage viewer, such as [Azure Storage Explorer](https://azure.microsoft.com/en-us/products/storage/storage-explorer) for Azure, or [S3Browser](https://s3browser.com/) for AWS S3, to browse, copy and edit these folders.
+
+## Part 2: Running the ingestion kick-off script
+
+Once your model folder is in place, run the example script to trigger the ingest. It first connects to the Evolve App Server using an `EasClient`, built from the same `config.json` values (`eas_host`, `eas_port`, `eas_protocol`, `access_token`, etc.) used throughout the other EAS examples. See [Creating and Uploading Studies](creating_and_uploading_studies.mdx) for a breakdown of these connection values.
+
+It then triggers the ingest via `Mutation.execute_ingestor`, passing an `IngestorConfigInput` with `key="dataStorePath"` and `value` set to your folder name from Part 1. `run_config` is a list, so more key/value pairs can be added if Zepben provides other ingestor configuration options for your environment.
+
+The mutation returns the result of triggering the ingest, printed to the console. The ingest itself then runs asynchronously on the server - use the Evolve App Server UI to monitor progress. It will typically take up to 30 minutes to ingest and apply the new network model.

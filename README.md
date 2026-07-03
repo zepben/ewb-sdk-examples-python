@@ -99,6 +99,7 @@ which will then be available via the UI for visualisation.
 * [Running network traces](src/zepben/examples/tracing.py)
 * [Creating and uploading studies](src/zepben/examples/studies/creating_and_uploading_study.py)
 * [Manipulating the current state of the network, including swapping a zone open point](src/zepben/examples/current_state_manipulations.py)
+* [Requesting a network model ingest from blob storage](src/zepben/examples/request_network_model_ingest.py)
 
 #### Power flow
 
