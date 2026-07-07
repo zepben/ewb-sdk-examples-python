@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s: %(m
 logger = logging.getLogger()
 
 
-# Default config dir is where the sample_auth_config sits.
+# Default config dir is where config.json sits.
 def get_config_dir(argv):
     return argv[1] if len(argv) > 1 else "."
 
@@ -26,15 +26,15 @@ def read_json_config(config_file_path: str) -> Dict:
 
 
 def get_client(config_dir, async_=True):
-    # Change sample_auth_config.json to any other file name
-    auth_config = read_json_config(f"{config_dir}/sample_auth_config.json")
+    # Change config.json to any other file name
+    config = read_json_config(f"{config_dir}/config.json")
 
     return EasClient(
-        host=auth_config["eas_server"]["host"],
-        port=auth_config["eas_server"]["port"],
-        protocol=auth_config["eas_server"]["protocol"],
-        access_token=auth_config["eas_server"]["access_token"],
-        verify_certificate=auth_config["eas_server"].get("verify_certificate", True),
-        ca_filename=auth_config["eas_server"].get("ca_filename"),
+        host=config["host"],
+        port=config["rpc_port"],
+        protocol="https",
+        access_token=config["access_token"],
+        verify_certificate=config.get("verify_certificate", True),
+        ca_filename=config.get("ca_filename"),
         asynchronous=async_
     )

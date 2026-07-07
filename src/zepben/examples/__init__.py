@@ -5,5 +5,6 @@
 #  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 from pathlib import Path
 
-# root dir of repo if cloned
-CONFIG_DIR = f"{Path(__file__).parent.parent.parent.parent}/"
+# Directory this package lives in, i.e. src/zepben/examples, which is where config.json
+# is expected to live (see utils.py::get_client and the various scripts that open "config.json").
+CONFIG_DIR = f"{Path(__file__).parent}/"

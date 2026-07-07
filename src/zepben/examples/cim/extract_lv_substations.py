@@ -15,7 +15,7 @@ with open(f"{CONFIG_DIR}/config.json") as f:
 
 
 async def extract_lv_substations_for_feeder(feeder_mrid: str):
-    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"], ca_filename=c["ca_path"])
+    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"], ca_filename=c.get("ca_filename"))
     network_client = NetworkConsumerClient(channel=channel)
     network = network_client.service
 

@@ -1,5 +1,7 @@
 {
-  "host": "hostname",
-  "rpc_port": 1234,
-  "access_token": "your_access_token"
+  "_comment": "Copy this file to config.json (git-ignored) in the same directory and fill in real values.",
+  "host": "<EWB/EAS server host, e.g. your-name.zb.energy>",
+  "rpc_port": 443,
+  "ca_filename": null,
+  "access_token": "<your personal access token>"
 }

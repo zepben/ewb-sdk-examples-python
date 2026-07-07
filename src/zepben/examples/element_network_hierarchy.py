@@ -6,8 +6,9 @@
 
 """
 For every piece of `ConductingEquipment` downstream of a feeder, records a row with its equipment type,
-nominal voltage, length (where applicable), and the nearest upstream fuse, distribution transformer,
-regulator and breaker mrid — so an `element_id` can be related back to its measurement zones.
+nominal voltage, length (where applicable), and the nearest upstream protection device (fuse or LV
+circuit breaker), distribution transformer, regulator and breaker mrid — so an `element_id` can be
+related back to its measurement zones.
 """
 import asyncio
 import json
@@ -35,7 +36,7 @@ def _build_row(equip: ConductingEquipment, upstream: dict) -> dict:
         'element_type': type(equip).__name__,
         'nominal_voltage': equip.base_voltage_value,
         'length': getattr(equip, 'length', None) if isinstance(equip, Conductor) else None,
-        'upstream_fuse_mrid': getattr(upstream.get('upstream_fuse'), 'mrid', None),
+        'upstream_protection_device_mrid': getattr(upstream.get('upstream_protection_device'), 'mrid', None),
         'distribution_power_transformer_mrid': getattr(upstream.get('distribution_power_transformer'), 'mrid', None),
         'regulator_mrid': getattr(upstream.get('regulator'), 'mrid', None),
         'breaker_mrid': getattr(upstream.get('breaker'), 'mrid', None),
@@ -63,8 +64,10 @@ async def trace_element_hierarchy_from_feeder(feeder_mrid: str) -> None:
             equip = next_item.path.to_equipment
             if isinstance(equip, Breaker):
                 upstream['breaker'] = equip
+                if equip.base_voltage_value is not None and equip.base_voltage_value <= 1000:
+                    upstream['upstream_protection_device'] = equip
             elif isinstance(equip, Fuse):
-                upstream['upstream_fuse'] = equip
+                upstream['upstream_protection_device'] = equip
             elif isinstance(equip, PowerTransformer):
                 if equip.function == TransformerFunctionKind.distributionTransformer:
                     upstream['distribution_power_transformer'] = equip

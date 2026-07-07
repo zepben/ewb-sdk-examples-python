@@ -20,12 +20,12 @@ with open("config.json") as f:
 async def main(argv):
     print("Connecting to EAS..")
     eas_client = EasClient(
-        host=c["eas_host"],
-        port=c["eas_port"],
-        protocol=c["eas_protocol"],
+        host=c["host"],
+        port=c["rpc_port"],
+        protocol="https",
         access_token=c["access_token"],
         verify_certificate=c.get("verify_certificate", True),
-        ca_filename=c["ca_path"],
+        ca_filename=c.get("ca_filename"),
         asynchronous=True
     )
     print("Connection established..")
