@@ -16,15 +16,8 @@ with open("config.json") as f:
 async def main(argv):
     # See connecting_to_grpc_service.py for examples of each connect function
     print("Connecting to EAS..")
-    eas_client = EasClient(
-        host=c["host"],
-        port=c["rpc_port"],
-        protocol="https",
-        access_token=c["access_token"],
-        verify_certificate=c.get("verify_certificate", True),
-        ca_filename=c.get("ca_filename"),
-        asynchronous=True
-    )
+    rpc_port = c.pop("rpc_port")
+    eas_client = EasClient(**c, port=rpc_port, protocol="https", asynchronous=True)
     print("Connection established..")
     # Fire off a feeder load analysis study
     feeder_load_analysis_token = await eas_client.mutation(

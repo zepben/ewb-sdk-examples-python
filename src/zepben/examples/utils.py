@@ -26,15 +26,7 @@ def read_json_config(config_file_path: str) -> Dict:
 
 
 def get_client(config_dir, async_=True):
-    # Change config.json to any other file name
     config = read_json_config(f"{config_dir}/config.json")
+    rpc_port = config.pop("rpc_port")
 
-    return EasClient(
-        host=config["host"],
-        port=config["rpc_port"],
-        protocol="https",
-        access_token=config["access_token"],
-        verify_certificate=config.get("verify_certificate", True),
-        ca_filename=config.get("ca_filename"),
-        asynchronous=async_
-    )
+    return EasClient(**config, port=rpc_port, protocol="https", asynchronous=async_)

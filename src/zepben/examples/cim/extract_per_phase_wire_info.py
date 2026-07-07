@@ -15,7 +15,7 @@ with open(f"{CONFIG_DIR}/config.json") as f:
 
 
 async def extract_wire_info_per_phase(feeder_mrid: str):
-    channel = connect_with_token(host=c["host"], rpc_port=c["rpc_port"], access_token=c["access_token"], ca_filename=c.get("ca_filename"))
+    channel = connect_with_token(**c)
     network_client = NetworkConsumerClient(channel=channel)
     network = network_client.service
     (await network_client.get_equipment_container(feeder_mrid,

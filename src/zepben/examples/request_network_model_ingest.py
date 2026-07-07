@@ -19,15 +19,8 @@ with open("config.json") as f:
 
 async def main(argv):
     print("Connecting to EAS..")
-    eas_client = EasClient(
-        host=c["host"],
-        port=c["rpc_port"],
-        protocol="https",
-        access_token=c["access_token"],
-        verify_certificate=c.get("verify_certificate", True),
-        ca_filename=c.get("ca_filename"),
-        asynchronous=True
-    )
+    rpc_port = c.pop("rpc_port")
+    eas_client = EasClient(**c, port=rpc_port, protocol="https", asynchronous=True)
     print("Connection established..")
     # Kick off a network model ingest.
     #
