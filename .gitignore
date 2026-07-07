@@ -135,3 +135,4 @@ src/zepben/examples/config*.json
 *.crt
 
 src/zepben/examples/csvs/
+/src/zepben/examples/studies/hosting_capacity_examples/asset_level_metrics_hcm/example_asset_level_results/

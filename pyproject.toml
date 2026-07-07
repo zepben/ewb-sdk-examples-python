@@ -25,6 +25,7 @@ authors = [
 dependencies = [
     "zepben.eas==2.14.0",
     "zepben.ewb==1.4.0b3",
+    "zepben.auth",
     "numba==0.61.0",
     "geojson==2.5.0",
     "gql[requests]==4.0.0",
@@ -51,3 +52,11 @@ test = [
     "pytest-cov==6.1.1",
     "pytest-asyncio==0.26.0"
 ]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["zepben.examples*"]
+namespaces = true

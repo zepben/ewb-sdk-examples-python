@@ -1,0 +1,422 @@
+[
+  {
+    "id": "asset-thermal-max_loading_pct-line",
+    "name": "Thermal Max Loading Lines",
+    "type": "line",
+    "paint": {
+      "line-width": ["interpolate", ["linear"], ["zoom"], 8, 3.0, 12, 4.8, 15, 6.2],
+      "line-opacity": 0.92,
+      "line-color": ["match", ["get", "bucket"], 0, "#2c7bb6", 1, "#fdae61", 2, "#f46d43", 3, "#d73027", "#8f8f8f"]
+    },
+    "metadata": {
+      "zb:legend": {
+        "label": "Maximum Loading",
+        "states": [
+          { "label": "Below 90%", "properties": { "bucket": 0 } },
+          { "label": "90-100%", "properties": { "bucket": 1 } },
+          { "label": "100-130%", "properties": { "bucket": 2 } },
+          { "label": "Above 130%", "properties": { "bucket": 3 } }
+        ]
+      }
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "max_loading_pct"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "asset-thermal-max_loading_pct-point",
+    "name": "Thermal Max Loading Points",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1,
+      "circle-color": ["match", ["get", "bucket"], 0, "#2c7bb6", 1, "#fdae61", 2, "#f46d43", 3, "#d73027", "#8f8f8f"]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "max_loading_pct"], ["==", ["get", "geom_kind"], "point"]]
+  },
+  {
+    "id": "asset-thermal-max_loading_pct-label",
+    "name": "Thermal Max Loading Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": { "symbol-placement": "point", "text-field": ["get", "value_label"], "text-size": 12 },
+    "paint": { "text-color": "#1f2a44", "text-halo-color": "#ffffff", "text-halo-width": 1.4 },
+    "filter": ["==", ["get", "metric_key"], "max_loading_pct"]
+  },
+  {
+    "id": "asset-thermal-hours_over_normal-line",
+    "name": "Hours Over Normal Lines",
+    "type": "line",
+    "paint": {
+      "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2.8, 12, 4.4, 15, 5.8],
+      "line-opacity": 0.9,
+      "line-color": [
+        "interpolate",
+        ["linear"],
+        ["get", "voltage_pu_delta_pct"],
+        -6,
+        "#2c7bb6",
+        -3,
+        "#67a9cf",
+        0,
+        "#ffffbf",
+        4,
+        "#fdae61",
+        10,
+        "#d73027"
+      ]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "hours_over_normal"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "asset-thermal-hours_over_normal-point",
+    "name": "Hours Over Normal Points",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1,
+      "circle-color": [
+        "interpolate",
+        ["linear"],
+        ["get", "voltage_pu_delta_pct"],
+        -6,
+        "#2c7bb6",
+        -3,
+        "#67a9cf",
+        0,
+        "#ffffbf",
+        4,
+        "#fdae61",
+        10,
+        "#d73027"
+      ]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "hours_over_normal"], ["==", ["get", "geom_kind"], "point"]]
+  },
+  {
+    "id": "asset-thermal-hours_over_normal-label",
+    "name": "Hours Over Normal Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": { "symbol-placement": "point", "text-field": ["get", "value_label"], "text-size": 12 },
+    "paint": { "text-color": "#1f2a44", "text-halo-color": "#ffffff", "text-halo-width": 1.4 },
+    "filter": ["==", ["get", "metric_key"], "hours_over_normal"]
+  },
+  {
+    "id": "asset-thermal-hours_over_emergency-line",
+    "name": "Hours Over Emergency Lines",
+    "type": "line",
+    "paint": {
+      "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2.8, 12, 4.4, 15, 5.8],
+      "line-opacity": 0.9,
+      "line-color": [
+        "interpolate",
+        ["linear"],
+        ["get", "voltage_pu_delta_pct"],
+        -6,
+        "#2c7bb6",
+        -3,
+        "#67a9cf",
+        0,
+        "#ffffbf",
+        4,
+        "#fdae61",
+        10,
+        "#d73027"
+      ]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "hours_over_emergency"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "asset-thermal-hours_over_emergency-point",
+    "name": "Hours Over Emergency Points",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1,
+      "circle-color": [
+        "interpolate",
+        ["linear"],
+        ["get", "voltage_pu_delta_pct"],
+        -6,
+        "#2c7bb6",
+        -3,
+        "#67a9cf",
+        0,
+        "#ffffbf",
+        4,
+        "#fdae61",
+        10,
+        "#d73027"
+      ]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "hours_over_emergency"], ["==", ["get", "geom_kind"], "point"]]
+  },
+  {
+    "id": "asset-thermal-hours_over_emergency-label",
+    "name": "Hours Over Emergency Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": { "symbol-placement": "point", "text-field": ["get", "value_label"], "text-size": 12 },
+    "paint": { "text-color": "#1f2a44", "text-halo-color": "#ffffff", "text-halo-width": 1.4 },
+    "filter": ["==", ["get", "metric_key"], "hours_over_emergency"]
+  },
+  {
+    "id": "asset-thermal-overload_kwh_import-line",
+    "name": "Import Overload Energy Lines",
+    "type": "line",
+    "paint": {
+      "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2.8, 12, 4.4, 15, 5.8],
+      "line-opacity": 0.9,
+      "line-color": ["match", ["get", "bucket"], 0, "#2ca25f", 1, "#fee08b", 2, "#fdae61", 3, "#d73027", "#8f8f8f"]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "overload_kwh_import"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "asset-thermal-overload_kwh_import-point",
+    "name": "Import Overload Energy Points",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1,
+      "circle-color": ["match", ["get", "bucket"], 0, "#2ca25f", 1, "#fee08b", 2, "#fdae61", 3, "#d73027", "#8f8f8f"]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "overload_kwh_import"], ["==", ["get", "geom_kind"], "point"]]
+  },
+  {
+    "id": "asset-thermal-overload_kwh_import-label",
+    "name": "Import Overload Energy Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": { "symbol-placement": "point", "text-field": ["get", "value_label"], "text-size": 12 },
+    "paint": { "text-color": "#1f2a44", "text-halo-color": "#ffffff", "text-halo-width": 1.4 },
+    "filter": ["==", ["get", "metric_key"], "overload_kwh_import"]
+  },
+  {
+    "id": "asset-thermal-overload_kwh_export-line",
+    "name": "Export Overload Energy Lines",
+    "type": "line",
+    "paint": {
+      "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2.8, 12, 4.4, 15, 5.8],
+      "line-opacity": 0.9,
+      "line-color": ["match", ["get", "bucket"], 0, "#2ca25f", 1, "#fee08b", 2, "#fdae61", 3, "#d73027", "#8f8f8f"]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "overload_kwh_export"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "asset-thermal-overload_kwh_export-point",
+    "name": "Export Overload Energy Points",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1,
+      "circle-color": ["match", ["get", "bucket"], 0, "#2ca25f", 1, "#fee08b", 2, "#fdae61", 3, "#d73027", "#8f8f8f"]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "overload_kwh_export"], ["==", ["get", "geom_kind"], "point"]]
+  },
+  {
+    "id": "asset-thermal-overload_kwh_export-label",
+    "name": "Export Overload Energy Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": { "symbol-placement": "point", "text-field": ["get", "value_label"], "text-size": 12 },
+    "paint": { "text-color": "#1f2a44", "text-halo-color": "#ffffff", "text-halo-width": 1.4 },
+    "filter": ["==", ["get", "metric_key"], "overload_kwh_export"]
+  },
+  {
+    "id": "asset-voltage-low_voltage_lg_v-line",
+    "name": "Lowest Endpoint Voltage Lines",
+    "type": "line",
+    "paint": {
+      "line-width": ["interpolate", ["linear"], ["zoom"], 8, 3.0, 12, 4.8, 15, 6.2],
+      "line-opacity": 0.9,
+      "line-color": [
+        "interpolate",
+        ["linear"],
+        ["get", "voltage_pu_delta_pct"],
+        -6,
+        "#2c7bb6",
+        -3,
+        "#67a9cf",
+        0,
+        "#ffffbf",
+        4,
+        "#fdae61",
+        10,
+        "#d73027"
+      ]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "low_voltage_lg_v"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "asset-voltage-low_voltage_lg_v-point",
+    "name": "Lowest Endpoint Voltage Points",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1,
+      "circle-color": [
+        "interpolate",
+        ["linear"],
+        ["get", "voltage_pu_delta_pct"],
+        -6,
+        "#2c7bb6",
+        -3,
+        "#67a9cf",
+        0,
+        "#ffffbf",
+        4,
+        "#fdae61",
+        10,
+        "#d73027"
+      ]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "low_voltage_lg_v"], ["==", ["get", "geom_kind"], "point"]]
+  },
+  {
+    "id": "asset-voltage-low_voltage_lg_v-label",
+    "name": "Lowest Endpoint Voltage Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": { "symbol-placement": "point", "text-field": ["get", "value_label"], "text-size": 12 },
+    "paint": { "text-color": "#1f2a44", "text-halo-color": "#ffffff", "text-halo-width": 1.4 },
+    "filter": ["==", ["get", "metric_key"], "low_voltage_lg_v"]
+  },
+  {
+    "id": "asset-voltage-high_voltage_lg_v-line",
+    "name": "Highest Endpoint Voltage Lines",
+    "type": "line",
+    "paint": {
+      "line-width": ["interpolate", ["linear"], ["zoom"], 8, 3.0, 12, 4.8, 15, 6.2],
+      "line-opacity": 0.9,
+      "line-color": [
+        "interpolate",
+        ["linear"],
+        ["get", "voltage_pu_delta_pct"],
+        -6,
+        "#2c7bb6",
+        -3,
+        "#67a9cf",
+        0,
+        "#ffffbf",
+        4,
+        "#fdae61",
+        10,
+        "#d73027"
+      ]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "high_voltage_lg_v"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "asset-voltage-high_voltage_lg_v-point",
+    "name": "Highest Endpoint Voltage Points",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1,
+      "circle-color": [
+        "interpolate",
+        ["linear"],
+        ["get", "voltage_pu_delta_pct"],
+        -6,
+        "#2c7bb6",
+        -3,
+        "#67a9cf",
+        0,
+        "#ffffbf",
+        4,
+        "#fdae61",
+        10,
+        "#d73027"
+      ]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "high_voltage_lg_v"], ["==", ["get", "geom_kind"], "point"]]
+  },
+  {
+    "id": "asset-voltage-high_voltage_lg_v-label",
+    "name": "Highest Endpoint Voltage Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": { "symbol-placement": "point", "text-field": ["get", "value_label"], "text-size": 12 },
+    "paint": { "text-color": "#1f2a44", "text-halo-color": "#ffffff", "text-halo-width": 1.4 },
+    "filter": ["==", ["get", "metric_key"], "high_voltage_lg_v"]
+  },
+  {
+    "id": "asset-voltage-bandwidth_pct-line",
+    "name": "Voltage Bandwidth Lines",
+    "type": "line",
+    "paint": {
+      "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2.8, 12, 4.6, 15, 6.0],
+      "line-opacity": 0.9,
+      "line-color": ["match", ["get", "bucket"], 0, "#2c7bb6", 1, "#abd9e9", 2, "#fdae61", 3, "#d73027", "#8f8f8f"]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "bandwidth_pct"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "asset-voltage-bandwidth_pct-point",
+    "name": "Voltage Bandwidth Points",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1,
+      "circle-color": ["match", ["get", "bucket"], 0, "#2c7bb6", 1, "#abd9e9", 2, "#fdae61", 3, "#d73027", "#8f8f8f"]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "bandwidth_pct"], ["==", ["get", "geom_kind"], "point"]]
+  },
+  {
+    "id": "asset-voltage-bandwidth_pct-label",
+    "name": "Voltage Bandwidth Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": { "symbol-placement": "point", "text-field": ["get", "value_label"], "text-size": 12 },
+    "paint": { "text-color": "#1f2a44", "text-halo-color": "#ffffff", "text-halo-width": 1.4 },
+    "filter": ["==", ["get", "metric_key"], "bandwidth_pct"]
+  },
+  {
+    "id": "asset-voltage-limit_hours-line",
+    "name": "Voltage Limit Hours Lines",
+    "type": "line",
+    "paint": {
+      "line-width": ["interpolate", ["linear"], ["zoom"], 8, 2.8, 12, 4.6, 15, 6.0],
+      "line-opacity": 0.9,
+      "line-color": ["match", ["get", "bucket"], 0, "#2ca25f", 1, "#fee08b", 2, "#fdae61", 3, "#d73027", "#8f8f8f"]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "limit_hours"], ["==", ["get", "geom_kind"], "line"]]
+  },
+  {
+    "id": "asset-voltage-limit_hours-point",
+    "name": "Voltage Limit Hours Points",
+    "type": "circle",
+    "paint": {
+      "circle-radius": 6,
+      "circle-opacity": 0.92,
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 1,
+      "circle-color": ["match", ["get", "bucket"], 0, "#2ca25f", 1, "#fee08b", 2, "#fdae61", 3, "#d73027", "#8f8f8f"]
+    },
+    "filter": ["all", ["==", ["get", "metric_key"], "limit_hours"], ["==", ["get", "geom_kind"], "point"]]
+  },
+  {
+    "id": "asset-voltage-limit_hours-label",
+    "name": "Voltage Limit Hours Labels",
+    "type": "symbol",
+    "minzoom": 13,
+    "layout": { "symbol-placement": "point", "text-field": ["get", "value_label"], "text-size": 12 },
+    "paint": { "text-color": "#1f2a44", "text-halo-color": "#ffffff", "text-halo-width": 1.4 },
+    "filter": ["==", ["get", "metric_key"], "limit_hours"]
+  }
+]
