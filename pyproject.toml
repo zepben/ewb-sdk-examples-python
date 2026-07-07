@@ -31,7 +31,10 @@ dependencies = [
     "gql[requests]==4.0.0",
     "geopandas",
     "pandas",
+    "pg8000",
+    "python-dotenv",
     "shapely",
+    "sqlalchemy",
     "tqdm"
 ]
 classifiers = [

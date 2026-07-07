@@ -12,7 +12,7 @@ import json
 import math
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Set
+from typing import Dict, List, Sequence, Set
 
 from geojson import Feature, FeatureCollection
 from zepben.eas import GeoJsonOverlayInput, Mutation, StudyInput, StudyResultInput
@@ -23,7 +23,6 @@ try:
     from zepben.examples.studies.hosting_capacity_examples.asset_level_metrics_hcm.common import (
         VoltageAssetWorstCase,
         expand_simplified_asset_mrids,
-        filter_records,
         load_cim_to_opendss_mapping,
         load_voltage_asset_summaries,
         voltage_bandwidth_bucket,
@@ -33,6 +32,8 @@ try:
     )
     from zepben.examples.studies.hosting_capacity_examples.common import (
         _connect_rpc,
+        create_postgres_engine,
+        load_db_settings,
         load_ewb_settings,
         split_csv_values,
         to_equipment_geometry,
@@ -41,7 +42,6 @@ except ModuleNotFoundError:
     from common import (  # type: ignore
         VoltageAssetWorstCase,
         expand_simplified_asset_mrids,
-        filter_records,
         load_cim_to_opendss_mapping,
         load_voltage_asset_summaries,
         voltage_bandwidth_bucket,
@@ -51,6 +51,8 @@ except ModuleNotFoundError:
     )
     from zepben.examples.studies.hosting_capacity_examples.common import (  # type: ignore
         _connect_rpc,
+        create_postgres_engine,
+        load_db_settings,
         load_ewb_settings,
         split_csv_values,
         to_equipment_geometry,
@@ -58,7 +60,6 @@ except ModuleNotFoundError:
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_RESULTS_DIR = BASE_DIR / "example_asset_level_results"
 STYLE_PATH = BASE_DIR / "style_asset_level_metrics_hcm.json"
 
 VOLTAGE_METRICS = (
@@ -72,14 +73,11 @@ VOLTAGE_METRICS = (
 def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Upload a prototype asset-level voltage performance study from "
-            "voltage_results_base.csv and cim_to_opendss_base.csv."
+            "Upload an asset-level voltage performance study from the hosting capacity "
+            "Postgres result tables."
         )
     )
-    parser.add_argument("--results-dir", default=str(DEFAULT_RESULTS_DIR), help="Directory containing prototype CSV outputs.")
-    parser.add_argument("--voltage-results", default="", help="Voltage results CSV override.")
-    parser.add_argument("--mapping", default="", help="CIM/OpenDSS mapping CSV override.")
-    parser.add_argument("--work-package-id", default="", help="Optional work package filter.")
+    parser.add_argument("--work-package-id", required=True, help="Result work package ID.")
     parser.add_argument("--scenario", default="", help="Optional scenario filter.")
     parser.add_argument("--year", type=int, help="Optional result year filter.")
     parser.add_argument("--feeders", default="", help="Comma-separated result feeder codes/MRIDs to include.")
@@ -88,7 +86,11 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         default="",
         help="Comma-separated EWB feeder MRIDs. Overrides hierarchy lookup from result feeder codes.",
     )
-    parser.add_argument("--env-file", default=".env", help="Path to .env with EWB_* connection details.")
+    parser.add_argument(
+        "--env-file",
+        default=".env",
+        help="Path to .env with EWB_* connection details and RESULT_DB_* settings.",
+    )
     parser.add_argument("--name", default="Asset Level HCM Voltage Performance", help="Study name.")
     parser.add_argument("--dry-run", action="store_true", help="Generate study payload but do not upload.")
     return parser.parse_args(argv)
@@ -96,23 +98,29 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
 
 async def main(argv: Sequence[str]) -> None:
     args = parse_args(argv)
-    results_dir = Path(args.results_dir)
-    voltage_path = Path(args.voltage_results) if args.voltage_results else results_dir / "voltage_results_base.csv"
-    mapping_path = Path(args.mapping) if args.mapping else results_dir / "cim_to_opendss_base.csv"
-
     ewb_settings = load_ewb_settings(args.env_file)
-    rows = load_voltage_asset_summaries(voltage_path)
-    selected_rows = filter_records(
-        rows=rows,
-        work_package_id=args.work_package_id.strip() or None,
+    db_settings = load_db_settings(args.env_file)
+    work_package_id = args.work_package_id.strip()
+    feeders = split_csv_values(args.feeders)
+    engine = create_postgres_engine(db_settings)
+
+    selected_rows = load_voltage_asset_summaries(
+        engine,
+        work_package_id=work_package_id,
         scenario=args.scenario.strip() or None,
         year=args.year,
-        feeders=split_csv_values(args.feeders),
+        feeders=feeders,
     )
     if not selected_rows:
         raise ValueError("No voltage rows matched the requested filters.")
 
-    mapping = load_cim_to_opendss_mapping(mapping_path)
+    mapping = load_cim_to_opendss_mapping(
+        engine,
+        work_package_id=work_package_id,
+        scenario=args.scenario.strip() or None,
+        year=args.year,
+        feeders=feeders,
+    )
     result_feeders = sorted({row.feeder for row in selected_rows})
     feeder_mrids = await resolve_feeder_mrids(
         ewb_settings=ewb_settings,
@@ -152,10 +160,11 @@ async def main(argv: Sequence[str]) -> None:
     study = StudyInput(
         name=args.name,
         description=(
-            "Prototype asset-level HCM voltage performance layers sourced from voltage_results_base.csv. "
-            "Phase rows are collapsed to worst low voltage, worst high voltage, endpoint bandwidth, and total "
-            "voltage limit hours. Result MRIDs are expanded through cim_to_opendss_base.csv where a simplified "
-            "OpenDSS asset maps back to one or more original CIM assets."
+            "Asset-level HCM voltage performance layers sourced from "
+            "public.asset_level_voltage_summary. Phase rows are collapsed to worst low voltage, "
+            "worst high voltage, endpoint bandwidth, and total voltage limit hours. Result MRIDs "
+            "are expanded through public.cim_to_opendss where a simplified OpenDSS asset maps "
+            "back to one or more original CIM assets."
         ),
         tags=[
             "hosting_capacity",

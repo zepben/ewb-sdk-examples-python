@@ -6,12 +6,13 @@
 
 from __future__ import annotations
 
-import csv
 import math
 from collections import defaultdict
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, TypeVar
+
+from sqlalchemy import bindparam, text
+from sqlalchemy.engine import Engine
 
 
 @dataclass(frozen=True)
@@ -114,14 +115,81 @@ def min_non_null(values: Iterable[object]) -> Optional[float]:
     return min(parsed) if parsed else None
 
 
-def _read_csv_rows(path: Path) -> List[Mapping[str, str]]:
-    with open(path, "r", newline="") as file:
-        return list(csv.DictReader(file))
+def _filter_clause(
+    *,
+    work_package_id: str,
+    scenario: Optional[str],
+    year: Optional[int],
+    feeders: Sequence[str],
+) -> Tuple[str, Dict[str, object], bool]:
+    clauses = ["work_package_id = CAST(:work_package_id AS uuid)"]
+    params: Dict[str, object] = {"work_package_id": work_package_id}
+
+    if scenario:
+        clauses.append("scenario = :scenario")
+        params["scenario"] = scenario
+    if year is not None:
+        clauses.append("year = :year")
+        params["year"] = year
+    has_feeders = bool(feeders)
+    if has_feeders:
+        clauses.append("feeder IN :feeders")
+        params["feeders"] = list(feeders)
+
+    return " WHERE " + " AND ".join(clauses), params, has_feeders
 
 
-def load_thermal_asset_summaries(path: str | Path) -> List[ThermalAssetSummary]:
+def load_thermal_asset_summaries(
+    engine: Engine,
+    *,
+    work_package_id: str,
+    scenario: Optional[str] = None,
+    year: Optional[int] = None,
+    feeders: Sequence[str] = (),
+) -> List[ThermalAssetSummary]:
+    where_clause, params, has_feeders = _filter_clause(
+        work_package_id=work_package_id,
+        scenario=scenario,
+        year=year,
+        feeders=feeders,
+    )
+    stmt = text(
+        f"""
+        SELECT
+            work_package_id::text AS work_package_id,
+            scenario,
+            year,
+            feeder,
+            conducting_equipment_mrid,
+            rating_unit,
+            normal_rating,
+            emergency_rating,
+            max_loading_pct,
+            COALESCE(direction_at_max_loading, '') AS direction_at_max_loading,
+            max_current,
+            max_kw,
+            max_kvar,
+            max_kva,
+            hours_over_normal,
+            hours_over_emergency,
+            overload_kwh_import,
+            overload_kwh_export,
+            overload_pct_hours,
+            avg_loading_pct_when_overloaded,
+            COALESCE(worst_phase::text, '') AS worst_phase
+        FROM public.asset_level_thermal_loading_summary
+        {where_clause}
+        ORDER BY feeder, conducting_equipment_mrid
+        """
+    )
+    if has_feeders:
+        stmt = stmt.bindparams(bindparam("feeders", expanding=True))
+
+    with engine.connect() as conn:
+        query_rows = conn.execute(stmt, params).mappings().all()
+
     rows: List[ThermalAssetSummary] = []
-    for row in _read_csv_rows(Path(path)):
+    for row in query_rows:
         rows.append(
             ThermalAssetSummary(
                 work_package_id=str(row["work_package_id"]),
@@ -150,9 +218,55 @@ def load_thermal_asset_summaries(path: str | Path) -> List[ThermalAssetSummary]:
     return rows
 
 
-def load_voltage_asset_summaries(path: str | Path) -> List[VoltageAssetSummary]:
+def load_voltage_asset_summaries(
+    engine: Engine,
+    *,
+    work_package_id: str,
+    scenario: Optional[str] = None,
+    year: Optional[int] = None,
+    feeders: Sequence[str] = (),
+) -> List[VoltageAssetSummary]:
+    where_clause, params, has_feeders = _filter_clause(
+        work_package_id=work_package_id,
+        scenario=scenario,
+        year=year,
+        feeders=feeders,
+    )
+    stmt = text(
+        f"""
+        SELECT
+            work_package_id::text AS work_package_id,
+            scenario,
+            year,
+            feeder,
+            conducting_equipment_mrid,
+            phase::text AS phase,
+            v_base,
+            min_upstream_voltage,
+            max_upstream_voltage,
+            avg_upstream_voltage,
+            min_downstream_voltage,
+            max_downstream_voltage,
+            avg_downstream_voltage,
+            min_delta,
+            max_delta,
+            hours_any_endpoint_below_limit,
+            hours_any_endpoint_above_limit,
+            abs_delta_hours,
+            avg_abs_delta
+        FROM public.asset_level_voltage_summary
+        {where_clause}
+        ORDER BY feeder, conducting_equipment_mrid, phase::text
+        """
+    )
+    if has_feeders:
+        stmt = stmt.bindparams(bindparam("feeders", expanding=True))
+
+    with engine.connect() as conn:
+        query_rows = conn.execute(stmt, params).mappings().all()
+
     rows: List[VoltageAssetSummary] = []
-    for row in _read_csv_rows(Path(path)):
+    for row in query_rows:
         rows.append(
             VoltageAssetSummary(
                 work_package_id=str(row["work_package_id"]),
@@ -179,9 +293,38 @@ def load_voltage_asset_summaries(path: str | Path) -> List[VoltageAssetSummary]:
     return rows
 
 
-def load_cim_to_opendss_mapping(path: str | Path) -> Dict[str, Tuple[str, ...]]:
+def load_cim_to_opendss_mapping(
+    engine: Engine,
+    *,
+    work_package_id: str,
+    scenario: Optional[str] = None,
+    year: Optional[int] = None,
+    feeders: Sequence[str] = (),
+) -> Dict[str, Tuple[str, ...]]:
+    where_clause, params, has_feeders = _filter_clause(
+        work_package_id=work_package_id,
+        scenario=scenario,
+        year=year,
+        feeders=feeders,
+    )
+    stmt = text(
+        f"""
+        SELECT
+            COALESCE(simplified_mrid, '') AS simplified_mrid,
+            COALESCE(original_mrid, '') AS original_mrid,
+            COALESCE(original_type, '') AS original_type
+        FROM public.cim_to_opendss
+        {where_clause}
+        """
+    )
+    if has_feeders:
+        stmt = stmt.bindparams(bindparam("feeders", expanding=True))
+
+    with engine.connect() as conn:
+        query_rows = conn.execute(stmt, params).mappings().all()
+
     by_simplified: Dict[str, set[str]] = defaultdict(set)
-    for row in _read_csv_rows(Path(path)):
+    for row in query_rows:
         simplified = str(row.get("simplified_mrid") or "").strip()
         original = str(row.get("original_mrid") or "").strip()
         original_type = str(row.get("original_type") or "").strip()

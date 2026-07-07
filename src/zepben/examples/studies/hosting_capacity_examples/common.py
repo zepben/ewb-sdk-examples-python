@@ -196,11 +196,11 @@ def load_db_settings(env_file: str) -> DbSettings:
     env_values = _load_env_values(env_file)
 
     required = [
-        "INPUT_DB_HOST",
-        "INPUT_DB_PORT",
-        "INPUT_DB_USER",
-        "INPUT_DB_PASSWORD",
-        "INPUT_DB_NAME",
+        "RESULT_DB_HOST",
+        "RESULT_DB_PORT",
+        "RESULT_DB_USER",
+        "RESULT_DB_PASSWORD",
+        "RESULT_DB_NAME",
     ]
     missing = [key for key in required if not (env_values.get(key) or "").strip()]
     if missing:
@@ -209,11 +209,11 @@ def load_db_settings(env_file: str) -> DbSettings:
         )
 
     return DbSettings(
-        host=str(env_values["INPUT_DB_HOST"]),
-        port=int(str(env_values["INPUT_DB_PORT"])),
-        user=str(env_values["INPUT_DB_USER"]),
-        password=str(env_values["INPUT_DB_PASSWORD"]),
-        database=str(env_values["INPUT_DB_NAME"]),
+        host=str(env_values["RESULT_DB_HOST"]),
+        port=int(str(env_values["RESULT_DB_PORT"])),
+        user=str(env_values["RESULT_DB_USER"]),
+        password=str(env_values["RESULT_DB_PASSWORD"]),
+        database=str(env_values["RESULT_DB_NAME"]),
     )
 
 
