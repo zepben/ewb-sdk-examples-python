@@ -18,17 +18,15 @@ from zepben.ewb import AcLineSegment, EnergyConsumer, connect_with_token, Networ
 
 
 with open("../config.json") as f:
-    c = json.loads(f.read())
+    _config = json.loads(f.read())
+    c_ewb = _config["ewb"]
+    c_eas = _config["eas"]
 
 
 async def main():
     # Fetch network model from Energy Workbench's gRPC service (see ../connecting_to_grpc_service.py for examples on different connection functions)
     print("Connecting to EWB..")
-    grpc_channel = connect_with_token(
-        host=c["host"],
-        access_token=c["access_token"],
-        rpc_port=c["rpc_port"]
-    )
+    grpc_channel = connect_with_token(**c_ewb)
 
     feeder_mrid = "WD24"
     grpc_client = NetworkConsumerClient(grpc_channel)
@@ -91,13 +89,7 @@ async def main():
     )
     print("Study created..")
     print("Connecting to EAS..")
-    eas_client = EasClient(
-        host=c["host"],
-        port=c["rpc_port"],
-        protocol="https",
-        access_token=c["access_token"],
-        asynchronous=True
-    )
+    eas_client = EasClient(**c_eas, asynchronous=True)
 
     print("Connection established..")
 

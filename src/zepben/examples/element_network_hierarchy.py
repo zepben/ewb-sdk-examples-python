@@ -25,7 +25,7 @@ FEEDER_MRID = "27189"
 
 def _get_client() -> NetworkConsumerClient:
     with open('config.json') as f:
-        config = json.load(f)
+        config = json.load(f)['ewb']
     return NetworkConsumerClient(connect_with_token(**config))
 
 

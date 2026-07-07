@@ -17,7 +17,7 @@ import pandas as pd
 from zepben.ewb import NetworkConsumerClient, connect_with_token, ConductingEquipment, Feeder, IncludedEnergizedContainers
 
 with open("config.json") as f:
-    c = json.loads(f.read())
+    c = json.loads(f.read())["ewb"]
 
 """
 This is a basic example that shows how to export a CSV of all the conducting equipment in a feeder.

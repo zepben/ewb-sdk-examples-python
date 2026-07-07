@@ -19,7 +19,7 @@ OUTPUT_FILE = "transformer_id_mapping.csv"
 HEADER = True
 
 with open("config.json") as f:
-    c = json.loads(f.read())
+    c = json.loads(f.read())["ewb"]
 
 
 async def connect():

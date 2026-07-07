@@ -11,7 +11,7 @@ from zepben.ewb import AcLineSegment, NetworkConsumerClient, connect_with_token,
 from zepben.examples import CONFIG_DIR
 
 with open(f"{CONFIG_DIR}/config.json") as f:
-    c = json.loads(f.read())
+    c = json.loads(f.read())["ewb"]
 
 
 async def extract_wire_info_per_phase(feeder_mrid: str):

@@ -21,13 +21,9 @@ from zepben.ewb import Tracing, Switch
 
 async def main(conductor_mrid: str, feeder_mrid: str):
     with open("config.json") as f:
-        c = json.loads(f.read())
+        c = json.loads(f.read())["ewb"]
 
-    channel = connect_with_token(
-        host=c["host"],
-        access_token=c["access_token"],
-        rpc_port=c["rpc_port"]
-    )
+    channel = connect_with_token(**c)
     client = NetworkConsumerClient(channel)
     await client.get_equipment_container(
         feeder_mrid, include_energized_containers=IncludedEnergizedContainers.LV_FEEDERS

@@ -14,13 +14,12 @@ from zepben.eas import FeederLoadAnalysisInput, EasClient, Mutation, IngestorCon
 # files in blob storage before running this script.
 
 with open("config.json") as f:
-    c = json.loads(f.read())
+    c = json.loads(f.read())["eas"]
 
 
 async def main(argv):
     print("Connecting to EAS..")
-    rpc_port = c.pop("rpc_port")
-    eas_client = EasClient(**c, port=rpc_port, protocol="https", asynchronous=True)
+    eas_client = EasClient(**c, asynchronous=True)
     print("Connection established..")
     # Kick off a network model ingest.
     #

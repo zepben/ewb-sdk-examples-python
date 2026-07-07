@@ -30,10 +30,9 @@ class EquipmentWithRating:
 
 def _get_client():
     with open('config.json') as f:
-        c = json.load(f)
+        c = json.load(f)['ewb']
 
-        # Connect to server
-    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    channel = connect_with_token(**c)
     return NetworkConsumerClient(channel)
 
 

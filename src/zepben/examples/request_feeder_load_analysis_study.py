@@ -10,14 +10,13 @@ import sys
 from zepben.eas import FeederLoadAnalysisInput, EasClient, Mutation
 
 with open("config.json") as f:
-    c = json.loads(f.read())
+    c = json.loads(f.read())["eas"]
 
 
 async def main(argv):
     # See connecting_to_grpc_service.py for examples of each connect function
     print("Connecting to EAS..")
-    rpc_port = c.pop("rpc_port")
-    eas_client = EasClient(**c, port=rpc_port, protocol="https", asynchronous=True)
+    eas_client = EasClient(**c, asynchronous=True)
     print("Connection established..")
     # Fire off a feeder load analysis study
     feeder_load_analysis_token = await eas_client.mutation(

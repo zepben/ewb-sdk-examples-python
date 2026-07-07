@@ -246,7 +246,7 @@ async def main():
 
     # noinspection PyTypeChecker
     with open('config.json') as f:
-        config = json.load(f)
+        config = json.load(f)['ewb']
     async with connect_with_token(**config) as secure_channel:
         await run_simple(NetworkConsumerClient(secure_channel))
         await run_swap_feeder(NetworkConsumerClient(secure_channel))

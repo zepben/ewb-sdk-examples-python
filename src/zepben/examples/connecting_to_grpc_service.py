@@ -114,14 +114,10 @@ async def connect_using_token():
     from zepben.ewb import connect_with_token, NetworkConsumerClient
 
     with open("config.json") as f:
-        c = json.load(f)
+        c = json.load(f)["ewb"]
 
     print("Connecting to EWB..")
-    channel = connect_with_token(
-        host=c["host"],
-        access_token=c["access_token"],
-        rpc_port=c["rpc_port"]
-    )
+    channel = connect_with_token(**c)
     client = NetworkConsumerClient(channel)
     print("Connection established..")
     print("Printing network hierarchy..")

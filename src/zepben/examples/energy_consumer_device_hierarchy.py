@@ -32,9 +32,8 @@ class EnergyConsumerDeviceHierarchy:
 
 def _get_client():
     with open('config.json') as f:
-        config = json.load(f)
+        config = json.load(f)['ewb']
 
-        # Connect to server
     channel = connect_with_token(**config)
     return NetworkConsumerClient(channel)
 

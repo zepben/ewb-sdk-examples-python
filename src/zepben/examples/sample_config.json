@@ -1,7 +1,16 @@
 {
-  "_comment": "Copy this file to config.json (git-ignored) in the same directory and fill in real values.",
-  "host": "<EWB/EAS server host, e.g. your-name.zb.energy>",
-  "rpc_port": 443,
-  "ca_filename": null,
-  "access_token": "<your personal access token>"
+  "_comment": "Copy this file to config.json (git-ignored) in the same directory and fill in real values. 'ewb' is used by EWB/NetworkConsumerClient examples (connect_with_token); 'eas' is used by EAS/EasClient examples. Each section's keys are passed straight through as **kwargs to that client, so the keys must match its constructor args.",
+  "ewb": {
+    "host": "<EWB server host, e.g. your-name.zb.energy>",
+    "rpc_port": 443,
+    "ca_filename": null,
+    "access_token": "<your personal access token>"
+  },
+  "eas": {
+    "host": "<EAS server host, e.g. your-name.zb.energy>",
+    "port": 443,
+    "protocol": "https",
+    "ca_filename": null,
+    "access_token": "<your personal access token>"
+  }
 }

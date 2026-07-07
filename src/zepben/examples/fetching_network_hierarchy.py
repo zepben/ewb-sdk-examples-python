@@ -9,13 +9,13 @@ import json
 from zepben.ewb import connect_with_token, NetworkConsumerClient
 
 with open("config.json") as f:
-    c = json.loads(f.read())
+    c = json.loads(f.read())["ewb"]
 
 
 async def main():
     # See connecting_to_grpc_service.py for examples of each connect function
     print("Connecting to EWB..")
-    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    channel = connect_with_token(**c)
     client = NetworkConsumerClient(channel)
     print("Connection established..")
     # Fetch network hierarchy

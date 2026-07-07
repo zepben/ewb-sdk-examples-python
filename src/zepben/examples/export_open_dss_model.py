@@ -15,7 +15,7 @@ import requests
 
 
 with open("config.json") as f:
-    c = json.loads(f.read())
+    c = json.loads(f.read())["eas"]
 
 
 def wait_for_export(eas_client: EasClient, model_id: int):
@@ -66,12 +66,7 @@ def download_generated_model(eas_client: EasClient, output_file_name: str, model
 
 
 def open_dss_export(export_file_name: str):
-    eas_client = EasClient(
-        host=c["host"],
-        port=c["rpc_port"],
-        access_token=c["access_token"],
-        asynchronous=True
-    )
+    eas_client = EasClient(**c, asynchronous=True)
 
     # Run an opendss export
     print("Sending OpenDss model export request to EAS")

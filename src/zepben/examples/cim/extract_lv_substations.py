@@ -11,7 +11,7 @@ from zepben.ewb import connect_with_token, NetworkConsumerClient, HvCustomer, In
 from zepben.examples import CONFIG_DIR
 
 with open(f"{CONFIG_DIR}/config.json") as f:
-    c = json.loads(f.read())
+    c = json.loads(f.read())["ewb"]
 
 
 async def extract_lv_substations_for_feeder(feeder_mrid: str):
