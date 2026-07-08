@@ -25,7 +25,18 @@ def read_json_config(config_file_path: str) -> Dict:
     return config_dict
 
 
+def eas_client_from_config(config: Dict, asynchronous: bool) -> EasClient:
+    """
+    Builds an EasClient from an 'eas' config section. asynchronous is always a call-site
+    choice (the caller always wants True or always wants False), so it overrides whatever
+    an 'asynchronous' key in config might say, rather than colliding with it as a duplicate
+    kwarg.
+    """
+    config = {k: v for k, v in config.items() if k != "asynchronous"}
+    return EasClient(**config, asynchronous=asynchronous)
+
+
 def get_client(config_dir, async_=True):
     config = read_json_config(f"{config_dir}/config.json")["eas"]
 
-    return EasClient(**config, asynchronous=async_)
+    return eas_client_from_config(config, async_)

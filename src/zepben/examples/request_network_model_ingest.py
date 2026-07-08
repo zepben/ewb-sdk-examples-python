@@ -7,7 +7,9 @@ import asyncio
 import json
 import sys
 
-from zepben.eas import FeederLoadAnalysisInput, EasClient, Mutation, IngestorConfigInput
+from zepben.eas import FeederLoadAnalysisInput, Mutation, IngestorConfigInput
+
+from zepben.examples.utils import eas_client_from_config
 
 # This example kicks off an ingest of a network model that has already been uploaded to blob storage.
 # See docs/docs/network_model_ingest.mdx for a full walkthrough, including how to prepare the model
@@ -19,7 +21,7 @@ with open("config.json") as f:
 
 async def main(argv):
     print("Connecting to EAS..")
-    eas_client = EasClient(**c, asynchronous=True)
+    eas_client = eas_client_from_config(c, asynchronous=True)
     print("Connection established..")
     # Kick off a network model ingest.
     #

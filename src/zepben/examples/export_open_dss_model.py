@@ -13,6 +13,8 @@ from zepben.eas import EasClient, OpenDssModelInput, OpenDssModulesConfigInput, 
 from time import sleep
 import requests
 
+from zepben.examples.utils import eas_client_from_config
+
 
 with open("config.json") as f:
     c = json.loads(f.read())["eas"]
@@ -66,7 +68,7 @@ def download_generated_model(eas_client: EasClient, output_file_name: str, model
 
 
 def open_dss_export(export_file_name: str):
-    eas_client = EasClient(**c, asynchronous=True)
+    eas_client = eas_client_from_config(c, asynchronous=True)
 
     # Run an opendss export
     print("Sending OpenDss model export request to EAS")

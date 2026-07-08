@@ -7,8 +7,10 @@ import asyncio
 import json
 
 from geojson import Feature, LineString, FeatureCollection, Point
-from zepben.eas import StudyInput, StudyResultInput, GeoJsonOverlayInput, EasClient, Mutation
+from zepben.eas import StudyInput, StudyResultInput, GeoJsonOverlayInput, Mutation
 from zepben.ewb import AcLineSegment, EnergyConsumer, connect_with_token, NetworkConsumerClient, IncludedEnergizedContainers
+
+from zepben.examples.utils import eas_client_from_config
 # A study is a geographical visualisation of data that is drawn on top of the network.
 # This data is typically the result of a load flow simulation.
 # Each study may contain multiple results: different visualisations that the user may switch between.
@@ -89,7 +91,7 @@ async def main():
     )
     print("Study created..")
     print("Connecting to EAS..")
-    eas_client = EasClient(**c_eas, asynchronous=True)
+    eas_client = eas_client_from_config(c_eas, asynchronous=True)
 
     print("Connection established..")
 

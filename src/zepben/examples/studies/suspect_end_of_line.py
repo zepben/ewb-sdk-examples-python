@@ -17,6 +17,8 @@ from zepben.ewb import PowerTransformer, ConductingEquipment, EnergyConsumer, Ac
     NetworkConsumerClient, PhaseCode, PowerElectronicsConnection, Feeder, PowerSystemResource, Location, \
     connect_with_token, NetworkTraceStep, Tracing, downstream, upstream, IncludedEnergizedContainers
 
+from zepben.examples.utils import eas_client_from_config
+
 
 with open("../config.json") as f:
     _config = json.loads(f.read())
@@ -69,7 +71,7 @@ async def main():
 
         print(f"Created Study for {len(feeder_mrids)} feeders")
 
-        eas_client = EasClient(**c_eas, asynchronous=True)
+        eas_client = eas_client_from_config(c_eas, asynchronous=True)
 
         print(f"Uploading Study for {', '.join(feeders)} ...")
         await upload_suspect_end_of_line_study(
