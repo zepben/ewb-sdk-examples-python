@@ -9,7 +9,8 @@ from datetime import datetime
 
 from zepben.eas import EasClient, OpenDssModelInput, OpenDssModulesConfigInput, OpenDssModelGenerationSpecInput, OpenDssModelOptionsInput, \
     OpenDssCommonConfigInput, HcGeneratorConfigInput, TimePeriodInput, HcModelConfigInput, HcSolveConfigInput, \
-    HcRawResultsConfigInput, HcMeterPlacementConfigInput, HcSwitchMeterPlacementConfigInput, HcSwitchClass, HcFeederScenarioAllocationStrategy, Mutation, Query
+    HcRawResultsConfigInput, HcMeterPlacementConfigInput, HcSwitchMeterPlacementConfigInput, HcSwitchClass, HcFeederScenarioAllocationStrategy, Mutation, Query, \
+    FixedTimeInput
 from time import sleep
 import requests
 
