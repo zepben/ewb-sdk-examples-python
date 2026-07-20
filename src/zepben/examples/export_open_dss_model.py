@@ -9,28 +9,66 @@ from datetime import datetime
 
 from zepben.eas import EasClient, OpenDssModelInput, OpenDssModulesConfigInput, OpenDssModelGenerationSpecInput, OpenDssModelOptionsInput, \
     OpenDssCommonConfigInput, HcGeneratorConfigInput, TimePeriodInput, HcModelConfigInput, HcSolveConfigInput, \
-    HcRawResultsConfigInput, HcMeterPlacementConfigInput, HcSwitchMeterPlacementConfigInput, HcSwitchClass, HcFeederScenarioAllocationStrategy, Mutation, Query
+    HcRawResultsConfigInput, HcMeterPlacementConfigInput, HcSwitchMeterPlacementConfigInput, HcSwitchClass, HcFeederScenarioAllocationStrategy, Mutation, Query, \
+    FixedTimeInput, OpenDssModelPageFields, OpenDssModelFields
 from time import sleep
 import requests
 
 from zepben.examples.utils import eas_client_from_config
 
-
 with open("config.json") as f:
     c = json.loads(f.read())["eas"]
 
 
-def wait_for_export(eas_client: EasClient, model_id: int):
+async def get_opendss_model(eas_client, model_id: int):
+    """
+    Retrieve information of a OpenDss model export
+
+    :param model_id: The OpenDss model export ID
+    :return: The HTTP response received from the Evolve App Server after requesting the openDss model info
+    """
+    offset = 0
+    while True:
+        # noinspection PyDeprecation
+        response = await eas_client.query(Query.paged_open_dss_models(limit=1, offset=0),
+                                          OpenDssModelPageFields.total_count,
+                                          OpenDssModelPageFields.offset,
+                                          OpenDssModelPageFields.models().fields(
+                                              OpenDssModelFields.id,
+                                              OpenDssModelFields.name,
+                                              OpenDssModelFields.created_at,
+                                              OpenDssModelFields.state,
+                                              OpenDssModelFields.download_url,
+                                              OpenDssModelFields.is_public,
+                                              OpenDssModelFields.errors,
+                                              OpenDssModelFields.generation_spec,
+                                          )
+                                          )
+        total_count = int(response["data"]["pagedOpenDssModels"]["totalCount"])
+        page_count = len(response["data"]["pagedOpenDssModels"]["models"])
+        for model in response["data"]["pagedOpenDssModels"]["models"]:
+            if model["id"] == model_id:
+                return model
+        offset += page_count
+
+        if offset >= total_count:
+            break
+
+    raise ValueError(f"Model id: {model_id} was not found in EAS database.")
+
+
+async def wait_for_export(eas_client: EasClient, model_id: int):
     # Wait for OpenDss model export to complete
     wait_limit_seconds = 3000
     step_seconds = 2
     total = 0
     print(f"Waiting for model generation ({wait_limit_seconds} seconds) ", end='', flush=True)
     # Retrieve the model information for the model we just requested
-    model = eas_client.get_opendss_model(model_id)
+    model = await get_opendss_model(eas_client, model_id)
+
     while model["state"] == "CREATION":
         try:
-            model = eas_client.get_opendss_model(model_id)
+            model = await get_opendss_model(eas_client, model_id)
             print(".", end='', flush=True)
             sleep(step_seconds)
             total += step_seconds
@@ -67,84 +105,82 @@ def download_generated_model(eas_client: EasClient, output_file_name: str, model
         print("Download failed. Model may have failed to generate.")
 
 
-def open_dss_export(export_file_name: str):
+async def open_dss_export(export_file_name: str):
     eas_client = eas_client_from_config(c, asynchronous=True)
 
     # Run an opendss export
     print("Sending OpenDss model export request to EAS")
 
-    response = asyncio.run(
-        eas_client.mutation(
-            Mutation.create_open_dss_model(
-                OpenDssModelInput(
-                    generationSpec=OpenDssModelGenerationSpecInput(
-                        modelOptions=OpenDssModelOptionsInput(
-                            scenario="base",
-                            year=2025,
-                            feeder="<FEEDER_MRID>",
-                        ),
-                        modulesConfiguration=OpenDssModulesConfigInput(
-                            common=OpenDssCommonConfigInput(
-                                timePeriod=TimePeriodInput(
-                                    startTime=datetime.fromisoformat("2024-04-01T00:00"),
-                                    endTime=datetime.fromisoformat("2025-04-01T00:00")
-                                ),
-                                # For fixed time export example, pass load_time a FixedTimeInput object
-                                # fixedTime=FixedTimeInput(
-                                #     loadTime=datetime.fromisoformat("2024-04-01T00:00")
-                                # )
-                            ),
-                            generator=HcGeneratorConfigInput(
-                                model=HcModelConfigInput(
-                                    meterPlacementConfig=HcMeterPlacementConfigInput(
-                                        feederHead=True,
-                                        distTransformers=True,
-                                        # Include meters for any switch that has a name that starts with 'LV Circuit Head' and is a Fuse or Disconnector
-                                        switchMeterPlacementConfigs=[
-                                            HcSwitchMeterPlacementConfigInput(
-                                                meterSwitchClass=HcSwitchClass.DISCONNECTOR,
-                                                namePattern="LV Circuit Head.*"
-                                            ), HcSwitchMeterPlacementConfigInput(
-                                                meterSwitchClass=HcSwitchClass.FUSE,
-                                                namePattern="LV Circuit Head.*"
-                                            )
-                                        ]
-                                    ),
-                                    loadVMaxPu=1.2,
-                                    loadVMinPu=0.8,
-                                    pFactorBaseExports=-1,
-                                    pFactorBaseImports=1,
-                                    pFactorForecastPv=0.98,
-                                    fixSinglePhaseLoads=True,
-                                    maxSinglePhaseLoad=15000.0,
-                                    maxLoadServiceLineRatio=1.0,
-                                    maxLoadLvLineRatio=2.0,
-                                    maxLoadTxRatio=2.0,
-                                    maxGenTxRatio=4.0,
-                                    fixOverloadingConsumers=True,
-                                    fixUndersizedServiceLines=True,
-                                    feederScenarioAllocationStrategy=HcFeederScenarioAllocationStrategy.ADDITIVE,
-                                    closedLoopVRegEnabled=True,
-                                    closedLoopVRegSetPoint=0.9825,
-                                    seed=123,
-
-                                ),
-                                solve=HcSolveConfigInput(
-                                    stepSizeMinutes=30
-                                ),
-                                rawResults=HcRawResultsConfigInput(
-                                    energyMetersRaw=True,
-                                    energyMeterVoltagesRaw=True,
-                                    overloadsRaw=True,
-                                    resultsPerMeter=True,
-                                    voltageExceptionsRaw=True,
-                                ),
-                            ),
-                        )
+    response = await eas_client.mutation(
+        Mutation.create_open_dss_model(
+            OpenDssModelInput(
+                generationSpec=OpenDssModelGenerationSpecInput(
+                    modelOptions=OpenDssModelOptionsInput(
+                        scenario="base",
+                        year=2025,
+                        feeder="<FEEDER_MRID>",
                     ),
-                    isPublic=True,
-                    modelName=export_file_name,
-                )
+                    modulesConfiguration=OpenDssModulesConfigInput(
+                        common=OpenDssCommonConfigInput(
+                            timePeriod=TimePeriodInput(
+                                startTime=datetime.fromisoformat("2024-04-01T00:00"),
+                                endTime=datetime.fromisoformat("2025-04-01T00:00")
+                            ),
+                            # For fixed time export example, pass load_time a FixedTimeInput object
+                            # fixedTime=FixedTimeInput(
+                            #     loadTime=datetime.fromisoformat("2024-04-01T00:00")
+                            # )
+                        ),
+                        generator=HcGeneratorConfigInput(
+                            model=HcModelConfigInput(
+                                meterPlacementConfig=HcMeterPlacementConfigInput(
+                                    feederHead=True,
+                                    distTransformers=True,
+                                    # Include meters for any switch that has a name that starts with 'LV Circuit Head' and is a Fuse or Disconnector
+                                    switchMeterPlacementConfigs=[
+                                        HcSwitchMeterPlacementConfigInput(
+                                            meterSwitchClass=HcSwitchClass.DISCONNECTOR,
+                                            namePattern="LV Circuit Head.*"
+                                        ), HcSwitchMeterPlacementConfigInput(
+                                            meterSwitchClass=HcSwitchClass.FUSE,
+                                            namePattern="LV Circuit Head.*"
+                                        )
+                                    ]
+                                ),
+                                loadVMaxPu=1.2,
+                                loadVMinPu=0.8,
+                                pFactorBaseExports=-1,
+                                pFactorBaseImports=1,
+                                pFactorForecastPv=0.98,
+                                fixSinglePhaseLoads=True,
+                                maxSinglePhaseLoad=15000.0,
+                                maxLoadServiceLineRatio=1.0,
+                                maxLoadLvLineRatio=2.0,
+                                maxLoadTxRatio=2.0,
+                                maxGenTxRatio=4.0,
+                                fixOverloadingConsumers=True,
+                                fixUndersizedServiceLines=True,
+                                feederScenarioAllocationStrategy=HcFeederScenarioAllocationStrategy.ADDITIVE,
+                                closedLoopVRegEnabled=False,
+                                closedLoopVRegSetPoint=0.9825,
+                                seed=123,
+
+                            ),
+                            solve=HcSolveConfigInput(
+                                stepSizeMinutes=30
+                            ),
+                            rawResults=HcRawResultsConfigInput(
+                                energyMetersRaw=True,
+                                energyMeterVoltagesRaw=True,
+                                overloadsRaw=True,
+                                resultsPerMeter=True,
+                                voltageExceptionsRaw=True,
+                            ),
+                        ),
+                    )
+                ),
+                isPublic=True,
+                modelName=export_file_name,
             )
         )
     )
@@ -154,7 +190,7 @@ def open_dss_export(export_file_name: str):
     print(f"New OpenDss model export id: {model_id}")
 
     try:
-        wait_for_export(eas_client, int(model_id))
+        await wait_for_export(eas_client, int(model_id))
 
         # Request a download URL from EAS and download to a local file
         download_generated_model(eas_client, export_file_name, int(model_id))
@@ -162,8 +198,8 @@ def open_dss_export(export_file_name: str):
     except TimeoutError:
         print("\nERROR: Timed out waiting for model export to complete.")
 
-    eas_client.close()
+    await eas_client.close()
 
 
 if __name__ == "__main__":
-    open_dss_export(f"test_export_model_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+    asyncio.run(open_dss_export(f"test_export_model_{datetime.now().strftime('%Y%m%d_%H%M%S')}"))
