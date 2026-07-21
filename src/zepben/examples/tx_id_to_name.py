@@ -18,12 +18,12 @@ from zepben.ewb import NetworkConsumerClient, connect_with_token, PowerTransform
 OUTPUT_FILE = "transformer_id_mapping.csv"
 HEADER = True
 
-with open("./config.json") as f:
-    c = json.loads(f.read())
+with open("config.json") as f:
+    c = json.loads(f.read())["ewb"]
 
 
 async def connect():
-    channel = connect_with_token(host=c["host"], rpc_port=c["rpc_port"], access_token=c["access_token"], ca_filename=c["ca_path"])
+    channel = connect_with_token(**c)
     network_client = NetworkConsumerClient(channel=channel)
 
     if os.path.exists(OUTPUT_FILE):

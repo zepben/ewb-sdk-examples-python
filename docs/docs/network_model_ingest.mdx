@@ -15,7 +15,7 @@ Folder naming and internal file formatting is customer-specific - Zepben will pr
 
 ## Part 2: Running the ingestion kick-off script
 
-Once your model folder is in place, run the example script to trigger the ingest. It first connects to the Evolve App Server using an `EasClient`, built from the same `config.json` values (`eas_host`, `eas_port`, `eas_protocol`, `access_token`, etc.) used throughout the other EAS examples. See [Creating and Uploading Studies](creating_and_uploading_studies.mdx) for a breakdown of these connection values.
+Once your model folder is in place, run the example script to trigger the ingest. It first connects to the Evolve App Server using an `EasClient`, built from the `eas` section of `config.json` (`host`, `port`, `protocol`, `access_token`, etc.) used throughout the other EAS examples. See [Creating and Uploading Studies](creating_and_uploading_studies.mdx) for a breakdown of these connection values.
 
 It then triggers the ingest via `Mutation.execute_ingestor`, passing an `IngestorConfigInput` with `key="dataStorePath"` and `value` set to your folder name from Part 1. `run_config` is a list, so more key/value pairs can be added if Zepben provides other ingestor configuration options for your environment.
 

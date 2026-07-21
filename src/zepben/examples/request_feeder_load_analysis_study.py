@@ -7,24 +7,18 @@ import asyncio
 import json
 import sys
 
-from zepben.eas import FeederLoadAnalysisInput, EasClient, Mutation
+from zepben.eas import FeederLoadAnalysisInput, Mutation
+
+from zepben.examples.utils import eas_client_from_config
 
 with open("config.json") as f:
-    c = json.loads(f.read())
+    c = json.loads(f.read())["eas"]
 
 
 async def main(argv):
     # See connecting_to_grpc_service.py for examples of each connect function
     print("Connecting to EAS..")
-    eas_client = EasClient(
-        host=c["eas_host"],
-        port=c["eas_port"],
-        protocol=c["eas_protocol"],
-        access_token=c["access_token"],
-        verify_certificate=c.get("verify_certificate", True),
-        ca_filename=c["ca_path"],
-        asynchronous=True
-    )
+    eas_client = eas_client_from_config(c, asynchronous=True)
     print("Connection established..")
     # Fire off a feeder load analysis study
     feeder_load_analysis_token = await eas_client.mutation(

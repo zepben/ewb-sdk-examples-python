@@ -17,9 +17,13 @@ from zepben.ewb import PowerTransformer, ConductingEquipment, EnergyConsumer, Ac
     NetworkConsumerClient, PhaseCode, PowerElectronicsConnection, Feeder, PowerSystemResource, Location, \
     connect_with_token, NetworkTraceStep, Tracing, downstream, upstream, IncludedEnergizedContainers
 
+from zepben.examples.utils import eas_client_from_config
+
 
 with open("../config.json") as f:
-    c = json.loads(f.read())
+    _config = json.loads(f.read())
+    c_ewb = _config["ewb"]
+    c_eas = _config["eas"]
 
 
 def chunk(it, size):
@@ -32,7 +36,7 @@ async def main():
     zone_mrids = ["MTN"]
     print(f"Start time: {datetime.now()}")
 
-    rpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    rpc_channel = connect_with_token(**c_ewb)
     client = NetworkConsumerClient(rpc_channel)
     hierarchy = (await client.get_network_hierarchy()).throw_on_error()
     substations = hierarchy.value.substations
@@ -54,7 +58,7 @@ async def main():
         all_traced_equipment = []
         transformer_to_suspect_end = dict()
 
-        rpc_channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+        rpc_channel = connect_with_token(**c_ewb)
         print(f"Processing feeders {', '.join(feeders)}")
         for feeder_mrid in feeders:
             futures.append(asyncio.ensure_future(fetch_feeder_and_trace(feeder_mrid, rpc_channel)))
@@ -67,7 +71,7 @@ async def main():
 
         print(f"Created Study for {len(feeder_mrids)} feeders")
 
-        eas_client = EasClient(host=c["host"], port=c["rpc_port"], protocol="https", access_token=c["access_token"], asynchronous=True)
+        eas_client = eas_client_from_config(c_eas, asynchronous=True)
 
         print(f"Uploading Study for {', '.join(feeders)} ...")
         await upload_suspect_end_of_line_study(

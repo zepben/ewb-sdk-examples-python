@@ -22,13 +22,9 @@ from zepben.ewb import (
 
 async def main(mrids: Tuple[str, str], io_type: Type[ProtectedSwitch], feeder_mrid):
     with open("config.json") as f:
-        c = json.loads(f.read())
+        c = json.loads(f.read())["ewb"]
 
-    channel = connect_with_token(
-        host=c["host"],
-        access_token=c["access_token"],
-        rpc_port=c["rpc_port"]
-    )
+    channel = connect_with_token(**c)
     client = NetworkConsumerClient(channel)
     await client.get_equipment_container(
         feeder_mrid,

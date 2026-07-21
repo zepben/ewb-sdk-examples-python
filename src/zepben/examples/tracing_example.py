@@ -17,10 +17,10 @@ from zepben.ewb import (
 
 async def main():
     with open("config.json") as f:
-        c = json.loads(f.read())
+        c = json.loads(f.read())["ewb"]
 
     print("Connecting to Server")
-    channel = connect_with_token(host=c["host"], access_token=c["access_token"], rpc_port=c["rpc_port"])
+    channel = connect_with_token(**c)
 
     client = NetworkConsumerClient(channel)
     result = (await client.get_network_hierarchy()).throw_on_error().result

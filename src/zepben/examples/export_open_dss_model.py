@@ -14,8 +14,10 @@ from zepben.eas import EasClient, OpenDssModelInput, OpenDssModulesConfigInput, 
 from time import sleep
 import requests
 
+from zepben.examples.utils import eas_client_from_config
+
 with open("config.json") as f:
-    c = json.loads(f.read())
+    c = json.loads(f.read())["eas"]
 
 
 async def get_opendss_model(eas_client, model_id: int):
@@ -104,12 +106,7 @@ def download_generated_model(eas_client: EasClient, output_file_name: str, model
 
 
 async def open_dss_export(export_file_name: str):
-    eas_client = EasClient(
-        host=c["host"],
-        port=c["rpc_port"],
-        access_token=c["access_token"],
-        asynchronous=True
-    )
+    eas_client = eas_client_from_config(c, asynchronous=True)
 
     # Run an opendss export
     print("Sending OpenDss model export request to EAS")
