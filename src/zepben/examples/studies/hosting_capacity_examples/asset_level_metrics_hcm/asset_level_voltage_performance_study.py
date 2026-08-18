@@ -12,7 +12,7 @@ import json
 import math
 import sys
 from pathlib import Path
-from typing import Dict, List, Sequence, Set
+from typing import Dict, List, Sequence, Set, Optional
 
 from geojson import Feature, FeatureCollection
 from zepben.eas import GeoJsonOverlayInput, Mutation, StudyInput, StudyResultInput

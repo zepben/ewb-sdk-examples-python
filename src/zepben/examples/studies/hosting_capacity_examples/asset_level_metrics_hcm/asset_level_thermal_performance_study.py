@@ -11,12 +11,12 @@ import asyncio
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Sequence, Set
+from typing import Dict, List, Sequence, Set, Optional, Type
 
-from geojson import Feature, FeatureCollection
+from geojson import Feature, FeatureCollection, Point
 from zepben.eas import GeoJsonOverlayInput, Mutation, StudyInput, StudyResultInput
 from zepben.examples.studies.study_utils import create_eas_client_for_host
-from zepben.ewb import ConductingEquipment, Feeder, IncludedEnergizedContainers, NetworkConsumerClient
+from zepben.ewb import AcLineSegment, ConductingEquipment, Feeder, IncludedEnergizedContainers, NetworkConsumerClient, PowerTransformer
 
 try:
     from zepben.examples.studies.hosting_capacity_examples.asset_level_metrics_hcm.common import (
@@ -35,6 +35,7 @@ try:
         load_ewb_settings,
         split_csv_values,
         to_equipment_geometry,
+        to_equipment_point,
     )
 except ModuleNotFoundError:
     from common import (  # type: ignore
@@ -53,6 +54,7 @@ except ModuleNotFoundError:
         load_ewb_settings,
         split_csv_values,
         to_equipment_geometry,
+        to_equipment_point,
     )
 
 
@@ -135,21 +137,44 @@ async def main(argv: Sequence[str]) -> None:
 
     results: List[StudyResultInput] = []
     for metric_key, result_name, label_prefix in THERMAL_METRICS:
-        features = build_thermal_features(
+        line_features = build_thermal_features(
             rows=selected_rows,
             simplified_to_original=mapping,
             equipment_by_mrid=equipment_by_mrid,
             metric_key=metric_key,
             label_prefix=label_prefix,
+            equipment_class=AcLineSegment,
+            asset_class="AcLineSegment",
         )
-        print(f"  - {result_name}: {len(features)} feature(s)")
+        print(f"  - {result_name} Lines: {len(line_features)} feature(s)")
         results.append(
             StudyResultInput(
-                name=result_name,
+                name=f"{result_name} - Lines",
                 sections=[],
                 geo_json_overlay=GeoJsonOverlayInput(
-                    data=FeatureCollection(features),
-                    styles=[f"asset-thermal-{metric_key}-line", f"asset-thermal-{metric_key}-point", f"asset-thermal-{metric_key}-label"],
+                    data=FeatureCollection(line_features),
+                    styles=[f"asset-thermal-{metric_key}-line", f"asset-thermal-{metric_key}-label"],
+                ),
+            )
+        )
+
+        transformer_features = build_thermal_features(
+            rows=selected_rows,
+            simplified_to_original=mapping,
+            equipment_by_mrid=equipment_by_mrid,
+            metric_key=metric_key,
+            label_prefix=label_prefix,
+            equipment_class=PowerTransformer,
+            asset_class="PowerTransformer",
+        )
+        print(f"  - {result_name} Transformers: {len(transformer_features)} feature(s)")
+        results.append(
+            StudyResultInput(
+                name=f"{result_name} - Transformers",
+                sections=[],
+                geo_json_overlay=GeoJsonOverlayInput(
+                    data=FeatureCollection(transformer_features),
+                    styles=[f"asset-thermal-{metric_key}-point", f"asset-thermal-{metric_key}-label"],
                 ),
             )
         )
@@ -252,6 +277,8 @@ def build_thermal_features(
     equipment_by_mrid: Dict[str, object],
     metric_key: str,
     label_prefix: str,
+    equipment_class: Type[ConductingEquipment],
+    asset_class: str,
 ) -> List[Feature]:
     features: List[Feature] = []
     missing_assets: Set[str] = set()
@@ -269,8 +296,14 @@ def build_thermal_features(
             if equipment is None:
                 missing_assets.add(asset_mrid)
                 continue
+            if not isinstance(equipment, equipment_class):
+                continue
 
-            geom_kind, geometry = to_equipment_geometry(equipment)
+            if asset_class == "PowerTransformer":
+                point = to_equipment_point(equipment)
+                geom_kind, geometry = ("point", Point(point)) if point is not None else (None, None)
+            else:
+                geom_kind, geometry = to_equipment_geometry(equipment)
             if geometry is None:
                 continue
 
@@ -283,6 +316,7 @@ def build_thermal_features(
                     properties={
                         "metric_key": metric_key,
                         "geom_kind": geom_kind,
+                        "asset_class": asset_class,
                         "asset_mrid": asset_mrid,
                         "result_asset_mrid": row.conducting_equipment_mrid,
                         "feeder": row.feeder,
